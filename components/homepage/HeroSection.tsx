@@ -1,12 +1,14 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { ArrowRight, Play, Sparkles, TrendingUp, Users, Zap } from "lucide-react"
+import { ArrowRight, Play, Sparkles } from "lucide-react"
 import { motion } from "framer-motion"
 import Image from "next/image"
 import HeroImage from "@/public/image.png"
+import { useTranslations } from "next-intl";
 
 export function HeroSection() {
+  const t = useTranslations("HeroSection");
 
   return (
     <section className="relative min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 via-white to-blue-50 overflow-hidden pt-30">
@@ -93,7 +95,7 @@ export function HeroSection() {
             >
               <div className="relative bg-blue-600 text-white p-4 rounded-xl shadow-lg">
                 <p className="text-sm">
-                  Hoi ik ben Ans en ANSwer 24/7 voor jou beste marketingstrategie!
+                  {t('hero_floating_text')}
                 </p>
                 {/* Tail */}
                 <div className="absolute bottom-[-10px] right-8 w-0 h-0 border-l-[10px] border-l-transparent border-r-[10px] border-r-transparent border-t-[10px] border-t-blue-600" />
