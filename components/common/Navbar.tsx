@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Menu, X, ArrowRight } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
+import Link from "next/link";
 
 export function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false)
@@ -60,9 +61,11 @@ export function Navbar() {
 
           {/* Desktop CTA */}
           <div className="hidden md:flex items-center space-x-4">
-            <Button variant="ghost" className="text-gray-700 hover:text-blue-600">
-              Sign In
-            </Button>
+            <Link href="/signin" passHref legacyBehavior>
+              <Button asChild variant="ghost" className="text-gray-700 hover:text-blue-600">
+                <a>Sign In</a>
+              </Button>
+            </Link>
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
               <Button className="bg-blue-600 hover:bg-blue-700 text-white px-6 rounded-xl">
                 Start Free Trial
@@ -102,9 +105,11 @@ export function Navbar() {
                 </a>
               ))}
               <div className="pt-4 space-y-2">
-                <Button variant="outline" className="w-full bg-transparent">
-                  Sign In
-                </Button>
+                <Link href="/signin" passHref legacyBehavior>
+                  <Button asChild variant="outline" className="w-full bg-transparent">
+                    <a>Sign In</a>
+                  </Button>
+                </Link>
                 <Button className="w-full bg-blue-600 hover:bg-blue-700">Start Free Trial</Button>
               </div>
             </div>
