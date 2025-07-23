@@ -7,9 +7,9 @@ import Image from "next/image"
 import HeroImage from "@/public/image.png"
 
 export function HeroSection() {
- 
+
   return (
-    <section className="relative min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 via-white to-blue-50 overflow-hidden pt-20">
+    <section className="relative min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 via-white to-blue-50 overflow-hidden pt-30">
       {/* Animated background elements */}
       <div className="absolute inset-0">
         <div className="absolute top-20 left-10 w-72 h-72 bg-blue-100 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob" />
@@ -36,9 +36,9 @@ export function HeroSection() {
             transition={{ duration: 0.6, delay: 0.1 }}
             className="text-3xl lg:text-5xl font-bold text-gray-900 mb-6 leading-tight"
           >
-            Maak kennis met ANS jouw slimme 
+            Maak kennis met ANS jouw slimme
             <span className="bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent block">
-            AI Google Ads manager
+              AI Google Ads manager
             </span>
           </motion.h1>
           <motion.div
@@ -89,13 +89,14 @@ export function HeroSection() {
             <motion.div
               animate={{ y: [-10, 10, -10] }}
               transition={{ duration: 4, repeat: Number.POSITIVE_INFINITY, ease: "easeInOut" }}
-              className="absolute w-60 -top-4 -left-4 bg-blue-600 text-white p-3 rounded-xl shadow-lg"
+              className="absolute w-72 -top-6 md:-left-16 -left-4"
             >
-              <div className="flex items-center gap-2">
-                <Zap className="w-5 h-5" />
-                <div className="bg-white text-blue-600 p-2 rounded-md">
-                  <p className="text-sm">Hoi ik ben Ans en ANSwer 24/7 voor jou beste marketingstrategie!</p>
-                </div>
+              <div className="relative bg-blue-600 text-white p-4 rounded-xl shadow-lg">
+                <p className="text-sm">
+                  Hoi ik ben Ans en ANSwer 24/7 voor jou beste marketingstrategie!
+                </p>
+                {/* Tail */}
+                <div className="absolute bottom-[-10px] right-8 w-0 h-0 border-l-[10px] border-l-transparent border-r-[10px] border-r-transparent border-t-[10px] border-t-blue-600" />
               </div>
             </motion.div>
           </div>
