@@ -1,9 +1,11 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { Button } from "@/components/ui/button"
-import { Menu, X, ArrowRight } from "lucide-react"
-import { motion, AnimatePresence } from "framer-motion"
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Menu, X, ArrowRight } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import LanguageSwitcher from "./LanguageSwitcher";
+import { Link } from "@/i18n/navigation";
 
 export function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false)
@@ -20,8 +22,8 @@ export function Navbar() {
   const navItems = [
     { name: "Features", href: "#features" },
     { name: "Pricing", href: "#pricing" },
-    { name: "About", href: "#about" },
-    { name: "Contact", href: "#contact" },
+    { name: "About", href: "/about" },
+    { name: "Contact", href: "/contact" },
   ]
 
   return (
@@ -46,20 +48,22 @@ export function Navbar() {
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
             {navItems.map((item) => (
-              <motion.a
+              <motion.div
                 key={item.name}
-                href={item.href}
                 whileHover={{ y: -2 }}
                 className="text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200 relative group"
               >
-                {item.name}
+                <Link href={item.href}>
+                  {item.name}
+                </Link>
                 <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-600 transition-all duration-200 group-hover:w-full" />
-              </motion.a>
+              </motion.div>
             ))}
           </div>
 
           {/* Desktop CTA */}
           <div className="hidden md:flex items-center space-x-4">
+            <LanguageSwitcher />
             <Button variant="ghost" className="text-gray-700 hover:text-blue-600">
               Sign In
             </Button>

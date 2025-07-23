@@ -1,0 +1,118 @@
+{
+    "common": {
+        "locale": "nl",
+        "language": "Nederlands",
+        "footer_copyright": "© {year} Answer24. Alle rechten voorbehouden.",
+        "footer_about": "Over ons",
+        "footer_contact": "Contact",
+        "footer_privacy_policy": "Privacybeleid"
+    },
+    "HeroSection": {
+        "hero_badge": "AI-aangedreven Google Ads-optimalisatie",
+        "hero_title_1": "Maak kennis met ANS, jouw slimme",
+        "hero_title_2": "AI Google Ads-manager",
+        "hero_button_1": "Start gratis proefperiode",
+        "hero_button_2": "Bekijk demo",
+        "hero_image_alt": "Hero-afbeelding",
+        "hero_floating_text": "Hoi, ik ben Ans en ik beantwoord 24/7 voor jouw beste marketingstrategie!"
+    },
+    "FeatureSection": {
+        "section_title": "Krachtige functies",
+        "heading": {
+            "line1": "Alles wat je nodig hebt om",
+            "line2": "te domineren in Google Ads"
+        },
+        "subheading": "Krachtige AI-gestuurde functies ontworpen om elk aspect van je Google Ads-campagnes te optimaliseren",
+        "learn_more": "Meer informatie",
+        "features": [
+            {
+                "title": "Slimme Trefwoordgenerator",
+                "description": "AI-aangestuurde trefwoordsuggesties met zoekvolume, CPC en concurrentieanalyse voor maximale impact."
+            },
+            {
+                "title": "Campagne-auditor",
+                "description": "Uitgebreide audits die budgetverspilling, slechte trefwoorden en gemiste kansen identificeren."
+            },
+            {
+                "title": "Concurrentievolging",
+                "description": "Volg advertenties van concurrenten, houd wijzigingen bij en krijg inzicht in hun prestatietrategieën."
+            },
+            {
+                "title": "White-Label Rapportages",
+                "description": "Op maat gemaakte rapporten en downloadbare PDF's, perfect voor bureaus en presentaties aan klanten."
+            },
+            {
+                
+                "title": "AI-optimalisatietips",
+                "description": "Dagelijkse AI-gegenereerde aanbevelingen voor biedaanpassingen, het pauzeren van trefwoorden en prestatieverbeteringen."
+            },
+            {
+                "title": "Slimme Meldingen",
+                "description": "Directe meldingen voor prestatieverminderingen en belangrijke wijzigingen om snel te kunnen reageren."
+            }
+        ]
+    },
+    "AudienceSection": {
+        "section_title": "Voor wie is het bedoeld",
+        "heading": {
+            "line1": "Gemaakt voor",
+            "line2": "elke marketeer"
+        },
+        "subheading": "Of je nu een ondernemer, bureau of freelancer bent, Answer24 past zich aan jouw behoeften aan",
+        "learn_more": "Meer informatie",
+        "audiences": [
+            {
+                "title": "Kleine en middelgrote bedrijven",
+                "description": "Perfect voor MKB'ers die hun eigen Google Ads-campagnes beheren en hun ROI willen maximaliseren zonder dure bureaus in te huren.",
+                "benefits": [
+                    "Verminder verspilling van advertentiebudget",
+                    "Verbeter de prestaties van campagnes",
+                    "Bespaar tijd op optimalisatie"
+                ]
+            },
+            {
+                "title": "Marketingbureaus",
+                "description": "Ideaal voor bureaus die meerdere klantaccounts beheren met white-label rapportage en geavanceerde automatiseringsfuncties.",
+                "benefits": [
+                    "Schaal klantbeheer",
+                    "Professionele rapportage",
+                    "Verhoog de winstmarges"
+                ]
+            },
+            {
+                "title": "Zelfstandige marketeers",
+                "description": "Ontworpen voor zelfstandige marketeers die krachtige automatiseringshulpmiddelen nodig hebben om te concurreren met grotere bureaus.",
+                "benefits": [
+                    "Automatiseer routinetaken",
+                    "Lever betere resultaten",
+                    "Beheer meer klanten"
+                ]
+            }
+        ]
+    },
+    "ContactPage": {
+        "contactBadge": "Neem contact op",
+        "title": "Neem contact op",
+        "subtitle": "Klaar om je Google Ads te transformeren? Laten we praten over hoe Answer24 je bedrijf kan helpen groeien.",
+        "form": {
+            "fullName": "Volledige naam",
+            "email": "E-mailadres",
+            "company": "Bedrijfsnaam",
+            "message": "Bericht",
+            "submit": "Verstuur bericht"
+        },
+        "contactInfo": {
+            "title": "Contactgegevens",
+            "emailLabel": "E-mail",
+            "emailValue": "hallo@answer24.com",
+            "phoneLabel": "Telefoon",
+            "phoneValue": "+31 20 123 4567",
+            "locationLabel": "Locatie",
+            "locationValue": "Amsterdam, Nederland"
+        },
+        "quickResponse": {
+            "title": "Snel antwoord",
+            "description": "We reageren doorgaans binnen 24 uur op alle vragen. Voor dringende zaken, bel ons direct."
+        }
+    }
+}
