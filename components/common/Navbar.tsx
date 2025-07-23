@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Menu, X, ArrowRight } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
+import Link from "next/link";
 
 export function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false)
@@ -36,12 +37,14 @@ export function Navbar() {
       <div className="max-w-7xl mx-auto px-6">
         <div className="flex items-center justify-between h-20">
           {/* Logo */}
-          <motion.div whileHover={{ scale: 1.05 }} className="flex items-center space-x-2">
-            <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl flex items-center justify-center">
-              <span className="text-white font-bold text-lg">A24</span>
-            </div>
-            <span className="text-2xl font-bold text-gray-900">Answer24</span>
-          </motion.div>
+          <Link href="/" passHref legacyBehavior>
+            <motion.div whileHover={{ scale: 1.05 }} className="flex items-center space-x-2 cursor-pointer">
+              <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl flex items-center justify-center">
+                <span className="text-white font-bold text-lg">A24</span>
+              </div>
+              <span className="text-2xl font-bold text-gray-900">Answer24</span>
+            </motion.div>
+          </Link>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
@@ -60,14 +63,19 @@ export function Navbar() {
 
           {/* Desktop CTA */}
           <div className="hidden md:flex items-center space-x-4">
-            <Button variant="ghost" className="text-gray-700 hover:text-blue-600">
-              Sign In
-            </Button>
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-              <Button className="bg-blue-600 hover:bg-blue-700 text-white px-6 rounded-xl">
-                Start Free Trial
-                <ArrowRight className="ml-2 w-4 h-4" />
+            <Link href="/signin" passHref legacyBehavior>
+              <Button asChild variant="ghost" className="text-gray-700 hover:text-blue-600">
+                <a>Sign In</a>
               </Button>
+            </Link>
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+              <Link href="/signin?signup=1" passHref legacyBehavior>
+                <Button asChild className="bg-blue-600 hover:bg-blue-700 text-white px-6 rounded-xl">
+                  <a>Start Free Trial
+                    <ArrowRight className="ml-2 w-4 h-4" />
+                  </a>
+                </Button>
+              </Link>
             </motion.div>
           </div>
 
@@ -102,10 +110,16 @@ export function Navbar() {
                 </a>
               ))}
               <div className="pt-4 space-y-2">
-                <Button variant="outline" className="w-full bg-transparent">
-                  Sign In
-                </Button>
-                <Button className="w-full bg-blue-600 hover:bg-blue-700">Start Free Trial</Button>
+                <Link href="/signin" passHref legacyBehavior>
+                  <Button asChild variant="outline" className="w-full bg-transparent">
+                    <a>Sign In</a>
+                  </Button>
+                </Link>
+                <Link href="/signin?signup=1" passHref legacyBehavior>
+                  <Button asChild className="w-full bg-blue-600 hover:bg-blue-700">
+                    <a>Start Free Trial</a>
+                  </Button>
+                </Link>
               </div>
             </div>
           </motion.div>
