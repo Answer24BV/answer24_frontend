@@ -1,5 +1,7 @@
 "use client"
 
+import React from 'react';
+import { useTranslations } from "next-intl"
 import { motion } from "framer-motion"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -7,43 +9,40 @@ import { Target, Users, Lightbulb, TrendingUp, ArrowRight, CheckCircle } from "l
 import Image from "next/image"
 import ABOUTIMAGE from "@/public/image.png"
 
-export function AboutPage() {
-  const values = [
-    {
-      icon: Target,
-      title: "Simplicity First",
-      description:
-        "We believe advertising should be simple, not complex. Our technology handles the complexity so you don't have to.",
-    },
-    {
-      icon: TrendingUp,
-      title: "Results Driven",
-      description: "Every feature we build is designed to improve your ROI. We measure success by your success.",
-    },
-    {
-      icon: Users,
-      title: "Customer Focused",
-      description: "We built Answer24 for real businesses with real challenges. Your feedback shapes our product.",
-    },
-  ]
+interface Value {
+  icon: any
+  title: string
+  description: string
+}
 
-  const milestones = [
-    {
-      year: "2023",
-      title: "The Beginning",
-      description: "Founded with a mission to make Google Ads accessible to every business",
-    },
-    {
-      year: "2024",
-      title: "AI Revolution",
-      description: "Launched our advanced AI optimization engine that learns and adapts",
-    },
-    {
-      year: "Today",
-      title: "Growing Strong",
-      description: "Serving 10,000+ businesses worldwide with automated ad optimization",
-    },
-  ]
+interface Milestone {
+  year: string
+  title: string
+  description: string
+}
+
+export function AboutPage() {
+  const t = useTranslations("AboutPage")
+  
+  const values = t.raw('values.values') as unknown as Value[]
+  const milestones = t.raw('journey.milestones') as unknown as Milestone[]
+  const features = t.raw('whyUs.features') as string[]
+  const IconConverter = (icon: string) => {
+    switch (icon) {
+      case "Target":
+        return Target
+      case "Users":
+        return Users
+      case "Lightbulb":
+        return Lightbulb
+      case "TrendingUp":
+        return TrendingUp
+      case "CheckCircle":
+        return CheckCircle
+      default:
+        return Target
+    }
+  }
 
   return (
     <div className="min-h-screen bg-white pt-20">
@@ -56,7 +55,7 @@ export function AboutPage() {
             transition={{ duration: 0.6 }}
             className="text-4xl lg:text-6xl font-bold text-gray-900 mb-6 leading-tight"
           >
-            About Answer24
+            {t('title')}
           </motion.h1>
 
           <motion.p
@@ -65,8 +64,7 @@ export function AboutPage() {
             transition={{ duration: 0.6, delay: 0.1 }}
             className="text-xl text-gray-600 leading-relaxed max-w-3xl mx-auto mb-8"
           >
-            We're on a mission to make Google Ads work better for everyone. No more guesswork, no more wasted budgets,
-            no more complexity.
+            {t('subtitle')}
           </motion.p>
 
           <motion.div
@@ -75,7 +73,7 @@ export function AboutPage() {
             transition={{ duration: 0.6, delay: 0.2 }}
           >
             <Button className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-xl">
-              Start Your Journey
+              {t('ctaButton')}
               <ArrowRight className="ml-2 w-4 h-4" />
             </Button>
           </motion.div>
@@ -92,25 +90,12 @@ export function AboutPage() {
               transition={{ duration: 0.6 }}
               viewport={{ once: true }}
             >
-              <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-6">Our Story</h2>
+              <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-6">{t('story.title')}</h2>
               <div className="space-y-4 text-gray-600 leading-relaxed">
-                <p>
-                  In today's digital world, running successful online ads has become overly complex and increasingly
-                  expensive. Small businesses were struggling to compete with enterprises that had dedicated marketing
-                  teams and unlimited budgets.
-                </p>
-                <p>
-                  That's when we realized something had to change. We founded Answer24 with a simple belief:{" "}
-                  <strong className="text-gray-900">
-                    every business deserves access to world-class advertising technology
-                  </strong>
-                  , regardless of their size or budget.
-                </p>
-                <p>
-                  We're not just another agency promising results. We're a technology-first platform that puts the power
-                  of AI-driven optimization directly in your hands, working 24/7 to make your ads smarter, more
-                  efficient, and more profitable.
-                </p>
+                {t.rich('story.content', {
+                  p: (chunks) => <p className="mb-4">{chunks}</p>,
+                  strong: (chunks) => <strong className="text-gray-900">{chunks}</strong>
+                }) as any}
               </div>
             </motion.div>
 
@@ -142,11 +127,9 @@ export function AboutPage() {
                   <div className="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center mb-6">
                     <Target className="w-8 h-8 text-blue-600" />
                   </div>
-                  <h3 className="text-2xl font-bold text-gray-900 mb-4">Our Mission</h3>
+                  <h3 className="text-2xl font-bold text-gray-900 mb-4">{t('mission.title')}</h3>
                   <p className="text-gray-600 leading-relaxed">
-                    To democratize digital advertising by making advanced AI optimization accessible to businesses of
-                    all sizes. We believe every entrepreneur deserves the same powerful tools that enterprise companies
-                    use to dominate their markets.
+                    {t('mission.description')}
                   </p>
                 </CardContent>
               </Card>
@@ -163,11 +146,9 @@ export function AboutPage() {
                   <div className="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mb-6">
                     <Lightbulb className="w-8 h-8 text-gray-600" />
                   </div>
-                  <h3 className="text-2xl font-bold text-gray-900 mb-4">Our Vision</h3>
+                  <h3 className="text-2xl font-bold text-gray-900 mb-4">{t('vision.title')}</h3>
                   <p className="text-gray-600 leading-relaxed">
-                    A world where digital advertising is smarter, fairer, and more efficient for everyone. Where small
-                    businesses can compete on equal footing, and where success is determined by the quality of your
-                    product, not the size of your marketing budget.
+                    {t('vision.description')}
                   </p>
                 </CardContent>
               </Card>
@@ -186,29 +167,35 @@ export function AboutPage() {
             viewport={{ once: true }}
             className="text-center mb-16"
           >
-            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-6">What We Stand For</h2>
+            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-6">{t('values.title')}</h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-              Our values guide everything we do, from the features we build to the way we support our customers.
+              {t('values.subtitle')}
             </p>
           </motion.div>
 
           <div className="grid md:grid-cols-3 gap-8">
-            {values.map((value, index) => (
-              <motion.div
-                key={value.title}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
-                viewport={{ once: true }}
-                className="text-center group"
-              >
-                <div className="w-20 h-20 bg-blue-100 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
-                  <value.icon className="w-10 h-10 text-blue-600" />
-                </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-4">{value.title}</h3>
-                <p className="text-gray-600 leading-relaxed">{value.description}</p>
-              </motion.div>
-            ))}
+            {values.map((value, index: number) => {
+              const Icon = value.icon;
+              return (
+                <motion.div
+                  key={value.title}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: index * 0.1 }}
+                  viewport={{ once: true }}
+                  className="text-center group"
+                >
+                  <div className="w-20 h-20 bg-blue-100 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
+                    {(() => {
+                      const Icon = IconConverter(value.icon);
+                      return <Icon className="w-8 h-8 text-blue-600" />;
+                    })()}
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-4">{value.title}</h3>
+                  <p className="text-gray-600 leading-relaxed">{value.description}</p>
+                </motion.div>
+              );
+            })}
           </div>
         </div>
       </section>
@@ -223,9 +210,9 @@ export function AboutPage() {
             viewport={{ once: true }}
             className="text-center mb-16"
           >
-            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-6">Our Journey</h2>
+            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-6">{t('journey.title')}</h2>
             <p className="text-xl text-gray-600 leading-relaxed">
-              From a simple idea to serving thousands of businesses worldwide.
+              {t('journey.subtitle')}
             </p>
           </motion.div>
 
@@ -265,21 +252,14 @@ export function AboutPage() {
             viewport={{ once: true }}
             className="text-center mb-16"
           >
-            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-6">Why Choose Answer24?</h2>
+            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-6">{t('whyUs.title')}</h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-              We're not just another advertising platform. Here's what makes us different.
+              {t('whyUs.subtitle')}
             </p>
           </motion.div>
 
           <div className="grid md:grid-cols-2 gap-8">
-            {[
-              "No long-term contracts or hidden fees",
-              "AI that learns and improves over time",
-              "White-label ready for agencies",
-              "24/7 automated optimization",
-              "Real-time performance monitoring",
-              "Dedicated customer support",
-            ].map((feature, index) => (
+            {features.map((feature, index) => (
               <motion.div
                 key={feature}
                 initial={{ opacity: 0, x: -10 }}

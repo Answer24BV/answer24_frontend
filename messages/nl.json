@@ -114,5 +114,76 @@
             "title": "Snel antwoord",
             "description": "We reageren doorgaans binnen 24 uur op alle vragen. Voor dringende zaken, bel ons direct."
         }
+    },
+    "AboutPage": {
+        "title": "Over Answer24",
+        "subtitle": "Onze missie is om Google Ads beter te laten werken voor iedereen. Geen giswerk meer, geen verspilde budgetten, geen onnodige complexiteit.",
+        "ctaButton": "Start Jouw Reis",
+        "story": {
+            "title": "Ons Verhaal",
+            "content": "<p>In de digitale wereld van vandaag is het uitvoeren van succesvolle online advertenties steeds complexer en duurder geworden. Kleine bedrijven hadden moeite om te concurreren met grote ondernemingen met volledige marketingteams en onbeperkte budgetten.</p><p>Toen realiseerden we ons dat er iets moest veranderen. We hebben Answer24 opgericht met een eenvoudig geloof: <strong>elk bedrijf verdient toegang tot eersteklas advertentietechnologie</strong>, ongeacht hun omvang of budget.</p><p>We zijn niet zomaar een bureau dat beloftes doet. We zijn een technologieplatform dat de kracht van AI-gestuurde optimalisatie direct in jouw handen legt, 24/7 werkend om je advertenties slimmer, efficiënter en winstgevender te maken.</p>"
+        },
+        "mission": {
+            "title": "Onze Missie",
+            "description": "Het democratiseren van digitale advertenties door geavanceerde AI-optimalisatie toegankelijk te maken voor bedrijven van elke omvang. Wij geloven dat elke ondernemer recht heeft op dezelfde krachtige tools die grote bedrijven gebruiken om hun markten te domineren."
+        },
+        "vision": {
+            "title": "Onze Visie",
+            "description": "Een wereld waarin digitale advertenties slimmer, eerlijker en efficiënter zijn voor iedereen. Waar kleine bedrijven op gelijke voet kunnen concurreren, en waar succes wordt bepaald door de kwaliteit van je product, niet door de omvang van je marketingbudget."
+        },
+        "values": {
+            "title": "Waar Wij Voor Staan",
+            "subtitle": "Onze waarden bepalen alles wat we doen, van de functies die we bouwen tot de manier waarop we onze klanten ondersteunen.",
+            "values": [
+                {
+                    "icon": "Target",
+                    "title": "Eenvoud Eerst",
+                    "description": "Wij geloven dat adverteren eenvoudig zou moeten zijn, niet ingewikkeld. Onze technologie neemt de complexiteit voor haar rekening, zodat jij dat niet hoeft te doen."
+                },
+                {
+                    "icon": "TrendingUp",
+                    "title": "Resultaatgericht",
+                    "description": "Elke functie die we bouwen is ontworpen om je ROI te verbeteren. We meten ons succes aan dat van jou."
+                },
+                {
+                    "icon": "Users",
+                    "title": "Klantgericht",
+                    "description": "We hebben Answer24 gebouwd voor echte bedrijven met echte uitdagingen. Jouw feedback vormt ons product."
+                }
+            ]
+        },
+        "journey": {
+            "title": "Onze Reis",
+            "subtitle": "Van een eenvoudig idee tot het bedienen van duizenden bedrijven wereldwijd.",
+            "milestones": [
+                {
+                    "year": "2023",
+                    "title": "Het Begin",
+                    "description": "Opgericht met de missie om Google Ads toegankelijk te maken voor elk bedrijf"
+                },
+                {
+                    "year": "2024",
+                    "title": "AI Revolutie",
+                    "description": "Lancering van onze geavanceerde AI-optimalisatiemotor die leert en zich aanpast"
+                },
+                {
+                    "year": "Vandaag",
+                    "title": "Sterke Groei",
+                    "description": "We bedienen wereldwijd meer dan 10.000 bedrijven met geautomatiseerde advertentie-optimalisatie"
+                }
+            ]
+        },
+        "whyUs": {
+            "title": "Waarom Kiezen voor Answer24?",
+            "subtitle": "We zijn niet zomaar een advertentieplatform. Dit is wat ons onderscheidt.",
+            "features": [
+                "Geen langlopende contracten of verborgen kosten",
+                "AI die leert en zich in de loop der tijd verbetert",
+                "White-label klaar voor bureaus",
+                "24/7 geautomatiseerde optimalisatie",
+                "Prestaties in realtime volgen",
+                "Toegewijde klantenondersteuning"
+            ]
+        }
     }
 }
