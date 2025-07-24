@@ -42,7 +42,8 @@ export function HeroSection() {
             <span className="bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent block">
               AI Google Ads manager
             </span>
-          </motion.h1>
+          </motioncls
+          >
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
