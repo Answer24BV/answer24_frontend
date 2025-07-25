@@ -20,8 +20,9 @@ export function Navbar() {
   }, [])
 
   const navItems = [
-    { name: "Features", href: "#features" },
-    { name: "Pricing", href: "#pricing" },
+    { name: "Blog", href: "/blog" },
+    { name: "Faq", href: "/faq" },
+    { name: "Pricing", href: "/pricing" },
     { name: "About", href: "/about" },
     { name: "Contact", href: "/contact" },
   ]
