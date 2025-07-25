@@ -45,6 +45,7 @@ export default async function RootLayout({
                     <Navbar />
                     {children}
                     <Footer />
+                    
                 </NextIntlClientProvider>
             </body>
         </html>
