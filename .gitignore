@@ -37,5 +37,12 @@ yarn-error.log*
 .vercel
 
 # typescript
+
 *.tsbuildinfo
 next-env.d.ts
+/public/sw.js
+/public/workbox-*
+/public/worker-*
+/public/sw.js.map
+/public/workbox-*.map
+/public/worker-*.map
