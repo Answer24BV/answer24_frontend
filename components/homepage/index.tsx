@@ -3,6 +3,7 @@ import React from 'react'
 import { HeroSection } from './HeroSection'
 import { AudienceSection } from './AudienceSection'
 import { FeaturesSection } from './FeatureSection'
+import SectionDownloadApp from './DownloadApp'
 
 const HomePage = () => {
     return (
@@ -10,6 +11,7 @@ const HomePage = () => {
             <HeroSection />
             <FeaturesSection />
             <AudienceSection />
+            <SectionDownloadApp />
         </div>
     )
 }
