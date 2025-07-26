@@ -184,5 +184,15 @@
                 "Dedicated customer support"
             ]
         }
+    },
+    "DOWNLOAD_APP": {
+      "section.title": "Download the App",
+      "section.description": "Get the full Answer24 experience on your mobile device.",
+      "modal.title": "Install Answer24 App",
+      "modal.description": "Add Answer24 to your home screen for quick access and a better experience.",
+      "modal.install": "Install",
+      "modal.later": "Later",
+      "modal.alreadyInstalled": "App is already installed.",
+      "modal.manualInstruction": "You can also add this app to your home screen manually from your browser menu."
     }
 }
