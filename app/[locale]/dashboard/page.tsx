@@ -1,10 +1,12 @@
 import { CleanDashboardContainer } from '@/components/dashboard/Container'
 import React from 'react'
 
-const page = () => {
+const DashboardPage = () => {
   return (
-    <div className=''><CleanDashboardContainer /></div>
+    <div>
+        <CleanDashboardContainer/>
+    </div>
   )
 }
 
-export default page
+export default DashboardPage

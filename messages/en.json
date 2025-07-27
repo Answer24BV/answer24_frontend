@@ -185,14 +185,103 @@
             ]
         }
     },
-    "DOWNLOAD_APP": {
-      "section.title": "Download the App",
-      "section.description": "Get the full Answer24 experience on your mobile device.",
-      "modal.title": "Install Answer24 App",
-      "modal.description": "Add Answer24 to your home screen for quick access and a better experience.",
-      "modal.install": "Install",
-      "modal.later": "Later",
-      "modal.alreadyInstalled": "App is already installed.",
-      "modal.manualInstruction": "You can also add this app to your home screen manually from your browser menu."
+    "downloadApp": {
+      "section": {
+        "title": "Download the App",
+        "description": "Get the full Answer24 experience on your mobile device."
+      },
+      "modal": {
+        "title": "Install Answer24 App",
+        "description": "Add Answer24 to your home screen for quick access and a better experience.",
+        "install": "Install",
+        "later": "Later",
+        "alreadyInstalled": "App is already installed.",
+        "manualInstruction": "You can also add this app to your home screen manually from your browser menu."
+      }
+    },
+    "Dashboard": {
+      "title": "Account Dashboard",
+      "subtitle": "Monitor your Google Ads performance and get AI-powered insights.",
+      "loading": "Loading dashboard...",
+      "stats": {
+        "totalSpend": "Total Spend",
+        "totalClicks": "Total Clicks",
+        "totalImpressions": "Total Impressions",
+        "ctr": "Click-Through Rate"
+      },
+      "sections": {
+        "campaigns": "Your Campaigns",
+        "aiTips": "AI Optimization Tips",
+        "quickActions": "Quick Actions",
+        "performance": "Performance Overview"
+      },
+      "actions": {
+        "viewAll": "View All",
+        "applyTip": "Apply Tip",
+        "dismiss": "Dismiss",
+        "seeMore": "See More"
+      },
+      "emptyStates": {
+        "noCampaigns": "No campaigns found",
+        "noTips": "No optimization tips available"
+      }
+    },
+    "Navigation": {
+      "account": "Account",
+      "chat": "Chat",
+      "wallet": "Wallet",
+      "blog": "Blog",
+      "faq": "FAQ",
+      "pricing": "Pricing",
+      "about": "About",
+      "contact": "Contact",
+      "signIn": "Sign In",
+      "startFreeTrial": "Start Free Trial",
+      "userMenu": {
+        "profile": "Profile",
+        "logOut": "Log out"
+      }
+    },
+    "WalletPage": {
+      "title": "Your Wallet",
+      "subtitle": "Manage your transactions and balance",
+      "accountDetails": {
+        "title": "Account Details",
+        "memberSince": "Member Since"
+      },
+      "balance": {
+        "title": "Current Balance",
+        "available": "Available Balance",
+        "currency": "Currency",
+        "walletType": "Digital Wallet"
+      },
+      "addMoney": {
+        "title": "Add Money",
+        "button": "Add Money"
+      },
+      "transactions": {
+        "title": "Your Transactions",
+        "subtitle": "Latest activity",
+        "headers": {
+          "transaction": "Transaction",
+          "dateTime": "Date & Time",
+          "amount": "Amount",
+          "status": "Status",
+          "actions": "Actions"
+        },
+        "view": "View",
+        "downloadPdf": "Download PDF",
+        "noTransactions": "No transactions found.",
+        "error": "Error fetching wallet history"
+      },
+      "status": {
+        "active": "Active",
+        "pending": "Pending",
+        "paid": "Paid"
+      },
+      "transactionTypes": {
+        "wallet": "Top-up",
+        "expense": "Expense"
+      }
     }
 }

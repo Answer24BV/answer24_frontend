@@ -113,6 +113,105 @@
         "quickResponse": {
             "title": "Snel antwoord",
             "description": "We reageren doorgaans binnen 24 uur op alle vragen. Voor dringende zaken, bel ons direct."
+        },
+        "downloadApp": {
+            "section": {
+                "title": "Download de App",
+                "description": "Krijg de volledige Answer24-ervaring op je mobiele apparaat."
+            },
+            "modal": {
+                "title": "Installeer Answer24 App",
+                "description": "Voeg Answer24 toe aan je startscherm voor snelle toegang en een betere ervaring.",
+                "install": "Installeren",
+                "later": "Later",
+                "alreadyInstalled": "App is al geïnstalleerd.",
+                "manualInstruction": "Je kunt deze app ook handmatig toevoegen aan je startscherm via het browsermenu."
+            }
+        }
+    },
+    "Dashboard": {
+      "title": "Account Dashboard",
+      "subtitle": "Houd uw Google Ads-prestaties in de gaten en krijg AI-gestuurde inzichten.",
+      "loading": "Dashboard laden...",
+      "stats": {
+        "totalSpend": "Totale Uitgaven",
+        "totalClicks": "Totaal Klikken",
+        "totalImpressions": "Totaal Vertoningen",
+        "ctr": "Doorklikpercentage"
+      },
+      "sections": {
+        "campaigns": "Uw Campagnes",
+        "aiTips": "AI-optimalisatietips",
+        "quickActions": "Snelle Acties",
+        "performance": "Prestatieoverzicht"
+      },
+      "actions": {
+        "viewAll": "Alles Weergeven",
+        "applyTip": "Tip Toepassen",
+        "dismiss": "Negeren",
+        "seeMore": "Meer Weergeven"
+      },
+      "emptyStates": {
+        "noCampaigns": "Geen campagnes gevonden",
+        "noTips": "Geen optimalisatietips beschikbaar"
+      }
+    },
+    "Navigation": {
+      "account": "Account",
+      "chat": "Chat",
+      "wallet": "Portemonnee",
+      "blog": "Blog",
+      "faq": "Veelgestelde Vragen",
+      "pricing": "Prijzen",
+      "about": "Over Ons",
+      "contact": "Contact",
+      "signIn": "Inloggen",
+      "startFreeTrial": "Start Gratis Proefperiode",
+      "userMenu": {
+        "profile": "Profiel",
+        "logOut": "Uitloggen"
+      }
+    },
+    "WalletPage": {
+        "title": "Jouw Portemonnee",
+        "subtitle": "Beheer je transacties en saldo",
+        "accountDetails": {
+            "title": "Accountgegevens",
+            "memberSince": "Lid sinds"
+        },
+        "balance": {
+            "title": "Huidig Saldo",
+            "available": "Beschikbaar Saldo",
+            "currency": "Valuta",
+            "walletType": "Digitale Portemonnee"
+        },
+        "addMoney": {
+            "title": "Geld Toevoegen",
+            "button": "Geld Toevoegen"
+        },
+        "transactions": {
+            "title": "Jouw Transacties",
+            "subtitle": "Recente activiteit",
+            "headers": {
+                "transaction": "Transactie",
+                "dateTime": "Datum & Tijd",
+                "amount": "Bedrag",
+                "status": "Status",
+                "actions": "Acties"
+            },
+            "view": "Bekijken",
+            "downloadPdf": "Download PDF",
+            "noTransactions": "Geen transacties gevonden.",
+            "error": "Fout bij het ophalen van transactiegeschiedenis"
+        },
+        "status": {
+            "active": "Actief",
+            "pending": "In behandeling",
+            "paid": "Betaald"
+        },
+        "transactionTypes": {
+            "wallet": "Opwaardering",
+            "expense": "Uitgave"
         }
     },
     "AboutPage": {

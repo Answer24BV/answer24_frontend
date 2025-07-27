@@ -18,6 +18,7 @@ import { LineChart } from "./chart/LinkChart"
 import { DonutChart } from "./chart/DonutChart"
 import { QuickActionsModern } from "./QuickActionModern"
 import { AiTipsModern } from "./AITipsModern"
+import { useTranslations } from "next-intl"
 
 export function CleanDashboardContainer() {
   const [stats, setStats] = useState<DashboardStats | null>(null)
@@ -53,12 +54,14 @@ export function CleanDashboardContainer() {
     loadDashboardData()
   }, [])
 
+  const t = useTranslations("Dashboard");
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
-          <p className="text-gray-600">Loading dashboard...</p>
+          <p className="text-gray-600">{t('loading')}</p>
         </div>
       </div>
     )
@@ -81,31 +84,39 @@ export function CleanDashboardContainer() {
       <div className="max-w-7xl mx-auto py-26 px-2">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Account Dashboard</h1>
-          <p className="text-gray-600">Monitor your Google Ads performance and get AI-powered insights.</p>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">{t('title')}</h1>
+          <p className="text-gray-600">{t('subtitle')}</p>
         </div>
 
         {/* Stats Cards */}
         {stats && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             <SimpleStatsCard
-              title="Total Spend"
+              title={t('stats.totalSpend')}
               value={stats.totalSpend}
               change={stats.spendChange}
               format="currency"
               icon={<DollarSign className="h-5 w-5" />}
             />
             <SimpleStatsCard
-              title="Total Clicks"
+              title={t('stats.totalClicks')}
               value={stats.totalClicks}
               change={stats.clicksChange}
+              format="number"
               icon={<MousePointer className="h-5 w-5" />}
             />
-            <SimpleStatsCard title="Impressions" value={stats.totalImpressions} icon={<Eye className="h-5 w-5" />} />
             <SimpleStatsCard
-              title="Conversions"
-              value={stats.totalConversions}
-              change={stats.conversionsChange}
+              title={t('stats.totalImpressions')}
+              value={stats.totalImpressions}
+              change={stats.averageCTR}
+              format="number"
+              icon={<Eye className="h-5 w-5" />}
+            />
+            <SimpleStatsCard
+              title="CTR"
+              value={stats.averageCTR}
+              change={stats.averageCTR}
+              format="percentage"
               icon={<Target className="h-5 w-5" />}
             />
           </div>

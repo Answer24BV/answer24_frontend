@@ -6,10 +6,12 @@ import { Menu, X, ArrowRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import LanguageSwitcher from "./LanguageSwitcher";
 import { Link } from "@/i18n/navigation";
+import { useTranslations } from "next-intl";
 
 export function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const t = useTranslations("Navigation");
 
   useEffect(() => {
     const handleScroll = () => {
@@ -20,11 +22,11 @@ export function Navbar() {
   }, [])
 
   const navItems = [
-    { name: "Blog", href: "/blog" },
-    { name: "Faq", href: "/faq" },
-    { name: "Pricing", href: "/pricing" },
-    { name: "About", href: "/about" },
-    { name: "Contact", href: "/contact" },
+    { name: t('blog'), href: "/blog" },
+    { name: t('faq'), href: "/faq" },
+    { name: t('pricing'), href: "/pricing" },
+    { name: t('about'), href: "/about" },
+    { name: t('contact'), href: "/contact" },
   ]
 
   return (
@@ -68,12 +70,12 @@ export function Navbar() {
             <LanguageSwitcher />
             <Link href="/signin">
               <Button asChild variant="ghost" className="text-red-400 hover:text-blue-600">
-                Sign In
+                {t('signIn')}
               </Button>
             </Link>
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="bg-blue-600 hover:bg-blue-700 text-white px-6 rounded-xl">
               <Link href="/signin?signup=1" className="flex items-center p-2">
-                Start Free Trial
+                {t('startFreeTrial')}
                 <ArrowRight className="ml-2 w-4 h-4" />
               </Link>
             </motion.div>
@@ -112,12 +114,12 @@ export function Navbar() {
               <div className="pt-4 space-y-2">
                 <Link href="/signin" passHref legacyBehavior>
                   <Button asChild variant="outline" className="w-full bg-transparent">
-                    <a>Sign In</a>
+                    <a>{t('signIn')}</a>
                   </Button>
                 </Link>
                 <Link href="/signin?signup=1" passHref legacyBehavior>
                   <Button asChild className="w-full bg-blue-600 hover:bg-blue-700">
-                    <a>Start Free Trial</a>
+                    <a>{t('startFreeTrial')}</a>
                   </Button>
                 </Link>
               </div>

@@ -13,7 +13,8 @@ import {
   Download,
 } from "lucide-react";
 import { useRouter } from "@/i18n/navigation";
-import AddMoney from "../../../components/AddMoney";
+import { useTranslations } from "next-intl";
+import AddMoney from "@/components/AddMoney";
 
 // --- UI Components (Recreated based on common patterns) ---
 
@@ -320,28 +321,29 @@ export default function WalletPage() {
   const [isPageLoading, setIsPageLoading] = useState<boolean>(true);
   const [addMoneyModal, setAddMoneyModal] = useState<boolean>(false);
   const router = useRouter();
+  const t = useTranslations("WalletPage");
 
   // Dummy User Data
   const user = {
     name: "John Doe",
     email: "john.doe@example.com",
-    avatar: "/Image-1.png", // Ensure this path is valid or remove if not needed
-    joinDate: "January 15, 2023", // Replaced moment with a string for simplicity
+    avatar: "/Image-1.png",
+    joinDate: "January 15, 2023",
   };
 
   const wallet = {
     balance: walletData?.balance || 0,
     currency: "EUR",
-    status: "Active",
+    status: t('status.active'),
   };
 
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
-      case "active":
+      case t('status.active').toLowerCase():
         return "bg-green-100 text-green-800";
-      case "pending":
+      case t('status.pending').toLowerCase():
         return "bg-yellow-100 text-yellow-800";
-      case "paid":
+      case t('status.paid').toLowerCase():
         return "bg-blue-100 text-blue-800";
       default:
         return "bg-gray-100 text-gray-800";
@@ -376,49 +378,47 @@ export default function WalletPage() {
         {
           id: "txn_001",
           payment_type: "wallet",
-          mollie_data: { description: "Top-up from Bank" },
+          mollie_data: { description: t('transactionTypes.wallet') },
           mollie_payment_id: "tr_abc123",
           paid_at: new Date().toISOString(),
           amount: 100,
-          status: "paid",
+          status: t('status.paid'),
         },
         {
           id: "txn_002",
           payment_type: "expense",
-          mollie_data: { description: "Payment for Service A" },
+          mollie_data: { description: t('transactionTypes.expense') },
           mollie_payment_id: "tr_def456",
-          paid_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), // 2 days ago
+          paid_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
           amount: 45.5,
-          status: "pending",
+          status: t('status.pending'),
         },
         {
           id: "txn_003",
           payment_type: "wallet",
-          mollie_data: { description: "Refund for item X" },
+          mollie_data: { description: t('transactionTypes.wallet') },
           mollie_payment_id: "tr_ghi789",
-          paid_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(), // 5 days ago
+          paid_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
           amount: 20.0,
-          status: "active",
+          status: t('status.active'),
         },
         {
           id: "txn_004",
           payment_type: "expense",
-          mollie_data: { description: "Subscription renewal" },
+          mollie_data: { description: t('transactionTypes.expense') },
           mollie_payment_id: "tr_jkl012",
-          paid_at: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days ago
+          paid_at: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
           amount: 15.0,
-          status: "paid",
+          status: t('status.paid'),
         },
         {
           id: "txn_005",
           payment_type: "wallet",
-          mollie_data: { description: "Top-up from Credit Card" },
+          mollie_data: { description: t('transactionTypes.wallet') },
           mollie_payment_id: "tr_mno345",
-          paid_at: new Date(
-            Date.now() - 10 * 24 * 60 * 60 * 1000
-          ).toISOString(), // 10 days ago
+          paid_at: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
           amount: 50.0,
-          status: "paid",
+          status: t('status.paid'),
         },
       ];
       setWalletHistory(dummyTransactions);
@@ -432,15 +432,13 @@ export default function WalletPage() {
   }
 
   return (
-    <div className="p-4 min-h-screen md:p-6">
-      <div className="mx-auto space-y-6 max-w-6xl">
+    <div className="mt min-h-screen py-20 px-6">
+      <div className="mx-auto space-y-6 max-w-7xl">
         {/* Header */}
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Your Wallet</h1>
-            <p className="text-muted-foreground">
-              Manage your transactions and balance
-            </p>
+            <h1 className="text-3xl font-bold tracking-tight">{t('title')}</h1>
+            <p className="text-muted-foreground">{t('subtitle')}</p>
           </div>
         </div>
 
@@ -449,7 +447,7 @@ export default function WalletPage() {
           {/* User Details Card */}
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-lg">Account Details</CardTitle>
+              <CardTitle className="text-lg">{t('accountDetails.title')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center space-x-3">
@@ -473,7 +471,7 @@ export default function WalletPage() {
               <Separator />
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Member Since</span>
+                  <span className="text-muted-foreground">{t('accountDetails.memberSince')}</span>
                   <span>{user.joinDate}</span>
                 </div>
               </div>
@@ -484,7 +482,7 @@ export default function WalletPage() {
           <Card>
             <CardHeader className="pb-3">
               <div className="flex justify-between items-center">
-                <CardTitle className="text-lg">Current Balance</CardTitle>
+                <CardTitle className="text-lg">{t('balance.title')}</CardTitle>
                 <Button
                   variant="ghost"
                   size="icon"
@@ -507,17 +505,17 @@ export default function WalletPage() {
                       : "••••••"}
                   </div>
                   <p className="mt-1 text-sm text-muted-foreground">
-                    Available Balance
+                    {t('balance.available')}
                   </p>
                 </div>
                 <div className="flex gap-4 justify-center items-center text-sm">
                   <div className="flex gap-1 items-center">
                     <Euro className="w-4 h-4 text-green-600" />
-                    <span>{wallet.currency}</span>
+                    <span>{t('balance.currency')}: {wallet.currency}</span>
                   </div>
                   <div className="flex gap-1 items-center">
                     <Wallet className="w-4 h-4 text-blue-600" />
-                    <span>Digital Wallet</span>
+                    <span>{t('balance.walletType')}</span>
                   </div>
                 </div>
               </div>
@@ -530,7 +528,7 @@ export default function WalletPage() {
               <div className="flex items-center justify-between">
                 <CardTitle className="text-lg flex items-center gap-2">
                   <Euro className="w-5 h-5 text-blue-600" />
-                  Add Money
+                  {t('addMoney.title')}
                 </CardTitle>
               </div>
             </CardHeader>
@@ -542,7 +540,7 @@ export default function WalletPage() {
                     className="w-full h-12 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
                   >
                     <Plus className="mr-2 w-5 h-5" />
-                    Add Money
+                    {t('addMoney.button')}
                   </Button>
                 </div>
               </div>
@@ -555,8 +553,8 @@ export default function WalletPage() {
           <CardHeader>
             <div className="flex justify-between items-center">
               <div className="space-y-2">
-                <CardTitle>Your Transactions</CardTitle>
-                <CardDescription>Latest activity</CardDescription>
+                <CardTitle>{t('transactions.title')}</CardTitle>
+                <CardDescription>{t('transactions.subtitle')}</CardDescription>
               </div>
             </div>
           </CardHeader>
@@ -568,11 +566,11 @@ export default function WalletPage() {
                     <Table>
                       <TableHeader>
                         <TableRow>
-                          <TableHead>Transaction</TableHead>
-                          <TableHead>Date & Time</TableHead>
-                          <TableHead>Amount</TableHead>
-                          <TableHead>Status</TableHead>
-                          <TableHead>Actions</TableHead>
+                          <TableHead>{t('transactions.headers.transaction')}</TableHead>
+                          <TableHead>{t('transactions.headers.dateTime')}</TableHead>
+                          <TableHead>{t('transactions.headers.amount')}</TableHead>
+                          <TableHead>{t('transactions.headers.status')}</TableHead>
+                          <TableHead>{t('transactions.headers.actions')}</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -598,7 +596,10 @@ export default function WalletPage() {
                                 </div>
                                 <div>
                                   <p className="font-medium">
-                                    {transaction.mollie_data.description}
+                                    {transaction.payment_type === 'wallet' 
+                                      ? t('transactionTypes.wallet') 
+                                      : t('transactionTypes.expense')}
+                                    {transaction.mollie_data?.description ? `: ${transaction.mollie_data.description}` : ''}
                                   </p>
                                   <p className="text-sm text-muted-foreground">
                                     {transaction.mollie_payment_id}
@@ -648,12 +649,12 @@ export default function WalletPage() {
                                   size="sm"
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    router.push(`/invoice/${transaction.id}`);
+                                    router.push(`/dashboard/account/invoice/${transaction.id}`);
                                   }}
                                   className="flex items-center gap-1"
                                 >
                                   <FileText className="w-4 h-4" />
-                                  View
+                                  {t('transactions.view')}
                                 </Button>
                                 {/* <Button
                                   variant="outline"
@@ -677,7 +678,7 @@ export default function WalletPage() {
                       </TableBody>
                     </Table>
                   ) : (
-                    <ErrorComp message="No transactions found." />
+                    <ErrorComp message={t('transactions.noTransactions')} />
                   )}
                 </TabsContent>
               </Tabs>
@@ -690,7 +691,7 @@ export default function WalletPage() {
                   <Loader2 className="mx-auto animate-spin w-6 h-6 text-blue-500" />
                 </div>
               ) : (
-                <ErrorComp message="Error Fetching wallet History" />
+                <ErrorComp message={t('transactions.error')} />
               )}
             </div>
           )}

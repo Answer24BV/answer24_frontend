@@ -1,12 +1,10 @@
-import type { Metadata, Viewport } from "next"; 
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { NextIntlClientProvider, hasLocale } from 'next-intl';
 import { notFound } from 'next/navigation';
 import { routing } from '@/i18n/routing';
 import Head from "./head";
-import ChatWidget from "@/components/common/ChatWidget";
-import PWALoader from "@/components/PWALoader";
 import ClientLayout from './ClientLayout';
 
 const geistSans = Geist({
@@ -38,10 +36,10 @@ export default async function RootLayout({
   params,
 }: Readonly<{
   children: React.ReactNode;
-  params: { locale: string };
+  params: Promise<{ locale: string }>;
 }>) {
   // Ensure that the incoming `locale` is valid
-  const { locale } = params;
+  const { locale } = await params;
   if (!hasLocale(routing.locales, locale)) {
     notFound();
   }
@@ -49,13 +47,10 @@ export default async function RootLayout({
   return (
     <html lang={locale}>
       <Head />
-
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <NextIntlClientProvider>
-                    <PWALoader />
           <ClientLayout>
             {children}
-                    <ChatWidget />
           </ClientLayout>
         </NextIntlClientProvider>
       </body>
