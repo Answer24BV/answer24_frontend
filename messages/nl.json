@@ -214,6 +214,102 @@
             "expense": "Uitgave"
         }
     },
+    "SignInPage": {
+      "hero": {
+        "weeklyOptimization": "Wekelijkse Optimalisatie",
+        "withNoHassle": "Geen Gedoe!",
+        "includeSearchTerms": "Voeg de door AI aanbevolen zoektermen toe",
+        "withinCampaignScope": "binnen het bereik van uw campagne"
+      },
+      "title": "Inloggen op uw account",
+      "email": "E-mail",
+      "enterEmail": "Voer uw e-mailadres in",
+      "password": "Wachtwoord",
+      "forgotPassword": "Wachtwoord vergeten?",
+      "signIn": "Inloggen",
+      "noAccount": "Nog geen account?",
+      "startTrial": "Start Uw 7-Dagen Gratis Proefperiode",
+      "or": "OF",
+      "signInWithGoogle": "Inloggen met Google",
+      "welcomeBack": "Welkom terug!",
+      "continueWithEmail": "Doorgaan met e-mail",
+      "termsText": "Door verder te gaan gaat u akkoord met de",
+      "termsOfService": "Algemene Voorwaarden",
+      "privacyPolicy": "Privacybeleid",
+      "alreadyCustomer": "Al klant?",
+      "signUp": {
+        "title": "Start nu uw 7-dagen gratis proefperiode",
+        "signUpWithEmail": "Aanmelden met e-mail",
+        "accountDetails": "Accountgegevens",
+        "welcomeMessage": "Welkom, laten we beginnen...",
+        "profilePicture": "Profielfoto",
+        "fullName": "Volledige naam",
+        "passwordAgain": "Wachtwoord (opnieuw)",
+        "strongPassword": "Voor een sterk wachtwoord:",
+        "passwordRequirements": [
+          "Minstens 1 hoofdletter",
+          "Minstens 1 kleine letter",
+          "Minstens 1 cijfer",
+          "Minstens 6 tekens"
+        ],
+        "removePicture": "Verwijder afbeelding",
+        "continueButton": "Doorgaan",
+        "subscriptionPlans": "Abonnementspakketten",
+        "selectPlan": "Kies het pakket dat bij u past. Answer24 biedt eerlijke prijzen, met betaalbare opties op basis van uw land. De uiteindelijke prijs ziet u op de betaalpagina.",
+        "plans": {
+          "launch": {
+            "name": "Starter",
+            "description": "Start en optimaliseer uw Google Ads-campagnes met AI-ondersteuning.",
+            "credits": "AI-credits/maand",
+            "trial": "7 Dagen Gratis Uitproberen",
+            "startTrial": "Start 7-Dagen Gratis",
+            "featuresLabel": "Functies",
+            "features": [
+              "1 Advertentie-account",
+              "1 Teamlid",
+              "Wekelijkse optimalisaties",
+              "Advertentietracking (1 concurrent)"
+            ]
+          },
+          "growth": {
+            "name": "Groei",
+            "description": "Perfect voor het beheren van meerdere advertentie-accounts, met de tools die u nodig hebt om tijd en moeite te besparen.",
+            "credits": "AI-credits/maand",
+            "trial": "7 Dagen Gratis Uitproberen",
+            "startTrial": "Start 7-Dagen Gratis",
+            "featuresLabel": "Functies",
+            "features": [
+              "Alles uit Starterspakket",
+              "5 Advertentie-accounts",
+              "5 Teamleden",
+              "Dagelijkse optimalisaties"
+            ]
+          },
+          "enterprise": {
+            "name": "Onderneming",
+            "description": "Ontworpen voor bedrijven die behoefte hebben aan persoonlijke ondersteuning en geavanceerde strategie.",
+            "credits": "AI-credits/maand",
+            "trial": "7 Dagen Gratis Uitproberen",
+            "startTrial": "Start 7-Dagen Gratis",
+            "featuresLabel": "Functies",
+            "features": [
+              "Alles uit Groeipakket",
+              "20 Advertentie-accounts",
+              "20 Teamleden",
+              "Dagelijkse optimalisaties"
+            ]
+          }
+        }
+      },
+      "errors": {
+        "fullNameRequired": "Vul alstublieft uw volledige naam in.",
+        "passwordRequired": "Vul alstublieft uw wachtwoord in.",
+        "passwordAgainRequired": "Vul alstublieft uw wachtwoord opnieuw in.",
+        "passwordsDontMatch": "Wachtwoorden komen niet overeen.",
+        "invalidFileType": "Selecteer alstublieft een afbeeldingsbestand",
+        "fileTooLarge": "Bestandsgrootte mag niet groter zijn dan 5MB"
+      }
+    },
     "AboutPage": {
         "title": "Over Answer24",
         "subtitle": "Onze missie is om Google Ads beter te laten werken voor iedereen. Geen giswerk meer, geen verspilde budgetten, geen onnodige complexiteit.",

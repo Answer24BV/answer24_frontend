@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { useEffect } from "react";
 import { useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Eye, EyeOff, Mail, Key, User, Camera, Upload } from "lucide-react";
 
 export default function SignIn() {
@@ -29,36 +30,35 @@ export default function SignIn() {
   );
 
   const searchParams = useSearchParams();
+  const t = useTranslations("SignInPage");
+  
   useEffect(() => {
     if (searchParams.get("signup") === "1") {
       setIsSignUp(true);
     }
   }, [searchParams]);
+  
+  // Get translated password requirements
+  const passwordRequirements = t.raw("signUp.passwordRequirements") as string[];
 
-  // Password requirements
-  const passwordRequirements = [
-    "At least 1 uppercase letter",
-    "At least 1 lowercase letter",
-    "At least 1 number",
-    "At least 6 characters",
-  ];
+  // Password requirements are now handled by translations
 
   function validateAccountDetails() {
     let valid = true;
     const newErrors = { fullName: "", password: "", password2: "" };
     if (!fullName) {
-      newErrors.fullName = "Please type your full name.";
+      newErrors.fullName = t("errors.fullNameRequired");
       valid = false;
     }
     if (!password) {
-      newErrors.password = "Please type your password.";
+      newErrors.password = t("errors.passwordRequired");
       valid = false;
     }
     if (!password2) {
-      newErrors.password2 = "Please type your password again.";
+      newErrors.password2 = t("errors.passwordAgainRequired");
       valid = false;
     } else if (password !== password2) {
-      newErrors.password2 = "Passwords do not match.";
+      newErrors.password2 = t("errors.passwordsDontMatch");
       valid = false;
     }
     setErrors(newErrors);
@@ -84,13 +84,13 @@ export default function SignIn() {
     if (file) {
       // Validate file type
       if (!file.type.startsWith("image/")) {
-        alert("Please select an image file");
+        alert(t("errors.invalidFileType"));
         return;
       }
 
       // Validate file size (max 5MB)
       if (file.size > 5 * 1024 * 1024) {
-        alert("File size must be less than 5MB");
+        alert(t("errors.fileTooLarge"));
         return;
       }
 
@@ -120,16 +120,17 @@ export default function SignIn() {
             <span className="ml-3 text-2xl font-bold">adsby</span>
           </div> */}
           <div className="mb-4 text-lg font-medium opacity-80">
-            Weekly Optimization
+            {t("hero.weeklyOptimization")}
           </div>
           <h2 className="text-3xl font-bold mb-2 text-white text-center">
-            Weekly Optimization
+            {t("hero.weeklyOptimization")}
             <br />
-            with <span className="text-teal-300">No Hassle!</span>
+           <span className="text-teal-300">{t("hero.withNoHassle")}</span>
           </h2>
           <p className="mb-8 text-base opacity-80 text-center">
-            Include the Search Terms recommended by AI
-            <br /> within the scope of your campaign.
+            {t("hero.includeSearchTerms")}
+            <br />
+            {t("hero.withinCampaignScope")}
           </p>
           <Image
             src="/image.png"
@@ -170,105 +171,97 @@ export default function SignIn() {
                 </div>
               </div>
               <div className="mb-2 text-gray-700 font-medium">
-                Select the plan that suits your needs. Answer24 supports fair
-                pricing, providing affordable options based on your country.
-                Your final price is available on the checkout page.
+                {t("signUp.selectPlan")}
               </div>
-              <h2 className="text-2xl font-bold mb-4">Subscription Plans</h2>
+              <h2 className="text-2xl font-bold mb-4">{t("signUp.subscriptionPlans")}</h2>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {/* Launch Plan */}
                 <div className="bg-white rounded-xl shadow p-6 border">
                   <div className="flex items-baseline justify-between mb-2">
-                    <span className="text-xl font-bold">Launch</span>
+                    <span className="text-xl font-bold">{t("signUp.plans.launch.name")}</span>
                     <span className="text-pink-500 font-bold text-lg">
                       $29 <span className="text-base font-normal">/mo</span>
                     </span>
                   </div>
                   <div className="text-xs text-gray-500 mb-2">
-                    7-Days Free Trial
+                    {t("signUp.plans.launch.trial")}
                   </div>
                   <div className="mb-4 text-gray-700 text-sm">
-                    Initiate and optimize your Google Ads campaigns with
-                    AI-powered assistance.
+                    {t("signUp.plans.launch.description")}
                   </div>
                   <div className="mb-4 text-gray-700 text-sm">
-                    50 AI credits/month{" "}
+                    {t("signUp.plans.launch.credits")}{" "}
                     <span className="ml-1 text-gray-400">?</span>
                   </div>
                   <Button className="w-full bg-rose-500 hover:bg-rose-600 text-white font-semibold mb-4">
-                    Start 7-Day Free Trial
+                    {t("signUp.startTrial")}
                   </Button>
                   <div>
-                    <div className="font-semibold mb-1">Features</div>
+                    <div className="font-semibold mb-1">{t("signUp.plans.launch.featuresLabel")}</div>
                     <ul className="text-xs text-gray-700 list-disc pl-5">
-                      <li>1 Ad Account</li>
-                      <li>1 Team Member</li>
-                      <li>Weekly Optimizations</li>
-                      <li>Ad Tracking (1 Competitor)</li>
+                      {(t.raw("signUp.plans.launch.features") as string[]).map((feature: string, index: number) => (
+                        <li key={index}>{feature}</li>
+                      ))}
                     </ul>
                   </div>
                 </div>
                 {/* Growth Plan */}
                 <div className="bg-white rounded-xl shadow p-6 border">
                   <div className="flex items-baseline justify-between mb-2">
-                    <span className="text-xl font-bold">Growth</span>
+                    <span className="text-xl font-bold">{t("signUp.plans.growth.name")}</span>
                     <span className="text-pink-500 font-bold text-lg">
                       $49 <span className="text-base font-normal">/mo</span>
                     </span>
                   </div>
                   <div className="text-xs text-gray-500 mb-2">
-                    7-Days Free Trial
+                    {t("signUp.plans.growth.trial")}
                   </div>
                   <div className="mb-4 text-gray-700 text-sm">
-                    Perfect for handling multiple ad accounts, providing the
-                    tools you need to save time & effort.
+                    {t("signUp.plans.growth.description")}
                   </div>
                   <div className="mb-4 text-gray-700 text-sm">
-                    100 AI credits/month{" "}
+                    {t("signUp.plans.growth.credits")}{" "}
                     <span className="ml-1 text-gray-400">?</span>
                   </div>
                   <Button className="w-full bg-rose-500 hover:bg-rose-600 text-white font-semibold mb-4">
-                    Start 7-Day Free Trial
+                    {t("signUp.startTrial")}
                   </Button>
                   <div>
-                    <div className="font-semibold mb-1">Features</div>
+                    <div className="font-semibold mb-1">{t("signUp.plans.growth.featuresLabel")}</div>
                     <ul className="text-xs text-gray-700 list-disc pl-5">
-                      <li>Includes everything in Launch</li>
-                      <li>5 Ad Accounts</li>
-                      <li>5 Team Members</li>
-                      <li>Daily Optimizations</li>
+                      {(t.raw("signUp.plans.growth.features") as string[]).map((feature: string, index: number) => (
+                        <li key={index}>{feature}</li>
+                      ))}
                     </ul>
                   </div>
                 </div>
                 {/* Enterprise Plan */}
                 <div className="bg-white rounded-xl shadow p-6 border">
                   <div className="flex items-baseline justify-between mb-2">
-                    <span className="text-xl font-bold">Enterprise</span>
+                    <span className="text-xl font-bold">{t("signUp.plans.enterprise.name")}</span>
                     <span className="text-pink-500 font-bold text-lg">
                       $249 <span className="text-base font-normal">/mo</span>
                     </span>
                   </div>
                   <div className="text-xs text-gray-500 mb-2">
-                    7-Days Free Trial
+                    {t("signUp.plans.enterprise.trial")}
                   </div>
                   <div className="mb-4 text-gray-700 text-sm">
-                    Designed for businesses that need personalized support and
-                    advanced strategy.
+                    {t("signUp.plans.enterprise.description")}
                   </div>
                   <div className="mb-4 text-gray-700 text-sm">
-                    200 AI credits/month{" "}
+                    {t("signUp.plans.enterprise.credits")}{" "}
                     <span className="ml-1 text-gray-400">?</span>
                   </div>
                   <Button className="w-full bg-rose-500 hover:bg-rose-600 text-white font-semibold mb-4">
-                    Start 7-Day Free Trial
+                    {t("signUp.startTrial")}
                   </Button>
                   <div>
-                    <div className="font-semibold mb-1">Features</div>
+                    <div className="font-semibold mb-1">{t("signUp.plans.enterprise.featuresLabel")}</div>
                     <ul className="text-xs text-gray-700 list-disc pl-5">
-                      <li>Includes everything in Growth</li>
-                      <li>20 Ad Accounts</li>
-                      <li>20 Team Members</li>
-                      <li>Daily Optimizations</li>
+                      {(t.raw("signUp.plans.enterprise.features") as string[]).map((feature: string, index: number) => (
+                        <li key={index}>{feature}</li>
+                      ))}
                     </ul>
                   </div>
                 </div>
@@ -288,14 +281,14 @@ export default function SignIn() {
                 </div>
               </div>
               <div className="mb-2 text-gray-700 font-medium">
-                Welcome, first things first...
+                {t("signUp.welcomeMessage")}
               </div>
-              <h2 className="text-2xl font-bold mb-6">Account Details</h2>
+              <h2 className="text-2xl font-bold mb-6">{t("signUp.accountDetails")}</h2>
               <form className="space-y-4" onSubmit={handleAccountDetailsSubmit}>
                 {/* Profile Picture Upload */}
                 <div className="flex flex-col items-center mb-6">
                   <label className="block text-sm font-medium text-gray-700 mb-3">
-                    Profile Picture
+                    {t("signUp.profilePicture")}
                   </label>
                   <div className="relative">
                     <div className="w-24 h-24 rounded-full border-2 border-dashed border-gray-300 flex items-center justify-center bg-gray-50 overflow-hidden">
@@ -331,7 +324,7 @@ export default function SignIn() {
                       onClick={removeProfilePicture}
                       className="mt-2 text-xs text-red-600 hover:text-red-800 underline"
                     >
-                      Remove picture
+                      {t("signUp.removePicture")}
                     </button>
                   )}
                 </div>
@@ -340,7 +333,7 @@ export default function SignIn() {
                     htmlFor="fullName"
                     className="block text-sm font-medium text-gray-700 mb-1"
                   >
-                    Full Name
+                    {t("signUp.fullName")}
                   </label>
                   <span className="absolute left-3 top-9 text-gray-400">
                     <User size={18} />
@@ -351,7 +344,7 @@ export default function SignIn() {
                     type="text"
                     autoComplete="name"
                     required
-                    placeholder="John Doe"
+                    placeholder={t("signUp.fullName")}
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
                     className={`pl-10 pr-3 py-2 w-full border ${
@@ -369,7 +362,7 @@ export default function SignIn() {
                     htmlFor="email"
                     className="block text-sm font-medium text-gray-700 mb-1"
                   >
-                    E-mail
+                    {t("email")}
                   </label>
                   <span className="absolute left-3 top-9 text-gray-400">
                     <Mail size={18} />
@@ -389,7 +382,7 @@ export default function SignIn() {
                       htmlFor="password"
                       className="block text-sm font-medium text-gray-700 mb-1"
                     >
-                      Password
+                      {t("password")}
                     </label>
                     <span className="absolute left-3 top-9 text-gray-400">
                       <Key size={18} />
@@ -426,7 +419,7 @@ export default function SignIn() {
                       htmlFor="password2"
                       className="block text-sm font-medium text-gray-700 mb-1"
                     >
-                      Password (again)
+                      {t("signUp.passwordAgain")}
                     </label>
                     <span className="absolute left-3 top-9 text-gray-400">
                       <Key size={18} />
@@ -461,7 +454,7 @@ export default function SignIn() {
                 </div>
                 <div className="bg-gray-100 rounded-lg p-4 mt-2">
                   <div className="font-semibold mb-1">
-                    For a strong password:
+                    {t("signUp.strongPassword")}
                   </div>
                   <ul className="text-xs text-gray-700 list-disc pl-5">
                     {passwordRequirements.map((req) => (
@@ -473,14 +466,14 @@ export default function SignIn() {
                   type="submit"
                   className="w-full bg-emerald-400 hover:bg-emerald-500 text-white text-base font-semibold py-2 rounded-md mt-2"
                 >
-                  Continue
+                  {t("signUp.continueButton")}
                 </Button>
               </form>
             </>
           ) : isSignUp ? (
             <>
               <h2 className="text-2xl font-bold text-center mb-6">
-                Start your 7-day free trial now
+                {t("signUp.title")}
               </h2>
               <Button
                 variant="outline"
@@ -493,7 +486,7 @@ export default function SignIn() {
                   height={20}
                   className="mr-2"
                 />
-                Sign in with Google
+                {t("signUp.signInWithGoogle")}
               </Button>
               <div className="flex items-center my-4">
                 <div className="flex-1 h-px bg-gray-200" />
@@ -506,7 +499,7 @@ export default function SignIn() {
                     htmlFor="email"
                     className="block text-sm font-medium text-gray-700 mb-1"
                   >
-                    Email
+                    {t("email")}
                   </label>
                   <span className="absolute left-3 top-9 text-gray-400">
                     <Mail size={18} />
@@ -517,7 +510,7 @@ export default function SignIn() {
                     type="email"
                     autoComplete="email"
                     required
-                    placeholder="Enter your email"
+                    placeholder={t("email")}
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="pl-10 pr-3 py-2 w-full border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -527,34 +520,48 @@ export default function SignIn() {
                   type="submit"
                   className="w-full bg-emerald-400 hover:bg-emerald-500 text-white text-base font-semibold py-2 rounded-md"
                 >
-                  Sign up with email
+                  {t("signUp.signUpWithEmail")}
                 </Button>
               </form>
               <div className="text-center text-sm text-gray-600 mt-6">
-                Already a customer?{" "}
+                {t("alreadyCustomer")}{" "}
                 <button
                   type="button"
                   className="text-blue-600 font-semibold underline"
                   onClick={() => setIsSignUp(false)}
                 >
-                  Sign in
+                  {t("signIn")}
                 </button>
               </div>
-              <div className="text-center text-xs text-gray-500 mt-8">
-                By continuing you agree to Answer24's{" "}
-                <Link href="#" className="underline">
-                  Terms Of Service
-                </Link>{" "}
-                and{" "}
-                <Link href="#" className="underline font-semibold">
-                  Privacy Policy
-                </Link>
+              <div className="text-xs text-center text-gray-500 mt-4">
+                {t.rich("termsText", {
+                  tos: (chunks: React.ReactNode) => (
+                    <Link
+                      href="/terms"
+                      className="text-blue-500 hover:underline"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      {chunks}
+                    </Link>
+                  ),
+                  privacy: (chunks: React.ReactNode) => (
+                    <Link
+                      href="/privacy"
+                      className="text-blue-500 hover:underline"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      {chunks}
+                    </Link>
+                  ),
+                })}
               </div>
             </>
           ) : (
             <>
               <h2 className="text-2xl font-bold text-center mb-6">
-                Sign in to your account
+                {t("title")}
               </h2>
               <Button
                 variant="outline"
@@ -567,7 +574,7 @@ export default function SignIn() {
                   height={20}
                   className="mr-2"
                 />
-                Sign in with Google
+                {t("signInWithGoogle")}
               </Button>
               <div className="flex items-center my-4">
                 <div className="flex-1 h-px bg-gray-200" />
@@ -580,7 +587,7 @@ export default function SignIn() {
                     htmlFor="email"
                     className="block text-sm font-medium text-gray-700 mb-1"
                   >
-                    Email
+                    {t("email")}
                   </label>
                   <span className="absolute left-3 top-9 text-gray-400">
                     <Mail size={18} />
@@ -591,7 +598,9 @@ export default function SignIn() {
                     type="email"
                     autoComplete="email"
                     required
-                    placeholder="Enter your email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder={t("email")}
                     className="pl-10 pr-3 py-2 w-full border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
@@ -600,7 +609,7 @@ export default function SignIn() {
                     htmlFor="password"
                     className="block text-sm font-medium text-gray-700 mb-1"
                   >
-                    Password
+                    {t("password")}
                   </label>
                   <span className="absolute left-3 top-9 text-gray-400">
                     <Key size={18} />
@@ -611,7 +620,9 @@ export default function SignIn() {
                     type={showPassword ? "text" : "password"}
                     autoComplete="current-password"
                     required
-                    placeholder="********"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder={t("password")}
                     className="pl-10 pr-10 py-2 w-full border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                   <button
@@ -628,24 +639,24 @@ export default function SignIn() {
                     href="#"
                     className="text-sm text-blue-600 hover:underline"
                   >
-                    Forgot Password?
+                    {t("forgotPassword")}
                   </Link>
                 </div>
                 <Button
                   type="submit"
                   className="w-full bg-emerald-400 hover:bg-emerald-500 text-white text-base font-semibold py-2 rounded-md"
                 >
-                  Sign In
+                  {t("signIn")}
                 </Button>
               </form>
               <div className="text-center text-sm text-gray-600 mt-6">
-                Don&apos;t have an account?{" "}
+                {t("noAccount")}{" "}
                 <button
                   type="button"
                   className="text-yellow-600 font-semibold underline"
                   onClick={() => setIsSignUp(true)}
                 >
-                  Start Your 7-day Free Trial
+                  {t("startTrial")}
                 </button>
               </div>
             </>

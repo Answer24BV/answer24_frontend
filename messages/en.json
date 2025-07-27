@@ -199,6 +199,102 @@
         "manualInstruction": "You can also add this app to your home screen manually from your browser menu."
       }
     },
+    "SignInPage": {
+      "hero": {
+        "weeklyOptimization": "Weekly Optimization",
+        "withNoHassle": "No Hassle!",
+        "includeSearchTerms": "Include the Search Terms recommended by AI",
+        "withinCampaignScope": "within the scope of your campaign"
+      },
+      "title": "Sign in to your account",
+      "email": "Email",
+      "enterEmail": "Enter your email",
+      "password": "Password",
+      "forgotPassword": "Forgot Password?",
+      "signIn": "Sign In",
+      "noAccount": "Don't have an account?",
+      "startTrial": "Start Your 7-day Free Trial",
+      "or": "OR",
+      "signInWithGoogle": "Sign in with Google",
+      "welcomeBack": "Welcome back!",
+      "continueWithEmail": "Continue with email",
+      "termsText": "By continuing you agree to Answer24's",
+      "termsOfService": "Terms Of Service",
+      "privacyPolicy": "Privacy Policy",
+      "alreadyCustomer": "Already a customer?",
+      "signUp": {
+        "title": "Start your 7-day free trial now",
+        "signUpWithEmail": "Sign up with email",
+        "accountDetails": "Account Details",
+        "welcomeMessage": "Welcome, first things first...",
+        "profilePicture": "Profile Picture",
+        "fullName": "Full Name",
+        "passwordAgain": "Password (again)",
+        "strongPassword": "For a strong password:",
+        "passwordRequirements": [
+          "At least 1 uppercase letter",
+          "At least 1 lowercase letter",
+          "At least 1 number",
+          "At least 6 characters"
+        ],
+        "removePicture": "Remove picture",
+        "continueButton": "Continue",
+        "subscriptionPlans": "Subscription Plans",
+        "selectPlan": "Select the plan that suits your needs. Answer24 supports fair pricing, providing affordable options based on your country. Your final price is available on the checkout page.",
+        "plans": {
+          "launch": {
+            "name": "Launch",
+            "description": "Initiate and optimize your Google Ads campaigns with AI-powered assistance.",
+            "credits": "AI credits/month",
+            "trial": "7-Days Free Trial",
+            "startTrial": "Start 7-Day Free Trial",
+            "featuresLabel": "Features",
+            "features": [
+              "1 Ad Account",
+              "1 Team Member",
+              "Weekly Optimizations",
+              "Ad Tracking (1 Competitor)"
+            ]
+          },
+          "growth": {
+            "name": "Growth",
+            "description": "Perfect for handling multiple ad accounts, providing the tools you need to save time & effort.",
+            "credits": "AI credits/month",
+            "trial": "7-Days Free Trial",
+            "startTrial": "Start 7-Day Free Trial",
+            "featuresLabel": "Features",
+            "features": [
+              "Includes everything in Launch",
+              "5 Ad Accounts",
+              "5 Team Members",
+              "Daily Optimizations"
+            ]
+          },
+          "enterprise": {
+            "name": "Enterprise",
+            "description": "Designed for businesses that need personalized support and advanced strategy.",
+            "credits": "AI credits/month",
+            "trial": "7-Days Free Trial",
+            "startTrial": "Start 7-Day Free Trial",
+            "featuresLabel": "Features",
+            "features": [
+              "Includes everything in Growth",
+              "20 Ad Accounts",
+              "20 Team Members",
+              "Daily Optimizations"
+            ]
+          }
+        }
+      },
+      "errors": {
+        "fullNameRequired": "Please type your full name.",
+        "passwordRequired": "Please type your password.",
+        "passwordAgainRequired": "Please type your password again.",
+        "passwordsDontMatch": "Passwords do not match.",
+        "invalidFileType": "Please select an image file",
+        "fileTooLarge": "File size must be less than 5MB"
+      }
+    },
     "Dashboard": {
       "title": "Account Dashboard",
       "subtitle": "Monitor your Google Ads performance and get AI-powered insights.",

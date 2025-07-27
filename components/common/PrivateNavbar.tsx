@@ -39,9 +39,9 @@ export function PrivateNavbar() {
   const t = useTranslations("Navigation");
   
   const navItems = [
-    { name: t('account'), to: "dashboard/account" },
-    { name: t('chat'), to: "dashboard/chat" },
-    { name: t('wallet'), to: "dashboard/account/wallet" },
+    { name: t('account'), href: "/dashboard", as: "/dashboard" },
+    { name: t('chat'), href: "/dashboard/chat", as: "/chat" },
+    { name: t('wallet'), href: "/dashboard/account/wallet", as: "/account/wallet" },
   ]
 
   return (
@@ -80,7 +80,7 @@ export function PrivateNavbar() {
                 whileHover={{ y: -2 }}
                 className="cursor-pointer text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200 relative group"
               >
-                <Link href={item.to}>{item.name}</Link>
+                <Link href={item.href}>{item.name}</Link>
                 <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-600 transition-all duration-200 group-hover:w-full" />
               </motion.div>
             ))}
@@ -162,7 +162,8 @@ export function PrivateNavbar() {
               {navItems.map(item => (
                 <Link
                   key={item.name}
-                  href={item.to}
+                  href={item.href}
+                  as={item.as}
                   className="cursor-pointer block text-gray-700 hover:text-blue-600 font-medium py-2"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >

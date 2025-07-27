@@ -101,14 +101,15 @@ const getRelatedPosts = async (currentId: string) => {
   ];
 };
 
-export default async function BlogPostPage({ 
-  params 
-}: { 
-  params: { blogId: string } 
-}) {
+export default async function BlogPostPage(
+  props: { 
+    params: Promise<{ blogId: string }> 
+  }
+) {
+  const params = await props.params;
   const post = await getPost(params.blogId);
   const relatedPosts = await getRelatedPosts(params.blogId);
-  
+
   if (!post) {
     notFound();
   }

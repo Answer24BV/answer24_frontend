@@ -3,15 +3,16 @@ import React from "react";
 
 const Page = async (props: any) => {
   console.log("=== INVOICE PAGE COMPONENT START ===");
-  console.log("Page props received:", props);
+  console.log("Page props received:", /* @next-codemod-error 'props' is passed as an argument. Any asynchronous properties of 'props' must be awaited when accessed. */
+  props);
   
   const params = await props.params;
   console.log("Resolved params:", params);
   console.log("Transaction ID from params:", params.transactionId);
   
   // Log any search params if they exist
-  if (props.searchParams) {
-    console.log("Search params:", props.searchParams);
+  if ((await props.searchParams)) {
+    console.log("Search params:", (await props.searchParams));
   }
   
   console.log("Rendering InvoiceCard component with transactionId:", params.transactionId);
