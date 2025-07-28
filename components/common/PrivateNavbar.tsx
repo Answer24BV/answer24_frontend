@@ -12,7 +12,7 @@ import {
 } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import LanguageSwitcher from "./LanguageSwitcher"
-import { Link} from "@/i18n/navigation"
+import { Link } from "@/i18n/navigation"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
   DropdownMenu,
@@ -23,6 +23,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { useTranslations } from "next-intl"
+import ANSWER24LOGO from "@/public/Answer24Logo.png"
+import Image from "next/image"
 
 export function PrivateNavbar() {
   const [isScrolled, setIsScrolled] = useState(false)
@@ -37,7 +39,7 @@ export function PrivateNavbar() {
   }, [])
 
   const t = useTranslations("Navigation");
-  
+
   const navItems = [
     { name: t('account'), href: "/dashboard", as: "/dashboard" },
     { name: t('chat'), href: "/dashboard/chat", as: "/chat" },
@@ -49,27 +51,22 @@ export function PrivateNavbar() {
       initial={{ y: -100 }}
       animate={{ y: 0 }}
       transition={{ duration: 0.6, ease: "easeOut" }}
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        isScrolled
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled
           ? "bg-white/95 backdrop-blur-md shadow-lg border-b border-gray-200/50"
           : "bg-transparent"
-      }`}
+        }`}
     >
       <div className="max-w-7xl mx-auto px-6">
         <div className="flex items-center justify-between h-20">
           {/* Logo */}
           <Link href="/">
-            <motion.span
-              whileHover={{ scale: 1.05 }}
-              className="flex items-center space-x-2 cursor-pointer"
-            >
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl flex items-center justify-center">
-                <span className="text-white font-bold text-lg">A24</span>
-              </div>
-              <span className="text-2xl font-bold text-gray-900">
-                Answer24
-              </span>
-            </motion.span>
+            <Image src={ANSWER24LOGO} alt="Answer24 Logo" width={200} height={200} />
+            {/* <motion.span whileHover={{ scale: 1.05 }} className="flex items-center space-x-2 cursor-pointer">
+                       <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl flex items-center justify-center">
+                         <Image src={ANSWER24LOGO} alt="Answer24 Logo" width={50} height={50} />
+                       </div>
+                       <span className="text-2xl font-bold text-gray-900">Answer24</span>
+                     </motion.span> */}
           </Link>
 
           {/* Desktop Navigation */}

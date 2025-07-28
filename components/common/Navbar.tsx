@@ -7,6 +7,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import LanguageSwitcher from "./LanguageSwitcher";
 import { Link } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
+import ANSWER24LOGO from "@/public/Answer24Logo.png"
+import Image from "next/image"
 
 export function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false)
@@ -40,13 +42,15 @@ export function Navbar() {
       <div className="max-w-7xl mx-auto px-6">
         <div className="flex items-center justify-between h-20">
           {/* Logo */}
+         
           <Link href="/">
-            <motion.span whileHover={{ scale: 1.05 }} className="flex items-center space-x-2 cursor-pointer">
+           <Image src={ANSWER24LOGO} alt="Answer24 Logo" width={200} height={200} />
+            {/* <motion.span whileHover={{ scale: 1.05 }} className="flex items-center space-x-2 cursor-pointer">
               <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl flex items-center justify-center">
-                <span className="text-white font-bold text-lg">A24</span>
+                <Image src={ANSWER24LOGO} alt="Answer24 Logo" width={50} height={50} />
               </div>
               <span className="text-2xl font-bold text-gray-900">Answer24</span>
-            </motion.span>
+            </motion.span> */}
           </Link>
 
           {/* Desktop Navigation */}
