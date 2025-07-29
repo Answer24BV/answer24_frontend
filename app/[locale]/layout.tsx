@@ -6,7 +6,7 @@ import { notFound } from 'next/navigation';
 import { routing } from '@/i18n/routing';
 import Head from "./head";
 import ClientLayout from './ClientLayout';
-
+import { Toaster } from "@/components/ui/sonner"
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -51,8 +51,10 @@ export default async function RootLayout({
         <NextIntlClientProvider>
           <ClientLayout>
             {children}
+            <Toaster />
           </ClientLayout>
         </NextIntlClientProvider>
+
       </body>
     </html>
   );

@@ -8,7 +8,7 @@ const Header = () => {
   const pathname = usePathname()
 
   // Define routes that should have the private navbar
-  const privateRoutes = ['/account', '/account/chat', '/wallet', 'dashboard']
+  const privateRoutes = ['/account', '/account/chat', '/wallet', 'dashboard', '/client/avatar', '/client/autoservicejanssen', '/admin', '/admin/blog', '/admin/client-domain-management']
 
   // Check if the current route is a private route
   const isPrivateRoute = privateRoutes.some(route => pathname.includes(route))
