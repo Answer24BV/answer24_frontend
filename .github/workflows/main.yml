@@ -30,10 +30,21 @@ jobs:
       - name: 📦 Install dependencies
         run: pnpm install
 
+      - name: 🔇 Disable Next.js telemetry
+        run: npx next telemetry disable
+
+      - name: 🗄️ Cache Next.js build
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.pnpm-store
+            .next/cache
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-
+
       - name: 🏗️ Build Next.js Project
-        run: |
-          pnpm next build
-          pnpm next export
+        run: pnpm next build
 
       - name: 🚀 Deploy to FTP
         if: github.event_name == 'push'
