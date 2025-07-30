@@ -7,4 +7,5 @@ export interface Avatar {
   functions: string[]
   image: string
   requiredPlan: SubscriptionPlan
+  description?: string
 }

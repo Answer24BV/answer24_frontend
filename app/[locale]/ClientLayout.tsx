@@ -5,6 +5,7 @@ import Footer from "@/components/common/Footer";
 import { useHideSomethingOnRoute } from "@/lib/useHideSomethinOnRoute";
 import ChatWidget from "@/components/common/ChatWidget";
 import PWALoader from "@/components/PWALoader";
+import TranslationPreloader from "@/components/TranslationPreloader";
 
 export default function ClientLayout({
     children,
@@ -17,6 +18,7 @@ export default function ClientLayout({
 
     return (
         <>
+            <TranslationPreloader />
             {hiddenNavbar ? null : <Header />}
             <PWALoader />
             {children}

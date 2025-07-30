@@ -1,9 +1,11 @@
 "use client"
 
+import { useState, useRef, useEffect } from "react"
 import { Card, CardContent } from "@/components/ui/card"
-import { Search, BarChart3, Users, FileText, Lightbulb, Bell, ArrowRight } from "lucide-react"
-import { motion } from "framer-motion"
+import { Search, BarChart3, Users, FileText, Lightbulb, Bell, ArrowRight, X, ChevronLeft, ChevronRight } from "lucide-react"
+import { motion, AnimatePresence } from "framer-motion"
 import { useTranslations } from "next-intl"
+import * as Dialog from '@radix-ui/react-dialog'
 
 const FeatureCard = ({ icon: Icon, title, description, color, index }: {
   icon: any,
