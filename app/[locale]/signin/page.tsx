@@ -5,7 +5,6 @@ import Image from "next/image";
 import { Link } from "@/i18n/navigation";
 import { useState, FormEvent } from "react";
 import { useTranslations } from "next-intl";
-import { Chrome } from "lucide-react";
 
 export default function SignIn() {
   const [email, setEmail] = useState("");
@@ -41,7 +40,7 @@ export default function SignIn() {
             <h1 className="text-2xl font-bold text-gray-800 mb-2">
               {t("welcomeBack")}
             </h1>
-            <p className="text-blue-600 text-lg">{t("title")}</p>
+            {/* <p className="text-blue-600 text-lg">{t("title")}</p> */}
           </div>
 
           <form className="space-y-6" onSubmit={handleSignInSubmit}>
@@ -50,7 +49,12 @@ export default function SignIn() {
               onClick={handleGoogleSignIn}
               className="w-full flex items-center justify-center space-x-2 border border-gray-300 rounded-lg py-3 text-gray-700 font-semibold hover:bg-gray-50 transition-colors"
             >
-              <Chrome size={20} />
+              <Image
+                src="/google-icon.svg"
+                alt="Google"
+                width={20}
+                height={20}
+              />
               <span>{t("signInWithGoogle")}</span>
             </button>
 
