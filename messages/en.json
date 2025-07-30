@@ -1,383 +1,376 @@
 {
-    "common": {
-        "locale": "en",
-        "language": "English",
-        "footer_copyright": "© {year} Answer24. All rights reserved.",
-        "footer_about": "About",
-        "footer_contact": "Contact",
-        "footer_privacy_policy": "Privacy Policy"
+  "common": {
+    "locale": "en",
+    "language": "English",
+    "footer_copyright": "© {year} Answer24. All rights reserved.",
+    "footer_about": "About",
+    "footer_contact": "Contact",
+    "footer_privacy_policy": "Privacy Policy"
+  },
+  "HeroSection": {
+    "hero_badge": "AI-Powered Google Ads Optimization",
+    "hero_title_1": "Meet ANS, your smart",
+    "hero_title_2": "AI Google Ads manager",
+    "hero_button_1": "Start Free Trial",
+    "hero_button_2": "Watch Demo",
+    "hero_image_alt": "Hero Image",
+    "hero_floating_text": "Hi, I'm Ans and I answer 24/7 for your best marketing strategy!"
+  },
+  "FeatureSection": {
+    "section_title": "Powerful Features",
+    "heading": {
+      "line1": "Everything you need to",
+      "line2": "dominate Google Ads"
     },
-    "HeroSection": {
-        "hero_badge": "AI-Powered Google Ads Optimization",
-        "hero_title_1": "Meet ANS, your smart",
-        "hero_title_2": "AI Google Ads manager",
-        "hero_button_1": "Start Free Trial",
-        "hero_button_2": "Watch Demo",
-        "hero_image_alt": "Hero Image",
-        "hero_floating_text": "Hi, I'm Ans and I answer 24/7 for your best marketing strategy!"
+    "subheading": "Powerful AI-driven features designed to optimize every aspect of your Google Ads campaigns",
+    "learn_more": "Learn more",
+    "features": [
+      {
+        "title": "Smart Keyword Generator",
+        "description": "AI-powered keyword suggestions with search volume, CPC, and competition analysis for maximum impact."
+      },
+      {
+        "title": "Campaign Auditor",
+        "description": "Comprehensive audits that identify budget waste, low-quality keywords, and missed opportunities."
+      },
+      {
+        "title": "Competitor Tracking",
+        "description": "Monitor competitor ads, track changes, and gain insights into their performance strategies."
+      },
+      {
+        "title": "White-Label Reporting",
+        "description": "Custom-branded reports and downloadable PDFs perfect for agencies and client presentations."
+      },
+      {
+        "title": "AI Optimization Tips",
+        "description": "Daily AI-generated recommendations for bid changes, keyword pausing, and performance improvements."
+      },
+      {
+        "title": "Smart Alerts",
+        "description": "Instant notifications for performance drops and significant changes to react quickly."
+      }
+    ]
+  },
+  "AudienceSection": {
+    "section_title": "Who We Serve",
+    "heading": {
+      "line1": "Built for",
+      "line2": "every marketer"
     },
-    "FeatureSection": {
-        "section_title": "Powerful Features",
-        "heading": {
-            "line1": "Everything you need to",
-            "line2": "dominate Google Ads"
-        },
-        "subheading": "Powerful AI-driven features designed to optimize every aspect of your Google Ads campaigns",
-        "learn_more": "Learn more",
-        "features": [
-            {
-                "title": "Smart Keyword Generator",
-                "description": "AI-powered keyword suggestions with search volume, CPC, and competition analysis for maximum impact."
-            },
-            {
-                "title": "Campaign Auditor",
-                "description": "Comprehensive audits that identify budget waste, low-quality keywords, and missed opportunities."
-            },
-            {
-                "title": "Competitor Tracking",
-                "description": "Monitor competitor ads, track changes, and gain insights into their performance strategies."
-            },
-            {
-                "title": "White-Label Reporting",
-                "description": "Custom-branded reports and downloadable PDFs perfect for agencies and client presentations."
-            },
-            {
-                "title": "AI Optimization Tips",
-                "description": "Daily AI-generated recommendations for bid changes, keyword pausing, and performance improvements."
-            },
-            {
-                "title": "Smart Alerts",
-                "description": "Instant notifications for performance drops and significant changes to react quickly."
-            }
+    "subheading": "Whether you're a business owner, agency, or freelancer, Answer24 adapts to your needs",
+    "learn_more": "Learn more",
+    "audiences": [
+      {
+        "title": "Small & Medium Businesses",
+        "description": "Perfect for SMBs running their own Google Ads campaigns who want to maximize ROI without hiring expensive agencies.",
+        "benefits": [
+          "Reduce ad spend waste",
+          "Improve campaign performance",
+          "Save time on optimization"
         ]
-    },
-    "AudienceSection": {
-        "section_title": "Who We Serve",
-        "heading": {
-            "line1": "Built for",
-            "line2": "every marketer"
-        },
-        "subheading": "Whether you're a business owner, agency, or freelancer, Answer24 adapts to your needs",
-        "learn_more": "Learn more",
-        "audiences": [
-            {
-                "title": "Small & Medium Businesses",
-                "description": "Perfect for SMBs running their own Google Ads campaigns who want to maximize ROI without hiring expensive agencies.",
-                "benefits": [
-                    "Reduce ad spend waste",
-                    "Improve campaign performance",
-                    "Save time on optimization"
-                ]
-            },
-            {
-                "title": "Marketing Agencies",
-                "description": "Ideal for agencies managing multiple client accounts with white-label reporting and advanced automation features.",
-                "benefits": [
-                    "Scale client management",
-                    "Professional reporting",
-                    "Increase profit margins"
-                ]
-            },
-            {
-                "title": "Freelance Marketers",
-                "description": "Built for independent marketers who need powerful automation tools to compete with larger agencies.",
-                "benefits": [
-                    "Automate routine tasks",
-                    "Deliver better results",
-                    "Handle more clients"
-                ]
-            }
+      },
+      {
+        "title": "Marketing Agencies",
+        "description": "Ideal for agencies managing multiple client accounts with white-label reporting and advanced automation features.",
+        "benefits": [
+          "Scale client management",
+          "Professional reporting",
+          "Increase profit margins"
         ]
-    },
-    "ContactPage": {
-        "contactBadge": "Contact Us",
-        "title": "Get in Touch",
-        "subtitle": "Ready to transform your Google Ads? Let's talk about how Answer24 can help your business grow.",
-        "form": {
-            "fullName": "Full Name",
-            "email": "Email Address",
-            "company": "Company Name",
-            "message": "Message",
-            "submit": "Send Message"
-        },
-        "contactInfo": {
-            "title": "Contact Information",
-            "emailLabel": "Email",
-            "emailValue": "hello@answer24.com",
-            "phoneLabel": "Phone",
-            "phoneValue": "+31 20 123 4567",
-            "locationLabel": "Location",
-            "locationValue": "Amsterdam, Netherlands"
-        },
-        "quickResponse": {
-            "title": "Quick Response",
-            "description": "We typically respond to all inquiries within 24 hours. For urgent matters, please call us directly."
-        }
-    },
-    "AboutPage": {
-        "title": "About Answer24",
-        "subtitle": "We're on a mission to make Google Ads work better for everyone. No more guesswork, no more wasted budgets, no more complexity.",
-        "ctaButton": "Start Your Journey",
-        "story": {
-            "title": "Our Story",
-            "content": "<p>In today's digital world, running successful online ads has become overly complex and increasingly expensive. Small businesses were struggling to compete with enterprises that had dedicated marketing teams and unlimited budgets.</p><p>That's when we realized something had to change. We founded Answer24 with a simple belief: <strong>every business deserves access to world-class advertising technology</strong>, regardless of their size or budget.</p><p>We're not just another agency promising results. We're a technology-first platform that puts the power of AI-driven optimization directly in your hands, working 24/7 to make your ads smarter, more efficient, and more profitable.</p>"
-        },
-        "mission": {
-            "title": "Our Mission",
-            "description": "To democratize digital advertising by making advanced AI optimization accessible to businesses of all sizes. We believe every entrepreneur deserves the same powerful tools that enterprise companies use to dominate their markets."
-        },
-        "vision": {
-            "title": "Our Vision",
-            "description": "A world where digital advertising is smarter, fairer, and more efficient for everyone. Where small businesses can compete on equal footing, and where success is determined by the quality of your product, not the size of your marketing budget."
-        },
-        "values": {
-            "title": "What We Stand For",
-            "subtitle": "Our values guide everything we do, from the features we build to the way we support our customers.",
-            "values": [
-                {
-                    "icon": "Target",
-                    "title": "Simplicity First",
-                    "description": "We believe advertising should be simple, not complex. Our technology handles the complexity so you don't have to."
-                },
-                {
-                    "icon": "TrendingUp",
-                    "title": "Results Driven",
-                    "description": "Every feature we build is designed to improve your ROI. We measure success by your success."
-                },
-                {
-                    "icon": "Users",
-                    "title": "Customer Focused",
-                    "description": "We built Answer24 for real businesses with real challenges. Your feedback shapes our product."
-                }
-            ]
-        },
-        "journey": {
-            "title": "Our Journey",
-            "subtitle": "From a simple idea to serving thousands of businesses worldwide.",
-            "milestones": [
-                {
-                    "year": "2023",
-                    "title": "The Beginning",
-                    "description": "Founded with a mission to make Google Ads accessible to every business"
-                },
-                {
-                    "year": "2024",
-                    "title": "AI Revolution",
-                    "description": "Launched our advanced AI optimization engine that learns and adapts"
-                },
-                {
-                    "year": "Today",
-                    "title": "Growing Strong",
-                    "description": "Serving 10,000+ businesses worldwide with automated ad optimization"
-                }
-            ]
-        },
-        "whyUs": {
-            "title": "Why Choose Answer24?",
-            "subtitle": "We're not just another advertising platform. Here's what makes us different.",
-            "features": [
-                "No long-term contracts or hidden fees",
-                "AI that learns and improves over time",
-                "White-label ready for agencies",
-                "24/7 automated optimization",
-                "Real-time performance monitoring",
-                "Dedicated customer support"
-            ]
-        }
-    },
-    "downloadApp": {
-      "section": {
-        "title": "Download the App",
-        "description": "Get the full Answer24 experience on your mobile device."
       },
-      "modal": {
-        "title": "Install Answer24 App",
-        "description": "Add Answer24 to your home screen for quick access and a better experience.",
-        "install": "Install",
-        "later": "Later",
-        "alreadyInstalled": "App is already installed.",
-        "manualInstruction": "You can also add this app to your home screen manually from your browser menu."
+      {
+        "title": "Freelance Marketers",
+        "description": "Built for independent marketers who need powerful automation tools to compete with larger agencies.",
+        "benefits": [
+          "Automate routine tasks",
+          "Deliver better results",
+          "Handle more clients"
+        ]
       }
+    ]
+  },
+  "ContactPage": {
+    "contactBadge": "Contact Us",
+    "title": "Get in Touch",
+    "subtitle": "Ready to transform your Google Ads? Let's talk about how Answer24 can help your business grow.",
+    "form": {
+      "fullName": "Full Name",
+      "email": "Email Address",
+      "company": "Company Name",
+      "message": "Message",
+      "submit": "Send Message"
     },
-    "SignInPage": {
-      "hero": {
-        "weeklyOptimization": "Weekly Optimization",
-        "withNoHassle": "No Hassle!",
-        "includeSearchTerms": "Include the Search Terms recommended by AI",
-        "withinCampaignScope": "within the scope of your campaign"
-      },
-      "title": "Sign in to your account",
-      "email": "Email",
-      "enterEmail": "Enter your email",
-      "password": "Password",
-      "forgotPassword": "Forgot Password?",
-      "signIn": "Sign In",
-      "noAccount": "Don't have an account?",
-      "startTrial": "Start Your 7-day Free Trial",
-      "or": "OR",
-      "signInWithGoogle": "Sign in with Google",
-      "welcomeBack": "Welcome back!",
-      "continueWithEmail": "Continue with email",
-      "termsText": "By continuing you agree to Answer24's",
-      "termsOfService": "Terms Of Service",
-      "privacyPolicy": "Privacy Policy",
-      "alreadyCustomer": "Already a customer?",
-      "signUp": {
-        "title": "Start your 7-day free trial now",
-        "signUpWithEmail": "Sign up with email",
-        "accountDetails": "Account Details",
-        "welcomeMessage": "Welcome, first things first...",
-        "profilePicture": "Profile Picture",
-        "fullName": "Full Name",
-        "passwordAgain": "Password (again)",
-        "strongPassword": "For a strong password:",
-        "passwordRequirements": [
-          "At least 1 uppercase letter",
-          "At least 1 lowercase letter",
-          "At least 1 number",
-          "At least 6 characters"
-        ],
-        "removePicture": "Remove picture",
-        "continueButton": "Continue",
-        "subscriptionPlans": "Subscription Plans",
-        "selectPlan": "Select the plan that suits your needs. Answer24 supports fair pricing, providing affordable options based on your country. Your final price is available on the checkout page.",
-        "plans": {
-          "launch": {
-            "name": "Launch",
-            "description": "Initiate and optimize your Google Ads campaigns with AI-powered assistance.",
-            "credits": "AI credits/month",
-            "trial": "7-Days Free Trial",
-            "startTrial": "Start 7-Day Free Trial",
-            "featuresLabel": "Features",
-            "features": [
-              "1 Ad Account",
-              "1 Team Member",
-              "Weekly Optimizations",
-              "Ad Tracking (1 Competitor)"
-            ]
-          },
-          "growth": {
-            "name": "Growth",
-            "description": "Perfect for handling multiple ad accounts, providing the tools you need to save time & effort.",
-            "credits": "AI credits/month",
-            "trial": "7-Days Free Trial",
-            "startTrial": "Start 7-Day Free Trial",
-            "featuresLabel": "Features",
-            "features": [
-              "Includes everything in Launch",
-              "5 Ad Accounts",
-              "5 Team Members",
-              "Daily Optimizations"
-            ]
-          },
-          "enterprise": {
-            "name": "Enterprise",
-            "description": "Designed for businesses that need personalized support and advanced strategy.",
-            "credits": "AI credits/month",
-            "trial": "7-Days Free Trial",
-            "startTrial": "Start 7-Day Free Trial",
-            "featuresLabel": "Features",
-            "features": [
-              "Includes everything in Growth",
-              "20 Ad Accounts",
-              "20 Team Members",
-              "Daily Optimizations"
-            ]
-          }
-        }
-      },
-      "errors": {
-        "fullNameRequired": "Please type your full name.",
-        "passwordRequired": "Please type your password.",
-        "passwordAgainRequired": "Please type your password again.",
-        "passwordsDontMatch": "Passwords do not match.",
-        "invalidFileType": "Please select an image file",
-        "fileTooLarge": "File size must be less than 5MB"
-      }
+    "contactInfo": {
+      "title": "Contact Information",
+      "emailLabel": "Email",
+      "emailValue": "hello@answer24.com",
+      "phoneLabel": "Phone",
+      "phoneValue": "+31 20 123 4567",
+      "locationLabel": "Location",
+      "locationValue": "Amsterdam, Netherlands"
     },
-    "Dashboard": {
-      "title": "Account Dashboard",
-      "subtitle": "Monitor your Google Ads performance and get AI-powered insights.",
-      "loading": "Loading dashboard...",
-      "stats": {
-        "totalSpend": "Total Spend",
-        "totalClicks": "Total Clicks",
-        "totalImpressions": "Total Impressions",
-        "ctr": "Click-Through Rate"
-      },
-      "sections": {
-        "campaigns": "Your Campaigns",
-        "aiTips": "AI Optimization Tips",
-        "quickActions": "Quick Actions",
-        "performance": "Performance Overview"
-      },
-      "actions": {
-        "viewAll": "View All",
-        "applyTip": "Apply Tip",
-        "dismiss": "Dismiss",
-        "seeMore": "See More"
-      },
-      "emptyStates": {
-        "noCampaigns": "No campaigns found",
-        "noTips": "No optimization tips available"
-      }
-    },
-    "Navigation": {
-      "account": "Account",
-      "chat": "Chat",
-      "wallet": "Wallet",
-      "blog": "Blog",
-      "faq": "FAQ",
-      "pricing": "Pricing",
-      "about": "About",
-      "contact": "Contact",
-      "signIn": "Sign In",
-      "startFreeTrial": "Start Free Trial",
-      "userMenu": {
-        "profile": "Profile",
-        "logOut": "Log out"
-      }
-    },
-    "WalletPage": {
-      "title": "Your Wallet",
-      "subtitle": "Manage your transactions and balance",
-      "accountDetails": {
-        "title": "Account Details",
-        "memberSince": "Member Since"
-      },
-      "balance": {
-        "title": "Current Balance",
-        "available": "Available Balance",
-        "currency": "Currency",
-        "walletType": "Digital Wallet"
-      },
-      "addMoney": {
-        "title": "Add Money",
-        "button": "Add Money"
-      },
-      "transactions": {
-        "title": "Your Transactions",
-        "subtitle": "Latest activity",
-        "headers": {
-          "transaction": "Transaction",
-          "dateTime": "Date & Time",
-          "amount": "Amount",
-          "status": "Status",
-          "actions": "Actions"
-        },
-        "view": "View",
-        "downloadPdf": "Download PDF",
-        "noTransactions": "No transactions found.",
-        "error": "Error fetching wallet history"
-      },
-      "status": {
-        "active": "Active",
-        "pending": "Pending",
-        "paid": "Paid"
-      },
-      "transactionTypes": {
-        "wallet": "Top-up",
-        "expense": "Expense"
-      }
+    "quickResponse": {
+      "title": "Quick Response",
+      "description": "We typically respond to all inquiries within 24 hours. For urgent matters, please call us directly."
     }
+  },
+  "AboutPage": {
+    "title": "About Answer24",
+    "subtitle": "We're on a mission to make Google Ads work better for everyone. No more guesswork, no more wasted budgets, no more complexity.",
+    "ctaButton": "Start Your Journey",
+    "story": {
+      "title": "Our Story",
+      "content": "<p>In today's digital world, running successful online ads has become overly complex and increasingly expensive. Small businesses were struggling to compete with enterprises that had dedicated marketing teams and unlimited budgets.</p><p>That's when we realized something had to change. We founded Answer24 with a simple belief: <strong>every business deserves access to world-class advertising technology</strong>, regardless of their size or budget.</p><p>We're not just another agency promising results. We're a technology-first platform that puts the power of AI-driven optimization directly in your hands, working 24/7 to make your ads smarter, more efficient, and more profitable.</p>"
+    },
+    "mission": {
+      "title": "Our Mission",
+      "description": "To democratize digital advertising by making advanced AI optimization accessible to businesses of all sizes. We believe every entrepreneur deserves the same powerful tools that enterprise companies use to dominate their markets."
+    },
+    "vision": {
+      "title": "Our Vision",
+      "description": "A world where digital advertising is smarter, fairer, and more efficient for everyone. Where small businesses can compete on equal footing, and where success is determined by the quality of your product, not the size of your marketing budget."
+    },
+    "values": {
+      "title": "What We Stand For",
+      "subtitle": "Our values guide everything we do, from the features we build to the way we support our customers.",
+      "values": [
+        {
+          "icon": "Target",
+          "title": "Simplicity First",
+          "description": "We believe advertising should be simple, not complex. Our technology handles the complexity so you don't have to."
+        },
+        {
+          "icon": "TrendingUp",
+          "title": "Results Driven",
+          "description": "Every feature we build is designed to improve your ROI. We measure success by your success."
+        },
+        {
+          "icon": "Users",
+          "title": "Customer Focused",
+          "description": "We built Answer24 for real businesses with real challenges. Your feedback shapes our product."
+        }
+      ]
+    },
+    "journey": {
+      "title": "Our Journey",
+      "subtitle": "From a simple idea to serving thousands of businesses worldwide.",
+      "milestones": [
+        {
+          "year": "2023",
+          "title": "The Beginning",
+          "description": "Founded with a mission to make Google Ads accessible to every business"
+        },
+        {
+          "year": "2024",
+          "title": "AI Revolution",
+          "description": "Launched our advanced AI optimization engine that learns and adapts"
+        },
+        {
+          "year": "Today",
+          "title": "Growing Strong",
+          "description": "Serving 10,000+ businesses worldwide with automated ad optimization"
+        }
+      ]
+    },
+    "whyUs": {
+      "title": "Why Choose Answer24?",
+      "subtitle": "We're not just another advertising platform. Here's what makes us different.",
+      "features": [
+        "No long-term contracts or hidden fees",
+        "AI that learns and improves over time",
+        "White-label ready for agencies",
+        "24/7 automated optimization",
+        "Real-time performance monitoring",
+        "Dedicated customer support"
+      ]
+    }
+  },
+  "downloadApp": {
+    "section": {
+      "title": "Download the App",
+      "description": "Get the full Answer24 experience on your mobile device."
+    },
+    "modal": {
+      "title": "Install Answer24 App",
+      "description": "Add Answer24 to your home screen for quick access and a better experience.",
+      "install": "Install",
+      "later": "Later",
+      "alreadyInstalled": "App is already installed.",
+      "manualInstruction": "You can also add this app to your home screen manually from your browser menu."
+    }
+  },
+  "SignInPage": {
+    "hero": {
+      "weeklyOptimization": "Weekly Optimization",
+      "withNoHassle": "No Hassle!",
+      "includeSearchTerms": "Include the Search Terms recommended by AI",
+      "withinCampaignScope": "within the scope of your campaign"
+    },
+    "title": "Sign in to your account",
+    "email": "Email",
+    "enterEmail": "Enter your email",
+    "password": "Password",
+    "forgotPassword": "Forgot Password?",
+    "signIn": "Sign In",
+    "noAccount": "Don't have an account?",
+    "startTrial": "Start Your 7-day Free Trial",
+    "or": "OR",
+    "signInWithGoogle": "Sign in with Google",
+    "welcomeBack": "Welcome back!",
+    "continueWithEmail": "Continue with email",
+    "termsText": "By continuing you agree to Answer24's",
+    "termsOfService": "Terms Of Service",
+    "privacyPolicy": "Privacy Policy",
+    "alreadyCustomer": "Already have an account?",
+    "login": "Login",
+    "signupPartner": "Signup Partner?",
+    "signUp": {
+      "title": "Start your 7-day free trial now",
+      "signUpWithEmail": "Sign up with email",
+      "accountDetails": "Account Details",
+      "welcomeMessage": "Welcome, first things first...",
+      "profilePicture": "Profile Picture",
+      "fullName": "Full Name",
+      "passwordAgain": "Password (again)",
+      "strongPassword": "For a strong password:",
+      "passwordRequirements": [
+        "At least 1 uppercase letter",
+        "At least 1 lowercase letter",
+        "At least 1 number",
+        "At least 6 characters"
+      ],
+      "removePicture": "Remove picture",
+      "continueButton": "Continue",
+      "subscriptionPlans": "Subscription Plans",
+      "selectPlan": "Select the plan that suits your needs. Answer24 supports fair pricing, providing affordable options based on your country. Your final price is available on the checkout page.",
+      "plans": {
+        "launch": {
+          "name": "Launch",
+          "description": "Initiate and optimize your Google Ads campaigns with AI-powered assistance.",
+          "credits": "AI credits/month",
+          "trial": "7-Days Free Trial",
+          "startTrial": "Start 7-Day Free Trial",
+          "featuresLabel": "Features",
+          "features": "1 Ad Account, 1 Team Member, Weekly Optimizations, Ad Tracking (1 Competitor)"
+        },
+        "growth": {
+          "name": "Growth",
+          "description": "Perfect for handling multiple ad accounts, providing the tools you need to save time & effort.",
+          "credits": "AI credits/month",
+          "trial": "7-Days Free Trial",
+          "startTrial": "Start 7-Day Free Trial",
+          "featuresLabel": "Features",
+          "features": "Includes everything in Launch, 5 Ad Accounts, 5 Team Members, Daily Optimizations"
+        },
+        "enterprise": {
+          "name": "Enterprise",
+          "description": "Designed for businesses that need personalized support and advanced strategy.",
+          "credits": "AI credits/month",
+          "trial": "7-Days Free Trial",
+          "startTrial": "Start 7-Day Free Trial",
+          "featuresLabel": "Features",
+          "features": "Includes everything in Growth, 20 Ad Accounts, 20 Team Members, Daily Optimizations"
+        }
+      },
+      "partnerSignUpTitle": "Partner Signup"
+    },
+    "errors": {
+      "fullNameRequired": "Please type your full name.",
+      "emailRequired": "Please type your email address.",
+      "phoneRequired": "Please type your phone number.",
+      "passwordRequired": "Please type your password.",
+      "confirmPasswordRequired": "Please confirm your password.",
+      "passwordsDontMatch": "Passwords do not match.",
+      "invalidFileType": "Please select an image file",
+      "fileTooLarge": "File size must be less than 5MB",
+      "invalidEmail": "Please enter a valid email address.",
+      "passwordTooShort": "Password must be at least 6 characters long.",
+      "agreeTermsRequired": "You must agree to the terms and conditions."
+    }
+  },
+  "Dashboard": {
+    "title": "Account Dashboard",
+    "subtitle": "Monitor your Google Ads performance and get AI-powered insights.",
+    "loading": "Loading dashboard...",
+    "stats": {
+      "totalSpend": "Total Spend",
+      "totalClicks": "Total Clicks",
+      "totalImpressions": "Total Impressions",
+      "ctr": "Click-Through Rate"
+    },
+    "sections": {
+      "campaigns": "Your Campaigns",
+      "aiTips": "AI Optimization Tips",
+      "quickActions": "Quick Actions",
+      "performance": "Performance Overview"
+    },
+    "actions": {
+      "viewAll": "View All",
+      "applyTip": "Apply Tip",
+      "dismiss": "Dismiss",
+      "seeMore": "See More"
+    },
+    "emptyStates": {
+      "noCampaigns": "No campaigns found",
+      "noTips": "No optimization tips available"
+    }
+  },
+  "Navigation": {
+    "account": "Account",
+    "chat": "Chat",
+    "wallet": "Wallet",
+    "blog": "Blog",
+    "faq": "FAQ",
+    "pricing": "Pricing",
+    "about": "About",
+    "contact": "Contact",
+    "signIn": "Sign In",
+    "startFreeTrial": "Start Free Trial",
+    "userMenu": {
+      "profile": "Profile",
+      "logOut": "Log out"
+    }
+  },
+  "WalletPage": {
+    "title": "Your Wallet",
+    "subtitle": "Manage your transactions and balance",
+    "accountDetails": {
+      "title": "Account Details",
+      "memberSince": "Member Since"
+    },
+    "balance": {
+      "title": "Current Balance",
+      "available": "Available Balance",
+      "currency": "Currency",
+      "walletType": "Digital Wallet"
+    },
+    "addMoney": {
+      "title": "Add Money",
+      "button": "Add Money"
+    },
+    "transactions": {
+      "title": "Your Transactions",
+      "subtitle": "Latest activity",
+      "headers": {
+        "transaction": "Transaction",
+        "dateTime": "Date & Time",
+        "amount": "Amount",
+        "status": "Status",
+        "actions": "Actions"
+      },
+      "view": "View",
+      "downloadPdf": "Download PDF",
+      "noTransactions": "No transactions found.",
+      "error": "Error fetching wallet history"
+    },
+    "status": {
+      "active": "Active",
+      "pending": "Pending",
+      "paid": "Paid"
+    },
+    "transactionTypes": {
+      "wallet": "Top-up",
+      "expense": "Expense"
+    }
+  }
 }
