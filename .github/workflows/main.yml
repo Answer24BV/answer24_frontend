@@ -27,13 +27,8 @@ jobs:
         with:
           version: 8
 
-      - name: 🔍 Verify pnpm installation
-        run: |
-          pnpm --version
-          echo "pnpm is installed and available"
-
       - name: 📦 Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install
 
       - name: 🏗️ Build Next.js Project
         run: |
