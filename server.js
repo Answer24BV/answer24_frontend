@@ -6,7 +6,8 @@ const path = require("path");
 const dev = process.env.NODE_ENV !== "production";
 const port = process.env.PORT || 3000;
 
-const app = next({ dev, dir: path.join(__dirname) });
+const appDir = __dirname;
+const app = next({ dev, dir: appDir });
 const handle = app.getRequestHandler();
 
 app
@@ -15,16 +16,10 @@ app
     createServer((req, res) => {
       try {
         const parsedUrl = parse(req.url, true);
-        const { pathname } = parsedUrl;
-        if (
-          pathname.startsWith("/_next/static/") ||
-          pathname.startsWith("/public/") ||
-          pathname === "/sw.js"
-        ) {
-          handle(req, res, parsedUrl);
-        } else {
-          app.render(req, res, pathname, parsedUrl.query);
-        }
+        const { pathname, query } = parsedUrl;
+
+        console.log(`Request: ${req.method} ${pathname}`);
+        handle(req, res, parsedUrl);
       } catch (err) {
         console.error("Error occurred handling", req.url, err);
         res.statusCode = 500;
@@ -32,7 +27,9 @@ app
       }
     }).listen(port, (err) => {
       if (err) throw err;
-      console.log(`> Ready on port ${port}`);
+      console.log(`> Ready on http://localhost:${port}`);
+      console.log(`> Environment: ${dev ? "development" : "production"}`);
+      console.log(`> App directory: ${appDir}`);
     });
   })
   .catch((err) => {
