@@ -5,7 +5,7 @@ import Image from "next/image";
 import { Link } from "@/i18n/navigation";
 import { useState, ChangeEvent, FormEvent } from "react";
 import { useTranslations } from "next-intl";
-import { Camera, User, Chrome } from "lucide-react";
+import { Camera, User } from "lucide-react";
 
 interface Errors {
   fullName: string;
@@ -168,7 +168,7 @@ export default function PartnerSignUp() {
               onClick={handleGoogleSignIn}
               className="w-full flex items-center justify-center space-x-2 border border-gray-300 rounded-lg py-3 text-gray-700 font-semibold hover:bg-gray-50 transition-colors"
             >
-              <Chrome size={20} />
+              <Image src="/google-icon.svg" alt="Google" width={20} height={20} />
               <span>{t("signInWithGoogle")}</span>
             </button>
 
