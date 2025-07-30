@@ -1,4 +1,4 @@
-name: 🚀 Deploy Tickvo Admin Frontend
+name: 🚀 Deploy Answer24
 
 on:
   push:
@@ -24,9 +24,15 @@ jobs:
           cache: "pnpm"
 
       - name: 📦 Install pnpm
-        uses: pnpm/action-setup@v3
+        uses: pnpm/action-setup@v4
         with:
           version: 8
+          run_install: false
+
+      - name: 🔍 Verify pnpm installation
+        run: |
+          pnpm --version
+          echo "pnpm is installed and available"
 
       - name: 📦 Install dependencies
         run: pnpm install --frozen-lockfile
