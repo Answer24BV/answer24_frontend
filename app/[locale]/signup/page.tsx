@@ -5,7 +5,7 @@ import Image from "next/image";
 import { Link } from "@/i18n/navigation";
 import { useState, ChangeEvent, FormEvent } from "react";
 import { useTranslations } from "next-intl";
-import { Camera, User, Chrome } from "lucide-react";
+import { Camera, User } from "lucide-react";
 
 interface Errors {
   fullName: string;
@@ -272,14 +272,14 @@ function validateAccountDetails(): boolean {
             </>
           ) : (
             <>
-              <div className="mb-6">
+              {/* <div className="mb-6">
                 <h1 className="text-2xl font-bold text-gray-800 mb-2">
                   {t("signUp.welcomeMessage")}
                 </h1>
                 <p className="text-blue-600 text-lg">
                   {t("signUp.signUpWithEmail")}
                 </p>
-              </div>
+              </div> */}
 
               <form className="space-y-6" onSubmit={handleAccountDetailsSubmit}>
                 <button
@@ -287,8 +287,8 @@ function validateAccountDetails(): boolean {
                   onClick={handleGoogleSignIn}
                   className="w-full flex items-center justify-center space-x-2 border border-gray-300 rounded-lg py-3 text-gray-700 font-semibold hover:bg-gray-50 transition-colors"
                 >
-                  <Chrome size={20} />
-                  <span>{t("signInWithGoogle")}</span>
+                  <Image src="/google-icon.svg" alt="Google" width={20} height={20} />
+                  <span>{t("signUpWithGoogle")}</span>
                 </button>
 
                 <div className="relative flex items-center justify-center my-6">
