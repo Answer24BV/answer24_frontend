@@ -73,14 +73,16 @@ export function Navbar() {
           <div className="hidden md:flex items-center space-x-4">
             <LanguageSwitcher />
             <Link href="/signin">
-              <Button asChild variant="ghost" className="text-red-400 hover:text-blue-600">
+              <Button variant="ghost" className="text-gray-700 hover:text-blue-600">
                 {t('signIn')}
               </Button>
             </Link>
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="bg-blue-600 hover:bg-blue-700 text-white px-6 rounded-xl">
-              <Link href="/signin?signup=1" className="flex items-center p-2">
-                {t('startFreeTrial')}
-                <ArrowRight className="ml-2 w-4 h-4" />
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+              <Link href="/signup">
+                <Button className="bg-blue-600 hover:bg-blue-700 text-white px-6 rounded-xl flex items-center">
+                  {t('startFreeTrial')}
+                  <ArrowRight className="ml-2 w-4 h-4" />
+                </Button>
               </Link>
             </motion.div>
           </div>
@@ -106,24 +108,24 @@ export function Navbar() {
           >
             <div className="px-6 py-4 space-y-4">
               {navItems.map((item) => (
-                <a
+                <Link
                   key={item.name}
                   href={item.href}
                   className="block text-gray-700 hover:text-blue-600 font-medium py-2"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   {item.name}
-                </a>
+                </Link>
               ))}
               <div className="pt-4 space-y-2">
-                <Link href="/signin" passHref legacyBehavior>
-                  <Button asChild variant="outline" className="w-full bg-transparent">
-                    <a>{t('signIn')}</a>
+                <Link href="/signin">
+                  <Button variant="outline" className="w-full bg-transparent" onClick={() => setIsMobileMenuOpen(false)}>
+                    {t('signIn')}
                   </Button>
                 </Link>
-                <Link href="/signin?signup=1" passHref legacyBehavior>
-                  <Button asChild className="w-full bg-blue-600 hover:bg-blue-700">
-                    <a>{t('startFreeTrial')}</a>
+                <Link href="/signup">
+                  <Button className="w-full bg-blue-600 hover:bg-blue-700" onClick={() => setIsMobileMenuOpen(false)}>
+                    {t('startFreeTrial')}
                   </Button>
                 </Link>
               </div>
