@@ -3,9 +3,10 @@
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import { Link } from "@/i18n/navigation";
-import { useState, ChangeEvent, FormEvent } from "react";
+import { useState, FormEvent } from "react";
 import { useTranslations } from "next-intl";
-import { Camera, User } from "lucide-react";
+import { authAPI, tokenUtils } from "@/utils/auth";
+import { useRouter } from "@/i18n/navigation";
 
 interface Errors {
   fullName: string;
@@ -14,7 +15,6 @@ interface Errors {
   password: string;
   confirmPassword: string;
   agreeTerms: string;
-  profilePicture: string;
 }
 
 export default function SignUp() {
@@ -25,8 +25,8 @@ export default function SignUp() {
   const [phone, setPhone] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [agreeTerms, setAgreeTerms] = useState(false);
-  const [profilePicture, setProfilePicture] = useState<string | ArrayBuffer | null>(null);
-  const [profilePictureFile, setProfilePictureFile] = useState<File | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const [errors, setErrors] = useState<Errors>({
     fullName: "",
@@ -35,11 +35,12 @@ export default function SignUp() {
     password: "",
     confirmPassword: "",
     agreeTerms: "",
-    profilePicture: "",
   });
 
-  const t = useTranslations("SignInPage");  
-function validateAccountDetails(): boolean {
+  const t = useTranslations("SignInPage");
+  const router = useRouter();
+
+  function validateAccountDetails(): boolean {
     let valid = true;
     const newErrors: Errors = {
       fullName: "",
@@ -48,13 +49,7 @@ function validateAccountDetails(): boolean {
       password: "",
       confirmPassword: "",
       agreeTerms: "",
-      profilePicture: "",
     };
-
-    if (!profilePictureFile) {
-      newErrors.profilePicture = t("errors.profilePictureRequired");
-      valid = false;
-    }
 
     if (!fullName.trim()) {
       newErrors.fullName = t("errors.fullNameRequired");
@@ -94,51 +89,64 @@ function validateAccountDetails(): boolean {
     return valid;
   }
 
-  function handleAccountDetailsSubmit(e: FormEvent<HTMLFormElement>): void {
+
+
+  async function handleAccountDetailsSubmit(e: FormEvent<HTMLFormElement>): Promise<void> {
     e.preventDefault();
-    if (validateAccountDetails()) {
+    if (!validateAccountDetails()) return;
+
+    setError("");
+    setIsLoading(true);
+
+    try {
+      const response = await authAPI.register({
+        name: fullName,
+        email,
+        phone,
+        password,
+        password_confirmation: confirmPassword,
+        userType: 'client'
+      });
+
+      // Store token and user data
+      if (response.token) {
+        tokenUtils.setToken(response.token);
+      }
+      if (response.user) {
+        tokenUtils.setUser(response.user);
+      }
+
+      // Go to step 2 (plan selection) after successful signup
       setSignUpStep(2);
+    } catch (err: any) {
+      setError(err.message || 'Registration failed. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
   }
 
-  function handleProfilePictureUpload(e: ChangeEvent<HTMLInputElement>): void {
-    const file = e.target.files?.[0];
-    if (file) {
-      if (!file.type.startsWith("image/")) {
-        setErrors((prevErrors) => ({ ...prevErrors, profilePicture: t("errors.invalidFileType") }));
-        return;
-      }
+  async function handlePlanSelection(planType: string): Promise<void> {
+    setError("");
+    setIsLoading(true);
 
-      if (file.size > 5 * 1024 * 1024) {
-        setErrors((prevErrors) => ({ ...prevErrors, profilePicture: t("errors.fileTooLarge") }));
-        return;
-      }
+    try {
+      // TODO: Handle subscription plan selection with API when ready
+      console.log("Selected plan:", planType);
 
-      setProfilePictureFile(file);
-      setErrors((prevErrors) => ({ ...prevErrors, profilePicture: "" }));
-
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        setProfilePicture(event.target?.result || null);
-      };
-      reader.readAsDataURL(file);
-    }
-  }
-
-  function removeProfilePicture(): void {
-    setProfilePicture(null);
-    setProfilePictureFile(null);
-    setErrors((prevErrors) => ({ ...prevErrors, profilePicture: t("errors.profilePictureRequired") }));
-    const fileInput = document.getElementById("profile-picture-upload") as HTMLInputElement;
-    if (fileInput) {
-      fileInput.value = "";
+      // Redirect to dashboard after plan selection
+      router.push('/dashboard');
+    } catch (err: any) {
+      setError(err.message || 'Plan selection failed. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
   }
 
   const handleGoogleSignIn = () => {
     console.log("Signing up with Google...");
-  }; 
- return (
+  };
+
+  return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50">
       <div
         className={`relative flex flex-col lg:flex-row w-11/12 md:w-3/4 lg:w-4/5 xl:w-2/3 2xl:w-1/2 bg-white rounded-2xl shadow-lg overflow-hidden my-8`}
@@ -168,6 +176,13 @@ function validateAccountDetails(): boolean {
               <h2 className="text-2xl font-bold mb-4">
                 {t("signUp.subscriptionPlans")}
               </h2>
+              
+              {error && (
+                <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg text-sm mb-6">
+                  {error}
+                </div>
+              )}
+
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="bg-white rounded-xl shadow p-6 border">
                   <div className="flex items-baseline justify-between mb-2">
@@ -188,20 +203,25 @@ function validateAccountDetails(): boolean {
                     {t("signUp.plans.launch.credits")}{" "}
                     <span className="ml-1 text-gray-400">?</span>
                   </div>
-                  <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold mb-4">
-                    {t("signUp.plans.launch.startTrial")}
+                  <Button 
+                    onClick={() => handlePlanSelection('launch')}
+                    disabled={isLoading}
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold mb-4 disabled:opacity-50"
+                  >
+                    {isLoading ? "Processing..." : t("signUp.plans.launch.startTrial")}
                   </Button>
                   <div>
                     <div className="font-semibold mb-1">
                       {t("signUp.plans.launch.featuresLabel")}
                     </div>
                     <ul className="text-xs text-gray-700 list-disc pl-5">
-                      {t("signUp.plans.launch.features").split(',').map((feature, index) => (
+                      {t("signUp.plans.launch.features").split(',').map((feature: string, index: number) => (
                         <li key={index}>{feature.trim()}</li>
                       ))}
                     </ul>
                   </div>
                 </div>
+
                 <div className="bg-white rounded-xl shadow p-6 border">
                   <div className="flex items-baseline justify-between mb-2">
                     <span className="text-xl font-bold">
@@ -221,20 +241,25 @@ function validateAccountDetails(): boolean {
                     {t("signUp.plans.growth.credits")}{" "}
                     <span className="ml-1 text-gray-400">?</span>
                   </div>
-                  <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold mb-4">
-                    {t("signUp.plans.growth.startTrial")}
+                  <Button 
+                    onClick={() => handlePlanSelection('growth')}
+                    disabled={isLoading}
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold mb-4 disabled:opacity-50"
+                  >
+                    {isLoading ? "Processing..." : t("signUp.plans.growth.startTrial")}
                   </Button>
                   <div>
                     <div className="font-semibold mb-1">
                       {t("signUp.plans.growth.featuresLabel")}
                     </div>
                     <ul className="text-xs text-gray-700 list-disc pl-5">
-                      {t("signUp.plans.growth.features").split(',').map((feature, index) => (
+                      {t("signUp.plans.growth.features").split(',').map((feature: string, index: number) => (
                         <li key={index}>{feature.trim()}</li>
                       ))}
                     </ul>
                   </div>
                 </div>
+
                 <div className="bg-white rounded-xl shadow p-6 border">
                   <div className="flex items-baseline justify-between mb-2">
                     <span className="text-xl font-bold">
@@ -254,32 +279,46 @@ function validateAccountDetails(): boolean {
                     {t("signUp.plans.enterprise.credits")}{" "}
                     <span className="ml-1 text-gray-400">?</span>
                   </div>
-                  <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold mb-4">
-                    {t("signUp.plans.enterprise.startTrial")}
+                  <Button 
+                    onClick={() => handlePlanSelection('enterprise')}
+                    disabled={isLoading}
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold mb-4 disabled:opacity-50"
+                  >
+                    {isLoading ? "Processing..." : t("signUp.plans.enterprise.startTrial")}
                   </Button>
                   <div>
                     <div className="font-semibold mb-1">
                       {t("signUp.plans.enterprise.featuresLabel")}
                     </div>
                     <ul className="text-xs text-gray-700 list-disc pl-5">
-                      {t("signUp.plans.enterprise.features").split(',').map((feature, index) => (
+                      {t("signUp.plans.enterprise.features").split(',').map((feature: string, index: number) => (
                         <li key={index}>{feature.trim()}</li>
                       ))}
                     </ul>
                   </div>
                 </div>
               </div>
+
+              <div className="mt-6 text-center">
+                <Button
+                  variant="outline"
+                  onClick={() => setSignUpStep(1)}
+                  className="text-gray-600 hover:text-gray-800"
+                >
+                  ← Back to Account Details
+                </Button>
+              </div>
             </>
           ) : (
             <>
-              {/* <div className="mb-6">
+              <div className="mb-6">
                 <h1 className="text-2xl font-bold text-gray-800 mb-2">
                   {t("signUp.welcomeMessage")}
                 </h1>
                 <p className="text-blue-600 text-lg">
                   {t("signUp.signUpWithEmail")}
                 </p>
-              </div> */}
+              </div>
 
               <form className="space-y-6" onSubmit={handleAccountDetailsSubmit}>
                 <button
@@ -288,7 +327,7 @@ function validateAccountDetails(): boolean {
                   className="w-full flex items-center justify-center space-x-2 border border-gray-300 rounded-lg py-3 text-gray-700 font-semibold hover:bg-gray-50 transition-colors"
                 >
                   <Image src="/google-icon.svg" alt="Google" width={20} height={20} />
-                  <span>{t("signUpWithGoogle")}</span>
+                  <span>{t("signInWithGoogle")}</span>
                 </button>
 
                 <div className="relative flex items-center justify-center my-6">
@@ -298,51 +337,13 @@ function validateAccountDetails(): boolean {
                   <div className="w-full border-t border-gray-300"></div>
                 </div>
 
-                <div className="flex flex-col items-center mb-6">
-                  <div className="relative">
-                    <div className="w-24 h-24 rounded-full border-2 border-dashed border-gray-300 flex items-center justify-center bg-gray-50 overflow-hidden">
-                      {profilePicture ? (
-                        <Image
-                          src={profilePicture as string}
-                          alt="Profile preview"
-                          width={96}
-                          height={96}
-                          className="w-full h-full object-cover rounded-full"
-                        />
-                      ) : (
-                        <User size={32} className="text-gray-400" />
-                      )}
-                    </div>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleProfilePictureUpload}
-                      className="hidden"
-                      id="profile-picture-upload"
-                    />
-                    <label
-                      htmlFor="profile-picture-upload"
-                      className="absolute -bottom-2 -right-2 w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center cursor-pointer hover:bg-blue-700 transition-colors"
-                      title={t("signUp.profilePicture")}
-                    >
-                      <Camera size={16} className="text-white" />
-                    </label>
-                    {profilePicture && (
-                      <button
-                        type="button"
-                        onClick={removeProfilePicture}
-                        className="absolute -top-2 -left-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center cursor-pointer hover:bg-red-600 transition-colors text-white text-xs"
-                        title={t("signUp.removePicture")}
-                      >
-                        X
-                      </button>
-                    )}
+                {error && (
+                  <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg text-sm">
+                    {error}
                   </div>
-                  {errors.profilePicture && (
-                    <div className="text-xs text-red-600 mt-2">{errors.profilePicture}</div>
-                  )}
-                </div>    
-            <div className="space-y-2">
+                )}
+
+                <div className="space-y-2">
                   <input
                     id="fullName"
                     name="fullName"
@@ -455,9 +456,10 @@ function validateAccountDetails(): boolean {
 
                 <Button
                   type="submit"
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg mt-8"
+                  disabled={isLoading}
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg mt-8 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {t("signUp.continueButton")}
+                  {isLoading ? "Processing..." : t("signUp.continueButton")}
                 </Button>
 
                 <div className="text-center text-sm text-gray-600 mt-6">
@@ -483,5 +485,4 @@ function validateAccountDetails(): boolean {
       </div>
     </div>
   );
-}       
-     
+}
