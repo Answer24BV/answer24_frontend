@@ -18,11 +18,12 @@ export default function ResetPassword() {
   const [isLoading, setIsLoading] = useState(false);
   const [isVerifying, setIsVerifying] = useState(true);
   const [tokenValid, setTokenValid] = useState(false);
-  
+  const [redirectCountdown, setRedirectCountdown] = useState(5);
+
   const searchParams = useSearchParams();
   const router = useRouter();
   const t = useTranslations("SignInPage");
-  
+
   const token = searchParams.get("token");
   const email = searchParams.get("email");
 
@@ -39,21 +40,26 @@ export default function ResetPassword() {
 
   async function verifyResetToken() {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/verify-reset-token`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email,
-          token,
-        }),
-      });
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/verify-reset-token`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            email,
+            token,
+          }),
+        }
+      );
 
       if (response.ok) {
         setTokenValid(true);
       } else {
-        setError("Invalid or expired reset link. Please request a new password reset.");
+        setError(
+          "Invalid or expired reset link. Please request a new password reset."
+        );
       }
     } catch (err) {
       setError("Failed to verify reset link. Please try again.");
@@ -84,24 +90,40 @@ export default function ResetPassword() {
     setIsLoading(true);
 
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/reset-password`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email,
-          token,
-          password,
-          password_confirmation: confirmPassword,
-        }),
-      });
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/reset-password`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            email,
+            token,
+            password,
+            password_confirmation: confirmPassword,
+          }),
+        }
+      );
 
       if (response.ok) {
         setIsSubmitted(true);
+        // Start countdown and redirect
+        const countdown = setInterval(() => {
+          setRedirectCountdown((prev) => {
+            if (prev <= 1) {
+              clearInterval(countdown);
+              router.push("/signin");
+              return 0;
+            }
+            return prev - 1;
+          });
+        }, 1000);
       } else {
         const errorData = await response.json();
-        setError(errorData.message || "Failed to reset password. Please try again.");
+        setError(
+          errorData.message || "Failed to reset password. Please try again."
+        );
       }
     } catch (err) {
       setError("Failed to reset password. Please try again.");
@@ -170,13 +192,18 @@ export default function ResetPassword() {
                 Password Reset Successful
               </h1>
 
-              <p className="text-gray-600 mb-8">
-                Your password has been successfully reset. You can now sign in with your new password.
+              <p className="text-gray-600 mb-4">
+                Your password has been successfully reset. You can now sign in
+                with your new password.
+              </p>
+
+              <p className="text-sm text-gray-500 mb-8">
+                Redirecting to sign in page in {redirectCountdown} seconds...
               </p>
 
               <Link href="/signin">
                 <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white">
-                  Sign In
+                  Sign In Now
                 </Button>
               </Link>
             </div>
@@ -208,7 +235,8 @@ export default function ResetPassword() {
               </h1>
 
               <p className="text-gray-600 mb-8">
-                {error || "This password reset link is invalid or has expired. Please request a new one."}
+                {error ||
+                  "This password reset link is invalid or has expired. Please request a new one."}
               </p>
 
               <div className="space-y-4">
@@ -305,7 +333,11 @@ export default function ResetPassword() {
                   className="absolute right-0 top-3 text-gray-400 hover:text-gray-600"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                 >
-                  {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                  {showConfirmPassword ? (
+                    <EyeOff size={20} />
+                  ) : (
+                    <Eye size={20} />
+                  )}
                 </button>
               </div>
               {error && <div className="text-xs text-red-600">{error}</div>}
