@@ -14,7 +14,7 @@ export default function ForgotPassword() {
   const [isLoading, setIsLoading] = useState(false);
   const t = useTranslations("SignInPage");
 
-  function handleForgotPasswordSubmit(e: FormEvent<HTMLFormElement>): void {
+  async function handleForgotPasswordSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError("");
 
@@ -30,12 +30,33 @@ export default function ForgotPassword() {
 
     setIsLoading(true);
 
-    // Simulate API call
-    setTimeout(() => {
-      console.log("Password reset requested for:", email);
-      setIsSubmitted(true);
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/forgot-password`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            email,
+          }),
+        }
+      );
+
+      if (response.ok) {
+        setIsSubmitted(true);
+      } else {
+        const errorData = await response.json();
+        setError(
+          errorData.message || "Failed to send reset email. Please try again."
+        );
+      }
+    } catch (err) {
+      setError("Failed to send reset email. Please try again.");
+    } finally {
       setIsLoading(false);
-    }, 1500);
+    }
   }
 
   if (isSubmitted) {
