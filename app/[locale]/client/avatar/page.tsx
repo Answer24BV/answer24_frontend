@@ -1,11 +1,12 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { AvatarCard } from "@/components/client/avatar/AvatarCard"
-import { avatars } from "@/lib/avatar"
-import type { SubscriptionPlan } from "@/types/avatar"
+import { getAvatars } from "@/app/actions/avatar"
+import type { Avatar, SubscriptionPlan } from "@/types/avatar"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Button } from "@/components/ui/button"
+
 
 type Category = {
   id: string
@@ -52,19 +53,37 @@ const categories: Category[] = [
 ]
 
 export default function AvatarsPage() {
-  // Simulate user's subscription package. In a real app, this would come from auth context.
+  const [isLoading, setIsLoading] = useState(true)
+  const [avatars, setAvatars] = useState<Avatar[]>([])
   const [userSubscription, setUserSubscription] = useState<SubscriptionPlan>("small")
   const [selectedCategory, setSelectedCategory] = useState<string>('all')
+
+  useEffect(() => {
+    const fetchAvatars = async () => {
+      try {
+        setIsLoading(true)
+        const data = await getAvatars()
+        setAvatars(data)
+      } catch (error) {
+        console.error('Failed to fetch avatars:', error)
+        alert("Failed to load avatars. Please try again later.")
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchAvatars()
+  }, [])
 
   // Filter avatars based on selected category and user subscription
   const filteredAvatars = selectedCategory === 'all' 
     ? avatars.filter(avatar => {
         // Only show avatars that the user's subscription can access
         if (userSubscription === 'small') return true
-        if (userSubscription === 'medium') return ['small', 'medium'].includes(avatar.requiredPlan)
+        if (userSubscription === 'medium') return ['small', 'medium'].includes(avatar.required_plan)
         return true // big plan can see all
       })
-    : avatars.filter(avatar => avatar.requiredPlan === selectedCategory)
+    : avatars.filter(avatar => avatar.required_plan === selectedCategory)
 
   return (
     <div className="container mx-auto py-20">
@@ -115,14 +134,20 @@ export default function AvatarsPage() {
 
       {/* Avatars Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-6">
-        {filteredAvatars.map((avatar) => (
-          <AvatarCard 
-            key={avatar.id} 
-            avatar={avatar} 
-            userPlan={userSubscription} 
-            className={selectedCategory === 'all' ? `border-2 border-${avatar.requiredPlan}-300` : ''}
-          />
-        ))}
+        {isLoading ? (
+          Array(4).fill(0).map((_, i) => (
+            <div key={i} className="h-64 bg-gray-100 rounded-xl animate-pulse"></div>
+          ))
+        ) : (
+          filteredAvatars.map((avatar) => (
+            <AvatarCard 
+              key={avatar.id} 
+              avatar={avatar} 
+              userPlan={userSubscription} 
+              className={selectedCategory === 'all' ? `border-2 border-${avatar.required_plan}-300` : ''}
+            />
+          ))
+        )}
       </div>
 
       {filteredAvatars.length === 0 && (

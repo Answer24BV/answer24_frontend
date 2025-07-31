@@ -1,5 +1,5 @@
 'use client';
-import { useState, useRef, ChangeEvent } from 'react';
+import { useState, useRef, ChangeEvent, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -34,84 +34,36 @@ import { PlusCircle, Edit, Trash2, Image as ImageIcon, X, Loader2, FileText } fr
 import Image from 'next/image';
 import { toast } from "sonner"
 import { Label } from '@/components/ui/label';
-import BLOGIMAGE from '@/public/image.png';
-
-const initialBlogs = [
-    {
-      id: '1',
-      title: 'The Future of AI in Content Creation',
-      description: 'Explore how artificial intelligence is revolutionizing content creation, from automated writing to AI-generated art and beyond.',
-      image: BLOGIMAGE.src,
-      author: 'Jane Doe',
-      date: '2025-07-25',
-      category: 'AI & ML',
-      readTime: '5',
-    },
-    {
-      id: '2',
-      title: 'Top JavaScript Frameworks in 2025',
-      description: 'A look at the most popular JavaScript frameworks and what makes them stand out in web development.',
-      image: BLOGIMAGE.src,
-      author: 'John Smith',
-      date: '2025-07-24',
-      category: 'Web Dev',
-      readTime: '4',
-    },
-    {
-      id: '3',
-      title: 'Understanding Serverless Architecture',
-      description: 'Learn the benefits and challenges of serverless computing in modern application development.',
-      image: BLOGIMAGE.src,
-      author: 'Emily Chen',
-      date: '2025-07-23',
-      category: 'Cloud',
-      readTime: '6',
-    },
-    {
-      id: '4',
-      title: 'The Rise of Quantum Computing',
-      description: 'How quantum computing is set to transform industries from cryptography to drug discovery.',
-      image: BLOGIMAGE.src,
-      author: 'Michael Brown',
-      date: '2025-07-22',
-      category: 'Tech',
-      readTime: '7',
-    },
-    {
-      id: '5',
-      title: 'Sustainable Web Design',
-      description: 'Latest trends in sustainable web design and reducing your website\'s carbon footprint.',
-      image: BLOGIMAGE.src,
-      author: 'Sarah Johnson',
-      date: '2025-07-21',
-      category: 'Design',
-      readTime: '5',
-    },
-  ];
-
-interface BlogPost {
-  id: string;
-  title: string;
-  description: string;
-  image: string;
-  author: string;
-  date: string;
-  category: string;
-  readTime: string;
-}
+import { Blog } from '@/types/blog.d';
+import { createBlog, updateBlog, deleteBlog, getAllBlogs } from '@/app/actions/blog';
+import BlogSkeleton from '@/components/blog/BlogSkeleton';
 
 const BlogManagement = () => {
-  const [blogs, setBlogs] = useState<BlogPost[]>(initialBlogs);
-  const [isLoading, setIsLoading] = useState(false);
+  const [blogs, setBlogs] = useState<Blog[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [editingBlog, setEditingBlog] = useState<BlogPost | null>(null);
+  const [editingBlog, setEditingBlog] = useState<Blog | null>(null);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [blogToDelete, setBlogToDelete] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  // const { toast } = useToast();
+
+  useEffect(() => {
+    const fetchBlogs = async () => {
+      setIsLoading(true);
+      try {
+        const blogData = await getAllBlogs();
+        setBlogs(blogData.data);
+      } catch (err) {
+        setError('Failed to fetch blogs.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchBlogs();
+  }, []);
 
   const handleNewBlog = () => {
     setEditingBlog(null);
@@ -119,9 +71,21 @@ const BlogManagement = () => {
     setIsFormOpen(true);
   };
 
-  const handleEdit = (blog: BlogPost) => {
+  const handleEdit = async (blog: Blog) => {
+    try {
+      const updatedBlog = await updateBlog(blog.slug, blog);
+      if (updatedBlog.success && updatedBlog.data) {
+        setBlogs(blogs.map((b) => (b.slug === blog.slug ? updatedBlog.data as Blog : b)));
+        toast("Blog updated", {
+          description: 'Your blog post has been successfully updated.',
+        });
+      }
+    } catch (error) {
+      setError('An error occurred while updating the blog post.');
+      console.error(error);
+    }
     setEditingBlog(blog);
-    setPreviewImage(blog.image);
+    setPreviewImage(blog.blog_image || null);
     setIsFormOpen(true);
   };
 
@@ -130,11 +94,12 @@ const BlogManagement = () => {
     setIsDeleteDialogOpen(true);
   };
 
-  const handleDeleteConfirm = () => {
+  const handleDeleteConfirm = async () => {
     if (blogToDelete) {
-      setBlogs(blogs.filter((blog) => blog.id !== blogToDelete));
+      await deleteBlog(blogToDelete);
+      setBlogs(blogs.filter((blog) => blog.slug !== blogToDelete));
       setIsDeleteDialogOpen(false);
-      toast("Blog deleted", {
+      toast("The blog post has been successfully deleted.", {
         description: 'The blog post has been successfully deleted.',
       });
     }
@@ -166,55 +131,87 @@ const BlogManagement = () => {
   const handleFormSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setError(null);
     
     try {
       const formData = new FormData(e.currentTarget);
-      const data = {
+      const data: Omit<Blog, 'id' | 'slug' | 'status_name' | 'published_at' | 'is_published' | 'is_draft' | 'created_at' | 'updated_at' | 'sort_order'> = {
         title: formData.get('title') as string,
-        description: formData.get('content') as string,
-        category: formData.get('category') as string || 'General',
-        readTime: formData.get('readTime') as string || '5',
-        image: previewImage || BLOGIMAGE.src,
+        content: formData.get('content') as string,
+        status: (formData.get('status') as 'draft' | 'published') || 'draft',
+        excerpt: formData.get('excerpt') as string,
+        blog_image: previewImage || '', // Ensure blog_image is always a string
       };
 
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
       if (editingBlog) {
-        const updatedBlog = { 
-          ...editingBlog, 
-          ...data,
-          date: new Date().toISOString().split('T')[0]
-        } as BlogPost;
-        setBlogs(blogs.map((b) => (b.id === editingBlog.id ? updatedBlog : b)));
-        toast("Blog updated", {
-          description: 'Your blog post has been successfully updated.',
-        });
+        const result = await updateBlog(editingBlog.id, data);
+        
+        if ('errors' in result) {
+          // Handle validation errors
+          console.error('Update errors:', result.errors);
+          
+          // Format and display validation errors
+          const errorMessages = Object.entries(result.errors)
+            .flatMap(([field, messages]) => 
+              Array.isArray(messages) 
+                ? messages.map(msg => `${field}: ${msg}`) 
+                : `${field}: ${messages}`
+            );
+            
+          setError(errorMessages.join('\n'));
+          return;
+        }
+        
+        if (result.success && result.data) {
+          setBlogs(blogs.map((b) => (b.id === editingBlog.id ? result.data as Blog : b)));
+          toast.success("Blog updated", {
+            description: 'Your blog post has been successfully updated.',
+          });
+          setIsFormOpen(false);
+          setEditingBlog(null);
+          setPreviewImage(null);
+        }
       } else {
-        const newBlog = { 
-          ...data, 
-          id: Math.random().toString(), 
-          date: new Date().toISOString().split('T')[0], 
-          author: 'Admin'
-        } as BlogPost;
-        setBlogs([newBlog, ...blogs]);
-        toast("Blog created", {
-          description: 'Your new blog post has been successfully created.',
-        });
+        const result = await createBlog(data);
+        
+        if ('errors' in result) {
+          // Handle validation errors
+          console.error('Create errors:', result.errors);
+          
+          // Format and display validation errors
+          const errorMessages = Object.entries(result.errors)
+            .flatMap(([field, messages]) => 
+              Array.isArray(messages) 
+                ? messages.map(msg => `${field}: ${msg}`) 
+                : `${field}: ${messages}`
+            );
+            
+          setError(errorMessages.join('\n'));
+          return;
+        }
+        
+        if (result.success && result.data) {
+          setBlogs([result.data as Blog, ...blogs]);
+          toast.success("Blog created", {
+            description: 'Your new blog post has been successfully created.',
+          });
+          setIsFormOpen(false);
+          setPreviewImage(null);
+        }
       }
-      
-      setIsFormOpen(false);
-      setEditingBlog(null);
-      setPreviewImage(null);
     } catch (err) {
-      setError('An error occurred while saving the blog post.');
-      console.error(err);
+      console.error('Error saving blog post:', err);
+      setError('An unexpected error occurred while saving the blog post.');
+      toast.error("Error", {
+        description: 'Failed to save the blog post. Please try again.',
+      });
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  if (error) return <div className="p-4 text-red-500">Error: {error}</div>;
+  if (isLoading) return <BlogSkeleton/>;
+  if (error) return <div className="p-4 text-red-500 flex item-center justify-center text-center">Error: {error}</div>;
 
   return (
     <div className="container mx-auto px-4 pt-26">
@@ -283,10 +280,10 @@ const BlogManagement = () => {
                       accept="image/*"
                       className="hidden"
                     />
-                    {previewImage || editingBlog?.image ? (
+                    {previewImage || editingBlog?.blog_image ? (
                       <div className="relative w-full h-48 rounded-md overflow-hidden">
                         <Image
-                          src={previewImage || editingBlog?.image || ''}
+                          src={previewImage || editingBlog?.blog_image || ''}
                           alt="Preview"
                           fill
                           className="object-cover"
@@ -327,33 +324,15 @@ const BlogManagement = () => {
                     />
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="category">Category</Label>
-                      <select
-                        id="category"
-                        name="category"
-                        defaultValue={editingBlog?.category || 'General'}
-                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                      >
-                        <option value="General">General</option>
-                        <option value="Technology">Technology</option>
-                        <option value="Business">Business</option>
-                        <option value="Lifestyle">Lifestyle</option>
-                        <option value="Health">Health</option>
-                      </select>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="readTime">Read Time (minutes)</Label>
-                      <Input 
-                        id="readTime" 
-                        name="readTime" 
-                        type="number" 
-                        min="1"
-                        defaultValue={editingBlog?.readTime || '5'}
-                        placeholder="5"
-                      />
-                    </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="excerpt">Excerpt</Label>
+                    <Textarea
+                      id="excerpt"
+                      name="excerpt"
+                      defaultValue={editingBlog?.excerpt || ''}
+                      placeholder="Enter a short excerpt for the blog post..."
+                      className="min-h-[100px]"
+                    />
                   </div>
 
                   <div className="space-y-2">
@@ -361,8 +340,8 @@ const BlogManagement = () => {
                     <Textarea 
                       id="content" 
                       name="content" 
-                      defaultValue={editingBlog?.description} 
-                      placeholder="Write your blog content here..." 
+                      defaultValue={editingBlog?.content || ''} 
+                      placeholder="Write your blog content here..."
                       required 
                       rows={8} 
                       className="min-h-[200px]"
@@ -405,8 +384,8 @@ const BlogManagement = () => {
           {blogs.map((blog) => (
             <Card key={blog.id} className="flex flex-col hover:shadow-lg transition-shadow">
               <div className="relative aspect-[16/9] overflow-hidden group">
-                <Image
-                  src={blog.image}
+                 <Image
+                  src={blog.blog_image}
                   alt={blog.title}
                   fill
                   className="object-cover group-hover:scale-105 transition-transform duration-300"
@@ -444,17 +423,12 @@ const BlogManagement = () => {
                 <div className="flex justify-between items-start">
                   <CardTitle className="text-lg leading-tight line-clamp-2">{blog.title}</CardTitle>
                 </div>
-                <div className="flex items-center text-xs text-muted-foreground mt-1">
-                  <span>{blog.category}</span>
-                  <span className="mx-2">•</span>
-                  <span>{blog.readTime} min read</span>
-                </div>
               </CardHeader>
               <CardContent className="flex-grow">
-                <p className="text-sm text-muted-foreground line-clamp-3">{blog.description}</p>
+                <p className="text-sm text-muted-foreground line-clamp-3">{blog.excerpt}</p>
               </CardContent>
               <CardFooter className="text-xs text-muted-foreground pt-0">
-                Posted on {new Date(blog.date).toLocaleDateString()} by {blog.author}
+                Posted on {new Date(blog.published_at).toLocaleDateString()}
               </CardFooter>
             </Card>
           ))}

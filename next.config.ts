@@ -10,6 +10,11 @@ const nextConfig: NextConfig = {
         hostname: 'avatar.iran.liara.run',
         pathname: '/public/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'via.placeholder.com',
+        pathname: '/**',
+      }
     ],
   },
 };

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useTransition } from "react"
 import type { Chat, Message } from "@/types/chat"
-import { getChatMessages, sendMessage } from "@/app/[locale]/actions/chat"
+import { getChatMessages, sendMessage } from "@/app/actions/chat"
 import { MessageBubbleDetailed } from "./MessageBubbleDetailed"
 import { ChatInput } from "./ChatInput"
 
