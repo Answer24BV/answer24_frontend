@@ -20,13 +20,15 @@ interface Errors {
 interface SubscriptionPlan {
   id: string;
   name: string;
-  price: number;
-  currency: string;
-  interval: string;
+  display_name: string;
   description: string;
-  features: string[];
-  credits?: number;
-  trial_days?: number;
+  price: string;
+  formatted_price: string;
+  duration_days: number;
+  features: any[];
+  color: string;
+  created_at: string;
+  updated_at: string;
 }
 
 export default function SignUp() {
@@ -39,8 +41,11 @@ export default function SignUp() {
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
-  const [subscriptionPlans, setSubscriptionPlans] = useState<SubscriptionPlan[]>([]);
+  const [subscriptionPlans, setSubscriptionPlans] = useState<
+    SubscriptionPlan[]
+  >([]);
   const [loadingPlans, setLoadingPlans] = useState(false);
+  const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
 
   const [errors, setErrors] = useState<Errors>({
     fullName: "",
@@ -65,37 +70,42 @@ export default function SignUp() {
     setLoadingPlans(true);
     try {
       const token = tokenUtils.getToken();
-      console.log('Token for subscription plans:', token);
-      
+      console.log("Token for subscription plans:", token);
+
       if (!token) {
-        console.error('No token found in localStorage');
-        setError('Authentication required. Please try signing up again.');
+        console.error("No token found in localStorage");
+        setError("Authentication required. Please try signing up again.");
         setLoadingPlans(false);
         return;
       }
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/subscription/details`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-      });
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/plan`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
-      console.log('Subscription API response status:', response.status);
+      console.log("Plan API response status:", response.status);
 
       if (response.ok) {
-        const data = await response.json();
-        console.log('Subscription details API response:', data);
-        setSubscriptionPlans(data.plans || data || []);
+        const result = await response.json();
+        console.log("Plan API response:", result);
+        setSubscriptionPlans(result.data || []);
       } else {
         const errorData = await response.json().catch(() => ({}));
-        console.error('Failed to fetch subscription plans:', response.status, errorData);
-        setError(`Failed to load subscription plans (${response.status}). Please try again.`);
+        console.error("Failed to fetch plans:", response.status, errorData);
+        setError(
+          `Failed to load subscription plans (${response.status}). Please try again.`
+        );
       }
     } catch (err) {
-      console.error('Error fetching subscription plans:', err);
-      setError('Failed to load subscription plans. Please try again.');
+      console.error("Error fetching plans:", err);
+      setError("Failed to load subscription plans. Please try again.");
     } finally {
       setLoadingPlans(false);
     }
@@ -150,9 +160,9 @@ export default function SignUp() {
     return valid;
   }
 
-
-
-  async function handleAccountDetailsSubmit(e: FormEvent<HTMLFormElement>): Promise<void> {
+  async function handleAccountDetailsSubmit(
+    e: FormEvent<HTMLFormElement>
+  ): Promise<void> {
     e.preventDefault();
     if (!validateAccountDetails()) return;
 
@@ -166,31 +176,31 @@ export default function SignUp() {
         phone,
         password,
         password_confirmation: confirmPassword,
-        userType: 'client'
+        userType: "client",
       });
 
-      console.log('Registration API response:', response);
+      console.log("Registration API response:", response);
 
       // Store token and user data (token is nested in response.data.token)
       if (response.data?.token) {
-        console.log('Storing token:', response.data.token);
+        console.log("Storing token:", response.data.token);
         tokenUtils.setToken(response.data.token);
       } else {
-        console.error('No token in registration response');
+        console.error("No token in registration response");
       }
       if (response.data?.user) {
-        console.log('Storing user data:', response.data.user);
+        console.log("Storing user data:", response.data.user);
         tokenUtils.setUser(response.data.user);
       }
 
       // Verify token was stored
       const storedToken = tokenUtils.getToken();
-      console.log('Token after storage:', storedToken);
+      console.log("Token after storage:", storedToken);
 
       // Go to step 2 (plan selection) after successful signup
       setSignUpStep(2);
     } catch (err: any) {
-      setError(err.message || 'Registration failed. Please try again.');
+      setError(err.message || "Registration failed. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -198,37 +208,49 @@ export default function SignUp() {
 
   async function handlePlanSelection(planId: string): Promise<void> {
     setError("");
-    setIsLoading(true);
+    setSelectedPlanId(planId);
 
     try {
       const token = tokenUtils.getToken();
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/subscription/subscribe`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          plan_id: planId,
-        }),
-      });
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/subscription/subscribe`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            plan_id: planId,
+          }),
+        }
+      );
 
       if (response.ok) {
-        const data = await response.json();
-        console.log('Subscription successful:', data);
-        
-        // Redirect to dashboard after successful subscription
-        router.push('/dashboard');
+        const result = await response.json();
+        console.log("Subscription successful:", result);
+
+        // Check if we got a checkout URL for payment
+        if (result.data?.checkout_url) {
+          console.log("Redirecting to checkout:", result.data.checkout_url);
+          // Redirect to payment checkout
+          window.location.href = result.data.checkout_url;
+        } else {
+          // If no checkout URL, redirect to dashboard
+          router.push("/dashboard");
+        }
       } else {
         const errorData = await response.json();
-        console.error('Subscription failed:', errorData);
-        setError(errorData.message || 'Failed to subscribe to plan. Please try again.');
+        console.error("Subscription failed:", errorData);
+        setError(
+          errorData.message || "Failed to subscribe to plan. Please try again."
+        );
       }
     } catch (err: any) {
-      console.error('Error subscribing to plan:', err);
-      setError(err.message || 'Plan selection failed. Please try again.');
+      console.error("Error subscribing to plan:", err);
+      setError(err.message || "Plan selection failed. Please try again.");
     } finally {
-      setIsLoading(false);
+      setSelectedPlanId(null);
     }
   }
 
@@ -239,7 +261,11 @@ export default function SignUp() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50">
       <div
-        className={`relative flex flex-col lg:flex-row w-11/12 md:w-3/4 lg:w-4/5 xl:w-2/3 2xl:w-1/2 bg-white rounded-2xl shadow-lg overflow-hidden my-8`}
+        className={`relative flex flex-col lg:flex-row ${
+          signUpStep === 1
+            ? "w-11/12 md:w-3/4 lg:w-4/5 xl:w-2/3 2xl:w-1/2"
+            : "w-full max-w-7xl"
+        } bg-white rounded-2xl shadow-lg overflow-hidden my-8`}
       >
         {signUpStep === 1 && (
           <div className="relative lg:w-1/2 h-64 lg:h-auto">
@@ -256,7 +282,7 @@ export default function SignUp() {
         <div
           className={`${
             signUpStep === 1 ? "lg:w-1/2" : "w-full"
-          } p-8 lg:p-12 flex flex-col justify-center`}
+          } p-8 lg:p-12 flex flex-col justify-center w-full`}
         >
           {signUpStep === 2 ? (
             <>
@@ -266,7 +292,7 @@ export default function SignUp() {
               <h2 className="text-2xl font-bold mb-4">
                 {t("signUp.subscriptionPlans")}
               </h2>
-              
+
               {error && (
                 <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg text-sm mb-6">
                   {error}
@@ -276,41 +302,43 @@ export default function SignUp() {
               {loadingPlans ? (
                 <div className="flex justify-center items-center py-12">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                  <span className="ml-3 text-gray-600">Loading subscription plans...</span>
+                  <span className="ml-3 text-gray-600">
+                    Loading subscription plans...
+                  </span>
                 </div>
               ) : subscriptionPlans.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                   {subscriptionPlans.map((plan) => (
-                    <div key={plan.id} className="bg-white rounded-xl shadow p-6 border">
+                    <div
+                      key={plan.id}
+                      className="bg-white rounded-xl shadow p-6 border"
+                      style={{ borderColor: plan.color }}
+                    >
                       <div className="flex items-baseline justify-between mb-2">
                         <span className="text-xl font-bold">
-                          {plan.name}
+                          {plan.display_name || plan.name}
                         </span>
                         <span className="text-blue-600 font-bold text-lg">
-                          {plan.currency === 'USD' ? '$' : '€'}{plan.price} 
-                          <span className="text-base font-normal">/{plan.interval}</span>
+                          {plan.formatted_price}
                         </span>
                       </div>
-                      {plan.trial_days && (
+                      {plan.duration_days && (
                         <div className="text-xs text-gray-500 mb-2">
-                          {plan.trial_days} day free trial
+                          {plan.duration_days} days duration
                         </div>
                       )}
                       <div className="mb-4 text-gray-700 text-sm">
                         {plan.description}
                       </div>
-                      {plan.credits && (
-                        <div className="mb-4 text-gray-700 text-sm">
-                          {plan.credits} credits included{" "}
-                          <span className="ml-1 text-gray-400">?</span>
-                        </div>
-                      )}
-                      <Button 
+                      <Button
                         onClick={() => handlePlanSelection(plan.id)}
-                        disabled={isLoading}
-                        className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold mb-4 disabled:opacity-50"
+                        disabled={selectedPlanId === plan.id}
+                        className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold mb-4 disabled:opacity-50 cursor-pointer"
+                        style={{ backgroundColor: plan.color }}
                       >
-                        {isLoading ? "Processing..." : plan.trial_days ? `Start ${plan.trial_days}-Day Trial` : 'Select Plan'}
+                        {selectedPlanId === plan.id
+                          ? "Processing..."
+                          : "Select Plan"}
                       </Button>
                       {plan.features && plan.features.length > 0 && (
                         <div>
@@ -318,9 +346,15 @@ export default function SignUp() {
                             Features included:
                           </div>
                           <ul className="text-xs text-gray-700 list-disc pl-5">
-                            {plan.features.map((feature: string, index: number) => (
-                              <li key={index}>{feature}</li>
-                            ))}
+                            {plan.features.map(
+                              (feature: any, index: number) => (
+                                <li key={index}>
+                                  {typeof feature === "string"
+                                    ? feature
+                                    : JSON.stringify(feature)}
+                                </li>
+                              )
+                            )}
                           </ul>
                         </div>
                       )}
@@ -329,7 +363,9 @@ export default function SignUp() {
                 </div>
               ) : (
                 <div className="text-center py-12">
-                  <p className="text-gray-600">No subscription plans available at the moment.</p>
+                  <p className="text-gray-600">
+                    No subscription plans available at the moment.
+                  </p>
                   <Button
                     onClick={fetchSubscriptionPlans}
                     variant="outline"
@@ -367,7 +403,12 @@ export default function SignUp() {
                   onClick={handleGoogleSignIn}
                   className="w-full flex items-center justify-center space-x-2 border border-gray-300 rounded-lg py-3 text-gray-700 font-semibold hover:bg-gray-50 transition-colors"
                 >
-                  <Image src="/google-icon.svg" alt="Google" width={20} height={20} />
+                  <Image
+                    src="/google-icon.svg"
+                    alt="Google"
+                    width={20}
+                    height={20}
+                  />
                   <span>{t("signInWithGoogle")}</span>
                 </button>
 
@@ -397,7 +438,9 @@ export default function SignUp() {
                     className="w-full px-0 py-3 text-gray-700 bg-transparent border-0 border-b-2 border-gray-300 focus:border-blue-600 focus:outline-none placeholder-gray-500"
                   />
                   {errors.fullName && (
-                    <div className="text-xs text-red-600">{errors.fullName}</div>
+                    <div className="text-xs text-red-600">
+                      {errors.fullName}
+                    </div>
                   )}
                 </div>
 
@@ -448,7 +491,9 @@ export default function SignUp() {
                     className="w-full px-0 py-3 text-gray-700 bg-transparent border-0 border-b-2 border-gray-300 focus:border-blue-600 focus:outline-none placeholder-gray-500"
                   />
                   {errors.password && (
-                    <div className="text-xs text-red-600">{errors.password}</div>
+                    <div className="text-xs text-red-600">
+                      {errors.password}
+                    </div>
                   )}
                 </div>
 
@@ -492,7 +537,9 @@ export default function SignUp() {
                   </label>
                 </div>
                 {errors.agreeTerms && (
-                  <div className="text-xs text-red-600">{errors.agreeTerms}</div>
+                  <div className="text-xs text-red-600">
+                    {errors.agreeTerms}
+                  </div>
                 )}
 
                 <Button
@@ -510,8 +557,8 @@ export default function SignUp() {
                     className="text-blue-600 hover:underline"
                   >
                     {t("login")}
-                  </Link>
-                  {" "}or{" "}
+                  </Link>{" "}
+                  or{" "}
                   <Link
                     href="/partner-signup"
                     className="text-blue-600 hover:underline"
