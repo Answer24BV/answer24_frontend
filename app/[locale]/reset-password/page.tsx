@@ -7,6 +7,7 @@ import { useState, FormEvent, useEffect } from "react";
 import { useTranslations } from "next-intl";
 import { ArrowLeft, Eye, EyeOff, CheckCircle } from "lucide-react";
 import { useSearchParams, useRouter } from "next/navigation";
+import { tokenUtils } from "@/utils/auth";
 
 export default function ResetPassword() {
   const [password, setPassword] = useState("");
@@ -28,6 +29,12 @@ export default function ResetPassword() {
   const email = searchParams.get("email");
 
   useEffect(() => {
+    // Check if user is already authenticated
+    if (tokenUtils.isAuthenticated()) {
+      router.push("/dashboard");
+      return;
+    }
+
     if (!token || !email) {
       setError("Invalid reset link. Please request a new password reset.");
       setIsVerifying(false);
@@ -36,7 +43,7 @@ export default function ResetPassword() {
 
     // Verify the reset token
     verifyResetToken();
-  }, [token, email]);
+  }, [token, email, router]);
 
   async function verifyResetToken() {
     try {
