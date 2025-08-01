@@ -55,8 +55,8 @@ export async function PUT(request: NextRequest) {
     const { key, language, text } = body;
     
     // Mock update logic - in real implementation, this would update the database
-    if (translations[language as keyof typeof translations]) {
-      translations[language as keyof typeof translations][key] = text;
+    if (translations[language as keyof typeof translations] && key in translations[language as keyof typeof translations]) {
+      (translations[language as keyof typeof translations] as any)[key] = text;
     }
     
     return NextResponse.json({ success: 'Translation updated successfully' });

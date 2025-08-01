@@ -59,7 +59,7 @@ const functionIcons: Record<string, React.ElementType> = {
 }
 
 export function AvatarModal({ avatar, userPlan, children }: AvatarModalProps) {
-  const locked = isAvatarLocked(userPlan, avatar.requiredPlan)
+  const locked = isAvatarLocked(userPlan, avatar.required_plan)
 
   return (
     <Dialog>
@@ -103,14 +103,14 @@ export function AvatarModal({ avatar, userPlan, children }: AvatarModalProps) {
             <div className="mt-8 text-center">
               <Badge className="bg-yellow-500 text-yellow-950 font-semibold px-4 py-2 rounded-md mb-4">PREMIUM</Badge>
               <p className="text-gray-700 dark:text-gray-300 text-base mb-4">
-                This avatar requires the <span className="font-bold">{avatar.requiredPlan} Plan</span>
+                This avatar requires the <span className="font-bold">{avatar.required_plan} Plan</span>
               </p>
               <Button
                 className="w-full bg-purple-600 hover:bg-purple-700 text-white text-lg py-6 rounded-lg flex items-center justify-center gap-2"
                 onClick={() => alert("Redirecting to upgrade flow...")}
               >
                 <Lock className="w-5 h-5" />
-                Unlock {avatar.name} for {avatar.requiredPlan} Plan →
+                Unlock {avatar.name} for {avatar.required_plan} Plan →
               </Button>
             </div>
           )}

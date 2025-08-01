@@ -59,7 +59,7 @@ const BlogDetails = ({
       {/* Featured Image */}
       <div className="relative w-full aspect-[16/9] rounded-xl overflow-hidden mb-10">
         <Image
-          src={post.image!}
+          src={post.blog_image!}
           alt={post.title}
           fill
           className="object-cover"
@@ -106,7 +106,7 @@ const BlogDetails = ({
                 <Link href={`/blog/${relatedPost.slug}`} className="block">
                   <div className="relative aspect-video rounded-lg overflow-hidden mb-3">
                     <Image
-                      src={relatedPost.image!}
+                      src={relatedPost.blog_image!}
                       alt={relatedPost.title}
                       fill
                       className="object-cover transition-transform duration-500 group-hover:scale-105"

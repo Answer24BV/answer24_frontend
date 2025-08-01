@@ -5,8 +5,8 @@ let blogs = [
   { id: '2', title: 'Second Post', content: 'This is the second blog post.', publishedDate: '2025-07-27' },
 ];
 
-export async function PUT(request: Request, { params }: { params: { blogId: string } }) {
-  const { blogId } = params;
+export async function PUT(request: Request, context: any) {
+  const { blogId } = context.params;
   const { title, content } = await request.json();
   const blogIndex = blogs.findIndex((blog) => blog.id === blogId);
 
@@ -18,8 +18,8 @@ export async function PUT(request: Request, { params }: { params: { blogId: stri
   return NextResponse.json(blogs[blogIndex]);
 }
 
-export async function DELETE(request: Request, { params }: { params: { blogId: string } }) {
-  const { blogId } = params;
+export async function DELETE(request: Request, context: any) {
+  const { blogId } = context.params;
   blogs = blogs.filter((blog) => blog.id !== blogId);
   return new NextResponse(null, { status: 204 });
 }
