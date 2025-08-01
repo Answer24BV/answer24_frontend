@@ -174,21 +174,21 @@ export function ContactPage() {
                 <div className="space-y-6">
                   {[
                     {
-                      icon: Mail,
-                      label: t('contactInfo.emailLabel'),
-                      value: t('contactInfo.emailValue'),
-                      color: "blue",
-                    },
-                    {
                       icon: Phone,
-                      label: t('contactInfo.phoneLabel'),
-                      value: t('contactInfo.phoneValue'),
+                      label: "Phone",
+                      value: "+3140 = 2100325",
                       color: "gray",
                     },
                     {
                       icon: MapPin,
-                      label: t('contactInfo.locationLabel'),
-                      value: t('contactInfo.locationValue'),
+                      label: "Location",
+                      value: "Valkenierstraat 133, 5553CP Valkenswaard",
+                      color: "blue",
+                    },
+                    {
+                      icon: Mail,
+                      label: "Email",
+                      value: "contact@answer24.nl",
                       color: "blue",
                     },
                   ].map((item, index) => (
