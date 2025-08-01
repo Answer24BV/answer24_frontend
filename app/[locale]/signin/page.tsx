@@ -5,16 +5,50 @@ import Image from "next/image";
 import { Link } from "@/i18n/navigation";
 import { useState, FormEvent } from "react";
 import { useTranslations } from "next-intl";
+import { authAPI, tokenUtils } from "@/utils/auth";
+import { useRouter } from "@/i18n/navigation";
 
 export default function SignIn() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const t = useTranslations("SignInPage");
+  const router = useRouter();
 
-  function handleSignInSubmit(e: FormEvent<HTMLFormElement>): void {
+  async function handleSignInSubmit(
+    e: FormEvent<HTMLFormElement>
+  ): Promise<void> {
     e.preventDefault();
-    console.log("Signing in with:", { email, password, rememberMe });
+    setError("");
+    setSuccess("");
+    setIsLoading(true);
+
+    try {
+      const response = await authAPI.login(email, password, rememberMe);
+
+      // Store token and user data
+      if (response.token) {
+        tokenUtils.setToken(response.token);
+      }
+      if (response.user) {
+        tokenUtils.setUser(response.user);
+      }
+
+      // Show success message
+      setSuccess("Login successful! Redirecting to dashboard...");
+
+      // Redirect to dashboard after a short delay
+      setTimeout(() => {
+        router.push("/dashboard");
+      }, 800);
+    } catch (err: any) {
+      setError(err.message || "Login failed. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   const handleGoogleSignIn = () => {
@@ -64,6 +98,18 @@ export default function SignIn() {
               </span>
               <div className="w-full border-t border-gray-300"></div>
             </div>
+
+            {error && (
+              <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg text-sm">
+                {error}
+              </div>
+            )}
+
+            {success && (
+              <div className="bg-green-50 border border-green-200 text-green-600 px-4 py-3 rounded-lg text-sm">
+                {success}
+              </div>
+            )}
 
             <div className="space-y-2">
               <input
@@ -117,9 +163,10 @@ export default function SignIn() {
 
             <Button
               type="submit"
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg mt-8"
+              disabled={isLoading}
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg mt-8 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {t("signIn")}
+              {isLoading ? "Signing In..." : t("signIn")}
             </Button>
 
             <div className="text-center text-sm text-gray-600 mt-6">
