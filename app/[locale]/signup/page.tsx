@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import { Link } from "@/i18n/navigation";
-import { useState, FormEvent } from "react";
+import { useState, FormEvent, useEffect } from "react";
 import { useTranslations } from "next-intl";
 import { authAPI, tokenUtils } from "@/utils/auth";
 import { useRouter } from "@/i18n/navigation";
@@ -17,6 +17,18 @@ interface Errors {
   agreeTerms: string;
 }
 
+interface SubscriptionPlan {
+  id: string;
+  name: string;
+  price: number;
+  currency: string;
+  interval: string;
+  description: string;
+  features: string[];
+  credits?: number;
+  trial_days?: number;
+}
+
 export default function SignUp() {
   const [signUpStep, setSignUpStep] = useState(1);
   const [email, setEmail] = useState("");
@@ -27,6 +39,8 @@ export default function SignUp() {
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [subscriptionPlans, setSubscriptionPlans] = useState<SubscriptionPlan[]>([]);
+  const [loadingPlans, setLoadingPlans] = useState(false);
 
   const [errors, setErrors] = useState<Errors>({
     fullName: "",
@@ -39,6 +53,53 @@ export default function SignUp() {
 
   const t = useTranslations("SignInPage");
   const router = useRouter();
+
+  // Fetch subscription plans when component mounts or when step 2 is reached
+  useEffect(() => {
+    if (signUpStep === 2) {
+      fetchSubscriptionPlans();
+    }
+  }, [signUpStep]);
+
+  async function fetchSubscriptionPlans() {
+    setLoadingPlans(true);
+    try {
+      const token = tokenUtils.getToken();
+      console.log('Token for subscription plans:', token);
+      
+      if (!token) {
+        console.error('No token found in localStorage');
+        setError('Authentication required. Please try signing up again.');
+        setLoadingPlans(false);
+        return;
+      }
+
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/subscription/details`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      console.log('Subscription API response status:', response.status);
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log('Subscription details API response:', data);
+        setSubscriptionPlans(data.plans || data || []);
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        console.error('Failed to fetch subscription plans:', response.status, errorData);
+        setError(`Failed to load subscription plans (${response.status}). Please try again.`);
+      }
+    } catch (err) {
+      console.error('Error fetching subscription plans:', err);
+      setError('Failed to load subscription plans. Please try again.');
+    } finally {
+      setLoadingPlans(false);
+    }
+  }
 
   function validateAccountDetails(): boolean {
     let valid = true;
@@ -108,13 +169,23 @@ export default function SignUp() {
         userType: 'client'
       });
 
-      // Store token and user data
-      if (response.token) {
-        tokenUtils.setToken(response.token);
+      console.log('Registration API response:', response);
+
+      // Store token and user data (token is nested in response.data.token)
+      if (response.data?.token) {
+        console.log('Storing token:', response.data.token);
+        tokenUtils.setToken(response.data.token);
+      } else {
+        console.error('No token in registration response');
       }
-      if (response.user) {
-        tokenUtils.setUser(response.user);
+      if (response.data?.user) {
+        console.log('Storing user data:', response.data.user);
+        tokenUtils.setUser(response.data.user);
       }
+
+      // Verify token was stored
+      const storedToken = tokenUtils.getToken();
+      console.log('Token after storage:', storedToken);
 
       // Go to step 2 (plan selection) after successful signup
       setSignUpStep(2);
@@ -125,17 +196,36 @@ export default function SignUp() {
     }
   }
 
-  async function handlePlanSelection(planType: string): Promise<void> {
+  async function handlePlanSelection(planId: string): Promise<void> {
     setError("");
     setIsLoading(true);
 
     try {
-      // TODO: Handle subscription plan selection with API when ready
-      console.log("Selected plan:", planType);
+      const token = tokenUtils.getToken();
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/subscription/subscribe`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          plan_id: planId,
+        }),
+      });
 
-      // Redirect to dashboard after plan selection
-      router.push('/dashboard');
+      if (response.ok) {
+        const data = await response.json();
+        console.log('Subscription successful:', data);
+        
+        // Redirect to dashboard after successful subscription
+        router.push('/dashboard');
+      } else {
+        const errorData = await response.json();
+        console.error('Subscription failed:', errorData);
+        setError(errorData.message || 'Failed to subscribe to plan. Please try again.');
+      }
     } catch (err: any) {
+      console.error('Error subscribing to plan:', err);
       setError(err.message || 'Plan selection failed. Please try again.');
     } finally {
       setIsLoading(false);
@@ -183,121 +273,72 @@ export default function SignUp() {
                 </div>
               )}
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="bg-white rounded-xl shadow p-6 border">
-                  <div className="flex items-baseline justify-between mb-2">
-                    <span className="text-xl font-bold">
-                      {t("signUp.plans.launch.name")}
-                    </span>
-                    <span className="text-blue-600 font-bold text-lg">
-                      $29 <span className="text-base font-normal">/mo</span>
-                    </span>
-                  </div>
-                  <div className="text-xs text-gray-500 mb-2">
-                    {t("signUp.plans.launch.trial")}
-                  </div>
-                  <div className="mb-4 text-gray-700 text-sm">
-                    {t("signUp.plans.launch.description")}
-                  </div>
-                  <div className="mb-4 text-gray-700 text-sm">
-                    {t("signUp.plans.launch.credits")}{" "}
-                    <span className="ml-1 text-gray-400">?</span>
-                  </div>
-                  <Button 
-                    onClick={() => handlePlanSelection('launch')}
-                    disabled={isLoading}
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold mb-4 disabled:opacity-50"
-                  >
-                    {isLoading ? "Processing..." : t("signUp.plans.launch.startTrial")}
-                  </Button>
-                  <div>
-                    <div className="font-semibold mb-1">
-                      {t("signUp.plans.launch.featuresLabel")}
-                    </div>
-                    <ul className="text-xs text-gray-700 list-disc pl-5">
-                      {t("signUp.plans.launch.features").split(',').map((feature: string, index: number) => (
-                        <li key={index}>{feature.trim()}</li>
-                      ))}
-                    </ul>
-                  </div>
+              {loadingPlans ? (
+                <div className="flex justify-center items-center py-12">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                  <span className="ml-3 text-gray-600">Loading subscription plans...</span>
                 </div>
-
-                <div className="bg-white rounded-xl shadow p-6 border">
-                  <div className="flex items-baseline justify-between mb-2">
-                    <span className="text-xl font-bold">
-                      {t("signUp.plans.growth.name")}
-                    </span>
-                    <span className="text-blue-600 font-bold text-lg">
-                      $49 <span className="text-base font-normal">/mo</span>
-                    </span>
-                  </div>
-                  <div className="text-xs text-gray-500 mb-2">
-                    {t("signUp.plans.growth.trial")}
-                  </div>
-                  <div className="mb-4 text-gray-700 text-sm">
-                    {t("signUp.plans.growth.description")}
-                  </div>
-                  <div className="mb-4 text-gray-700 text-sm">
-                    {t("signUp.plans.growth.credits")}{" "}
-                    <span className="ml-1 text-gray-400">?</span>
-                  </div>
-                  <Button 
-                    onClick={() => handlePlanSelection('growth')}
-                    disabled={isLoading}
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold mb-4 disabled:opacity-50"
-                  >
-                    {isLoading ? "Processing..." : t("signUp.plans.growth.startTrial")}
-                  </Button>
-                  <div>
-                    <div className="font-semibold mb-1">
-                      {t("signUp.plans.growth.featuresLabel")}
+              ) : subscriptionPlans.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {subscriptionPlans.map((plan) => (
+                    <div key={plan.id} className="bg-white rounded-xl shadow p-6 border">
+                      <div className="flex items-baseline justify-between mb-2">
+                        <span className="text-xl font-bold">
+                          {plan.name}
+                        </span>
+                        <span className="text-blue-600 font-bold text-lg">
+                          {plan.currency === 'USD' ? '$' : '€'}{plan.price} 
+                          <span className="text-base font-normal">/{plan.interval}</span>
+                        </span>
+                      </div>
+                      {plan.trial_days && (
+                        <div className="text-xs text-gray-500 mb-2">
+                          {plan.trial_days} day free trial
+                        </div>
+                      )}
+                      <div className="mb-4 text-gray-700 text-sm">
+                        {plan.description}
+                      </div>
+                      {plan.credits && (
+                        <div className="mb-4 text-gray-700 text-sm">
+                          {plan.credits} credits included{" "}
+                          <span className="ml-1 text-gray-400">?</span>
+                        </div>
+                      )}
+                      <Button 
+                        onClick={() => handlePlanSelection(plan.id)}
+                        disabled={isLoading}
+                        className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold mb-4 disabled:opacity-50"
+                      >
+                        {isLoading ? "Processing..." : plan.trial_days ? `Start ${plan.trial_days}-Day Trial` : 'Select Plan'}
+                      </Button>
+                      {plan.features && plan.features.length > 0 && (
+                        <div>
+                          <div className="font-semibold mb-1">
+                            Features included:
+                          </div>
+                          <ul className="text-xs text-gray-700 list-disc pl-5">
+                            {plan.features.map((feature: string, index: number) => (
+                              <li key={index}>{feature}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
                     </div>
-                    <ul className="text-xs text-gray-700 list-disc pl-5">
-                      {t("signUp.plans.growth.features").split(',').map((feature: string, index: number) => (
-                        <li key={index}>{feature.trim()}</li>
-                      ))}
-                    </ul>
-                  </div>
+                  ))}
                 </div>
-
-                <div className="bg-white rounded-xl shadow p-6 border">
-                  <div className="flex items-baseline justify-between mb-2">
-                    <span className="text-xl font-bold">
-                      {t("signUp.plans.enterprise.name")}
-                    </span>
-                    <span className="text-blue-600 font-bold text-lg">
-                      $249 <span className="text-base font-normal">/mo</span>
-                    </span>
-                  </div>
-                  <div className="text-xs text-gray-500 mb-2">
-                    {t("signUp.plans.enterprise.trial")}
-                  </div>
-                  <div className="mb-4 text-gray-700 text-sm">
-                    {t("signUp.plans.enterprise.description")}
-                  </div>
-                  <div className="mb-4 text-gray-700 text-sm">
-                    {t("signUp.plans.enterprise.credits")}{" "}
-                    <span className="ml-1 text-gray-400">?</span>
-                  </div>
-                  <Button 
-                    onClick={() => handlePlanSelection('enterprise')}
-                    disabled={isLoading}
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold mb-4 disabled:opacity-50"
+              ) : (
+                <div className="text-center py-12">
+                  <p className="text-gray-600">No subscription plans available at the moment.</p>
+                  <Button
+                    onClick={fetchSubscriptionPlans}
+                    variant="outline"
+                    className="mt-4"
                   >
-                    {isLoading ? "Processing..." : t("signUp.plans.enterprise.startTrial")}
+                    Retry Loading Plans
                   </Button>
-                  <div>
-                    <div className="font-semibold mb-1">
-                      {t("signUp.plans.enterprise.featuresLabel")}
-                    </div>
-                    <ul className="text-xs text-gray-700 list-disc pl-5">
-                      {t("signUp.plans.enterprise.features").split(',').map((feature: string, index: number) => (
-                        <li key={index}>{feature.trim()}</li>
-                      ))}
-                    </ul>
-                  </div>
                 </div>
-              </div>
+              )}
 
               <div className="mt-6 text-center">
                 <Button

@@ -3,9 +3,11 @@
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import { Link } from "@/i18n/navigation";
-import { useState, FormEvent } from "react";
+import { useState, FormEvent, useEffect } from "react";
 import { useTranslations } from "next-intl";
 import { ArrowLeft, Mail } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { tokenUtils } from "@/utils/auth";
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState("");
