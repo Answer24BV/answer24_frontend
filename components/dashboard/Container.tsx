@@ -8,7 +8,7 @@ import {
   getOptimizationTips,
   getChartData,
   getPerformanceData,
-} from "@/app/[locale]/actions/dashboard"
+} from "@/app/actions/dashboard"
 import { SimpleStatsCard } from "./StatsCard"
 import { CompactCampaigns } from "./CompactCampaign"
 import { CompactAiTips } from "./AITips"
@@ -27,10 +27,14 @@ export function CleanDashboardContainer() {
   const [chartData, setChartData] = useState<ChartData[]>([])
   const [performanceData, setPerformanceData] = useState<PerformanceData[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     const loadDashboardData = async () => {
       try {
+        setIsLoading(true)
+        setError(null)
+        
         const [statsData, campaignsData, tipsData, chartDataRes, performanceDataRes] = await Promise.all([
           getDashboardStats(),
           getCampaigns(),
@@ -39,13 +43,19 @@ export function CleanDashboardContainer() {
           getPerformanceData(),
         ])
 
+        // Ensure all data is valid before setting state
+        if (!statsData || !campaignsData || !tipsData || !chartDataRes || !performanceDataRes) {
+          throw new Error('Failed to load dashboard data: Invalid response from server')
+        }
+
         setStats(statsData)
-        setCampaigns(campaignsData)
-        setTips(tipsData)
-        setChartData(chartDataRes)
-        setPerformanceData(performanceDataRes)
-      } catch (error) {
-        console.error("Failed to load dashboard data:", error)
+        setCampaigns(Array.isArray(campaignsData) ? campaignsData : [])
+        setTips(Array.isArray(tipsData) ? tipsData : [])
+        setChartData(Array.isArray(chartDataRes) ? chartDataRes : [])
+        setPerformanceData(Array.isArray(performanceDataRes) ? performanceDataRes : [])
+      } catch (err) {
+        console.error("Failed to load dashboard data:", err)
+        setError(err instanceof Error ? err.message : 'An unknown error occurred')
       } finally {
         setIsLoading(false)
       }
@@ -67,6 +77,23 @@ export function CleanDashboardContainer() {
     )
   }
 
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-6 max-w-md w-full">
+          <h2 className="text-lg font-medium text-red-800">Error Loading Dashboard</h2>
+          <p className="mt-2 text-sm text-red-700">{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="mt-4 px-4 py-2 bg-red-100 text-red-700 rounded-md hover:bg-red-200 transition-colors text-sm font-medium"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    )
+  }
+
   // Transform data for charts
   const weeklyLineData = chartData.map((item) => ({
     name: item.name,
@@ -81,7 +108,7 @@ export function CleanDashboardContainer() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto py-26 px-2">
+      <div className="max-w-7xl mx-auto p-10 ">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">{t('title')}</h1>

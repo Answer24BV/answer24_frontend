@@ -5,6 +5,7 @@ import Footer from "@/components/common/Footer";
 import { useHideSomethingOnRoute } from "@/lib/useHideSomethinOnRoute";
 import ChatWidget from "@/components/common/ChatWidget";
 import PWALoader from "@/components/PWALoader";
+import TranslationPreloader from "@/components/TranslationPreloader";
 
 export default function ClientLayout({
     children,
@@ -12,11 +13,13 @@ export default function ClientLayout({
     children: React.ReactNode;
 }) {
     // hook to hide something on route
-    const hidden = useHideSomethingOnRoute(["/dashboard/chat", "/dashboard/account", "/dashboard/account/wallet", "/dashboard", "/dashboard/wallet",]);
+    const hidden = useHideSomethingOnRoute(["/dashboard/chat", "/dashboard/account", "/dashboard/account/wallet", "/dashboard", "/dashboard/wallet", "/client/avatar", "/admin/client-domain-management", "/client/autoservicejanssen", '/admin', '/admin/blog', '/admin/client-domain-management']);
+    const hiddenNavbar = useHideSomethingOnRoute(["/client/autoservicejanssen"]);
 
     return (
         <>
-            <Header />
+            <TranslationPreloader />
+            {hiddenNavbar ? null : <Header />}
             <PWALoader />
             {children}
             <ChatWidget />

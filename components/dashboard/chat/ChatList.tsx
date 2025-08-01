@@ -3,7 +3,7 @@
 import { useState, useEffect, useTransition } from "react"
 import { Search, Plus, Filter } from "lucide-react"
 import type { Chat } from "@/types/chat"
-import { getChats } from "@/app/[locale]/actions/chat"
+import { getChats } from "@/app/actions/chat"
 import { ChatListItem } from "./ChatListItem"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"

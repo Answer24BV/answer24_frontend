@@ -2,8 +2,7 @@
 
 import { useState, useEffect, useRef, useTransition } from "react"
 import type { Chat, Message } from "@/types/chat"
-import { getChatMessages, sendMessage } from "@/app/[locale]/actions/chat"
-import { ChatHeaderDetail } from "./ChatHeaderDetail"
+import { getChatMessages, sendMessage } from "@/app/actions/chat"
 import { MessageBubbleDetailed } from "./MessageBubbleDetailed"
 import { ChatInput } from "./ChatInput"
 
@@ -62,7 +61,6 @@ export function ChatDetail({ chat, currentUserId, onBack }: ChatDetailProps) {
 
   return (
     <div className="flex flex-col h-full bg-gray-50">
-      <ChatHeaderDetail user={otherUser} chatStartDate={chat.createdAt} onBack={onBack} />
 
       <div className="flex-1 overflow-y-auto p-4">
         {messages.map((message, index) => {
