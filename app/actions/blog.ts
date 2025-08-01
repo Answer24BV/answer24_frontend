@@ -9,6 +9,7 @@ import {
 } from "@/types/blog.d";
 import { revalidatePath } from "next/cache";
 import BLOGIMAGEPLACEHOLDER from "@/public/image.png"
+import { tokenUtils } from "@/utils/auth";
 
 const BASE_URL = "https://staging.answer24.nl/api/v1";
 
@@ -34,11 +35,11 @@ export async function createBlog(
   }
 
   try {
-    const response = await fetch(`${BASE_URL}/admin/blogs`, {
+    const response = await fetch(`${BASE_URL}/blog`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer 2|Fw4Uo167tlqOE9wqSPgT55q4joQbMLlWCoWwpsHG8afbb11a`,
+        "Authorization": tokenUtils.getToken() || "",
       },
       body: JSON.stringify(validatedFields.data),
     });
@@ -82,7 +83,7 @@ export async function updateBlog(
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer 2|Fw4Uo167tlqOE9wqSPgT55q4joQbMLlWCoWwpsHG8afbb11a`,
+        "Authorization": tokenUtils.getToken() || "",
       },
       body: JSON.stringify(validatedFields.data),
     });
@@ -117,7 +118,7 @@ export async function deleteBlog(id: string) {
       method: "DELETE",
       headers: {
         // Add any necessary authentication headers
-        "Authorization": `Bearer 2|Fw4Uo167tlqOE9wqSPgT55q4joQbMLlWCoWwpsHG8afbb11a`,
+        "Authorization": tokenUtils.getToken() || "",
       },
     });
 

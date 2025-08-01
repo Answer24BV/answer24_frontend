@@ -66,8 +66,10 @@ const BlogManagement = () => {
   }, []);
 
   const handleNewBlog = () => {
+    // Reset form state first
     setEditingBlog(null);
     setPreviewImage(null);
+    // Then open the dialog
     setIsFormOpen(true);
   };
 
@@ -121,10 +123,20 @@ const BlogManagement = () => {
   };
 
   const removeImage = (e: React.MouseEvent) => {
+    e.preventDefault();
     e.stopPropagation();
+    
+    // Clear the preview and file input
     setPreviewImage(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
+      // Create a new input element to replace the current one
+      const newInput = document.createElement('input');
+      newInput.type = 'file';
+      newInput.style.display = 'none';
+      newInput.onchange = fileInputRef.current.onchange;
+      fileInputRef.current.replaceWith(newInput);
+      fileInputRef.current = newInput;
     }
   };
 
@@ -246,9 +258,11 @@ const BlogManagement = () => {
         </div>
         <Dialog open={isFormOpen} onOpenChange={(open) => {
           if (!open) {
+            // Only reset form state when closing
             setEditingBlog(null);
             setPreviewImage(null);
           }
+          // Always update the open state
           setIsFormOpen(open);
         }}>
           <DialogTrigger asChild>

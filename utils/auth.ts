@@ -11,7 +11,7 @@ export const tokenUtils = {
   },
 
   // Get token from localStorage
-  getToken: (): string | null => {
+   getToken: (): string | null => {
     if (typeof window !== 'undefined') {
       return localStorage.getItem(TOKEN_KEY);
     }
