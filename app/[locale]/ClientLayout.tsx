@@ -13,7 +13,7 @@ export default function ClientLayout({
     children: React.ReactNode;
 }) {
     // hook to hide something on route
-    const hidden = useHideSomethingOnRoute(["/dashboard/chat", "/dashboard/account", "/dashboard/account/wallet", "/dashboard", "/dashboard/wallet", "/client/avatar", "/admin/client-domain-management", "/client/autoservicejanssen", '/admin', '/admin/blog', '/admin/client-domain-management']);
+    const hidden = useHideSomethingOnRoute(["/dashboard/chat", "/dashboard/account", "/dashboard/account/wallet", "/dashboard", "/dashboard/wallet", "/client/avatar", "/admin/client-domain-management", "/client/autoservicejanssen", '/dashboard/admin', '/dashboard/admin/blog', '/dashboard/admin/client-domain-management']);
     const hiddenNavbar = useHideSomethingOnRoute(["/client/autoservicejanssen"]);
 
     return (

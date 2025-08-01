@@ -5,7 +5,7 @@ import {
   Menu,
   X,
   Bell,
-  User,
+  User as UserIcon,
   LogOut,
   MessageCircle,
   Wallet,
@@ -25,16 +25,21 @@ import {
 import { useTranslations } from "next-intl"
 import ANSWER24LOGO from "@/public/Answer24Logo.png"
 import Image from "next/image"
+import { tokenUtils } from "@/utils/auth"
+import { User } from "@/types/user";
 
 export function PrivateNavbar() {
   const [isScrolled, setIsScrolled] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 20)
     }
     window.addEventListener("scroll", handleScroll)
+    const userData = tokenUtils.getUser();
+    setUser(userData);
     return () => window.removeEventListener("scroll", handleScroll)
   }, [])
 
@@ -83,24 +88,24 @@ export function PrivateNavbar() {
               <DropdownMenuTrigger asChild className="cursor-pointer">
                 <Button variant="ghost" className="relative h-10 w-10 rounded-full">
                   <Avatar className="h-10 w-10">
-                    <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />
-                    <AvatarFallback>CN</AvatarFallback>
+                    <AvatarImage src={user?.avatar || "https://github.com/shadcn.png"} alt="@shadcn" />
+                    <AvatarFallback>{user?.name?.[0] || 'U'}</AvatarFallback>
                   </Avatar>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-56" align="end" forceMount>
                 <DropdownMenuLabel className="font-normal">
                   <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium leading-none">Martins omo werey</p>
+                    <p className="text-sm font-medium leading-none">{user?.name || 'User'}</p>
                     <p className="text-xs leading-none text-muted-foreground">
-                      m@example.com
+                      {user?.email || 'user@example.com'}
                     </p>
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem>
                   <Link href="/dashboard/account" className="flex  items-center">
-                    <User className="mr-2 h-4 w-4" />
+                    <UserIcon className="mr-2 h-4 w-4" />
                     <span>{t('userMenu.profile')}</span>
                   </Link>
                 </DropdownMenuItem>
@@ -126,7 +131,7 @@ export function PrivateNavbar() {
           </div>
 
           {/* Mobile Menu Button */}
-          <button
+          {/* <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             className="md:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
           >
@@ -135,12 +140,12 @@ export function PrivateNavbar() {
             ) : (
               <Menu className="w-6 h-6" />
             )}
-          </button>
+          </button> */}
         </div>
       </div>
 
       {/* Mobile Menu */}
-      <AnimatePresence>
+      {/* <AnimatePresence>
         {isMobileMenuOpen && (
           <motion.div
             initial={{ opacity: 0, height: 0 }}
@@ -163,7 +168,7 @@ export function PrivateNavbar() {
             </div>
           </motion.div>
         )}
-      </AnimatePresence>
+      </AnimatePresence> */}
     </motion.nav>
   )
 }
