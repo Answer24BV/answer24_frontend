@@ -13,8 +13,9 @@ import {
   Download,
 } from "lucide-react";
 import { useRouter } from "@/i18n/navigation";
-import AddMoney from "../../../components/AddMoney";
-import React from "react";
+import { useTranslations } from "next-intl";
+import AddMoney from "@/components/AddMoney";
+import { tokenUtils } from "@/utils/auth";
 
 // --- UI Components (Recreated based on common patterns) ---
 
@@ -321,6 +322,7 @@ export default function WalletPage() {
   const [isPageLoading, setIsPageLoading] = useState<boolean>(true);
   const [addMoneyModal, setAddMoneyModal] = useState<boolean>(false);
   const router = useRouter();
+  const t = useTranslations("WalletPage");
 
   // Dummy User Data
   const user = {
@@ -333,16 +335,16 @@ export default function WalletPage() {
   const wallet = {
     balance: walletData?.balance || 0,
     currency: "EUR",
-    status: "Active",
+    status: t("status.active"),
   };
 
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
-      case "active":
+      case t("status.active").toLowerCase():
         return "bg-green-100 text-green-800";
-      case "pending":
+      case t("status.pending").toLowerCase():
         return "bg-yellow-100 text-yellow-800";
-      case "paid":
+      case t("status.paid").toLowerCase():
         return "bg-blue-100 text-blue-800";
       default:
         return "bg-gray-100 text-gray-800";
@@ -356,14 +358,57 @@ export default function WalletPage() {
     }).format(amount);
   };
 
-  // Replace API calls with dummy data fetching
+  // Fetch wallet balance from API
   useEffect(() => {
     const fetchWallet = async () => {
       setIsPageLoading(true);
-      // Simulate API call delay
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      setWalletData({ balance: 1250.75 }); 
-      setIsPageLoading(false);
+      try {
+        const token = tokenUtils.getToken();
+
+        if (!token) {
+          console.error("No authentication token found");
+          setIsPageLoading(false);
+          return;
+        }
+
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_API_BASE_URL}/wallet/balance`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              Accept: "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        console.log("Wallet balance API response status:", response.status);
+
+        if (response.ok) {
+          const data = await response.json();
+          console.log("Wallet balance API response:", data);
+
+          // Handle different possible response structures
+          const balance = data.balance || data.data?.balance || 0;
+          setWalletData({ balance });
+        } else {
+          const errorData = await response.json().catch(() => ({}));
+          console.error(
+            "Failed to fetch wallet balance:",
+            response.status,
+            errorData
+          );
+          // Set default balance on error
+          setWalletData({ balance: 0 });
+        }
+      } catch (err) {
+        console.error("Error fetching wallet balance:", err);
+        // Set default balance on error
+        setWalletData({ balance: 0 });
+      } finally {
+        setIsPageLoading(false);
+      }
     };
     fetchWallet();
   }, []);
@@ -377,49 +422,49 @@ export default function WalletPage() {
         {
           id: "txn_001",
           payment_type: "wallet",
-          mollie_data: { description: "Top-up from Bank" },
+          mollie_data: { description: t("transactionTypes.wallet") },
           mollie_payment_id: "tr_abc123",
           paid_at: new Date().toISOString(),
           amount: 100,
-          status: "paid",
+          status: t("status.paid"),
         },
         {
           id: "txn_002",
           payment_type: "expense",
-          mollie_data: { description: "Payment for Service A" },
+          mollie_data: { description: t("transactionTypes.expense") },
           mollie_payment_id: "tr_def456",
-          paid_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), // 2 days ago
+          paid_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
           amount: 45.5,
-          status: "pending",
+          status: t("status.pending"),
         },
         {
           id: "txn_003",
           payment_type: "wallet",
-          mollie_data: { description: "Refund for item X" },
+          mollie_data: { description: t("transactionTypes.wallet") },
           mollie_payment_id: "tr_ghi789",
-          paid_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(), // 5 days ago
+          paid_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
           amount: 20.0,
-          status: "active",
+          status: t("status.active"),
         },
         {
           id: "txn_004",
           payment_type: "expense",
-          mollie_data: { description: "Subscription renewal" },
+          mollie_data: { description: t("transactionTypes.expense") },
           mollie_payment_id: "tr_jkl012",
-          paid_at: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days ago
+          paid_at: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
           amount: 15.0,
-          status: "paid",
+          status: t("status.paid"),
         },
         {
           id: "txn_005",
           payment_type: "wallet",
-          mollie_data: { description: "Top-up from Credit Card" },
+          mollie_data: { description: t("transactionTypes.wallet") },
           mollie_payment_id: "tr_mno345",
           paid_at: new Date(
             Date.now() - 10 * 24 * 60 * 60 * 1000
-          ).toISOString(), // 10 days ago
+          ).toISOString(),
           amount: 50.0,
-          status: "paid",
+          status: t("status.paid"),
         },
       ];
       setWalletHistory(dummyTransactions);
@@ -649,7 +694,9 @@ export default function WalletPage() {
                                   size="sm"
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    router.push(`/dashboard/account/invoice/${transaction.id}`);
+                                    router.push(
+                                      `/dashboard/account/invoice/${transaction.id}`
+                                    );
                                   }}
                                   className="flex items-center gap-1"
                                 >
