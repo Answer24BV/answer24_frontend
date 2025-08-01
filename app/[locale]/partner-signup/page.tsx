@@ -20,13 +20,15 @@ interface Errors {
 interface SubscriptionPlan {
   id: string;
   name: string;
-  price: number;
-  currency: string;
-  interval: string;
+  display_name: string;
   description: string;
-  features: string[];
-  credits?: number;
-  trial_days?: number;
+  price: string;
+  formatted_price: string;
+  duration_days: number;
+  features: any[];
+  color: string;
+  created_at: string;
+  updated_at: string;
 }
 
 export default function PartnerSignUp() {
@@ -43,6 +45,7 @@ export default function PartnerSignUp() {
     SubscriptionPlan[]
   >([]);
   const [loadingPlans, setLoadingPlans] = useState(false);
+  const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
 
   const [errors, setErrors] = useState<Errors>({
     fullName: "",
@@ -76,7 +79,7 @@ export default function PartnerSignUp() {
       }
 
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}/subscription/details`,
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/plan`,
         {
           method: "GET",
           headers: {
@@ -87,13 +90,13 @@ export default function PartnerSignUp() {
       );
 
       if (response.ok) {
-        const data = await response.json();
-        console.log("Partner subscription details API response:", data);
-        setSubscriptionPlans(data.plans || data || []);
+        const result = await response.json();
+        console.log("Partner plan API response:", result);
+        setSubscriptionPlans(result.data || []);
       } else {
         const errorData = await response.json().catch(() => ({}));
         console.error(
-          "Failed to fetch partner subscription plans:",
+          "Failed to fetch partner plans:",
           response.status,
           errorData
         );
@@ -205,7 +208,7 @@ export default function PartnerSignUp() {
 
   async function handlePlanSelection(planId: string): Promise<void> {
     setError("");
-    setIsLoading(true);
+    setSelectedPlanId(planId);
 
     try {
       const token = tokenUtils.getToken();
@@ -224,11 +227,18 @@ export default function PartnerSignUp() {
       );
 
       if (response.ok) {
-        const data = await response.json();
-        console.log("Partner subscription successful:", data);
+        const result = await response.json();
+        console.log("Partner subscription successful:", result);
 
-        // Redirect to dashboard after successful subscription
-        router.push("/dashboard");
+        // Check if we got a checkout URL for payment
+        if (result.data?.checkout_url) {
+          console.log("Redirecting partner to checkout:", result.data.checkout_url);
+          // Redirect to payment checkout
+          window.location.href = result.data.checkout_url;
+        } else {
+          // If no checkout URL, redirect to dashboard
+          router.push("/dashboard");
+        }
       } else {
         const errorData = await response.json();
         console.error("Partner subscription failed:", errorData);
@@ -240,7 +250,7 @@ export default function PartnerSignUp() {
       console.error("Error subscribing partner to plan:", err);
       setError(err.message || "Plan selection failed. Please try again.");
     } finally {
-      setIsLoading(false);
+      setSelectedPlanId(null);
     }
   }
 
@@ -251,7 +261,7 @@ export default function PartnerSignUp() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50">
       <div
-        className={`relative flex flex-col lg:flex-row w-11/12 md:w-3/4 lg:w-4/5 xl:w-2/3 2xl:w-1/2 bg-white rounded-2xl shadow-lg overflow-hidden my-8`}
+        className={`relative flex flex-col lg:flex-row ${signUpStep === 1 ? 'w-11/12 md:w-3/4 lg:w-4/5 xl:w-2/3 2xl:w-1/2' : 'w-full max-w-7xl'} bg-white rounded-2xl shadow-lg overflow-hidden my-8`}
       >
         {signUpStep === 1 && (
           <div className="relative lg:w-1/2 h-64 lg:h-auto">
@@ -298,41 +308,31 @@ export default function PartnerSignUp() {
                     <div
                       key={plan.id}
                       className="bg-white rounded-xl shadow p-6 border"
+                      style={{borderColor: plan.color}}
                     >
                       <div className="flex items-baseline justify-between mb-2">
-                        <span className="text-xl font-bold">{plan.name}</span>
+                        <span className="text-xl font-bold">
+                          {plan.display_name || plan.name}
+                        </span>
                         <span className="text-blue-600 font-bold text-lg">
-                          {plan.currency === "USD" ? "$" : "€"}
-                          {plan.price}
-                          <span className="text-base font-normal">
-                            /{plan.interval}
-                          </span>
+                          {plan.formatted_price}
                         </span>
                       </div>
-                      {plan.trial_days && (
+                      {plan.duration_days && (
                         <div className="text-xs text-gray-500 mb-2">
-                          {plan.trial_days} day free trial
+                          {plan.duration_days} days duration
                         </div>
                       )}
                       <div className="mb-4 text-gray-700 text-sm">
                         {plan.description}
                       </div>
-                      {plan.credits && (
-                        <div className="mb-4 text-gray-700 text-sm">
-                          {plan.credits} credits included{" "}
-                          <span className="ml-1 text-gray-400">?</span>
-                        </div>
-                      )}
                       <Button
                         onClick={() => handlePlanSelection(plan.id)}
-                        disabled={isLoading}
-                        className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold mb-4 disabled:opacity-50"
+                        disabled={selectedPlanId === plan.id}
+                        className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold mb-4 disabled:opacity-50 cursor-pointer"
+                        style={{backgroundColor: plan.color}}
                       >
-                        {isLoading
-                          ? "Processing..."
-                          : plan.trial_days
-                          ? `Start ${plan.trial_days}-Day Trial`
-                          : "Select Plan"}
+                        {selectedPlanId === plan.id ? "Processing..." : "Select Plan"}
                       </Button>
                       {plan.features && plan.features.length > 0 && (
                         <div>
@@ -341,8 +341,8 @@ export default function PartnerSignUp() {
                           </div>
                           <ul className="text-xs text-gray-700 list-disc pl-5">
                             {plan.features.map(
-                              (feature: string, index: number) => (
-                                <li key={index}>{feature}</li>
+                              (feature: any, index: number) => (
+                                <li key={index}>{typeof feature === 'string' ? feature : JSON.stringify(feature)}</li>
                               )
                             )}
                           </ul>
