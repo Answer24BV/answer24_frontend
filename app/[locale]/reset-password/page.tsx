@@ -47,12 +47,16 @@ export default function ResetPassword() {
 
   async function verifyResetToken() {
     try {
+      console.log("Verifying reset token with:", { email, token });
+      console.log("API Base URL:", process.env.NEXT_PUBLIC_API_BASE_URL);
+
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/verify-reset-token`,
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
+            Accept: "application/json",
           },
           body: JSON.stringify({
             email,
@@ -61,14 +65,22 @@ export default function ResetPassword() {
         }
       );
 
+      console.log("Verify token response status:", response.status);
+
       if (response.ok) {
+        const data = await response.json();
+        console.log("Verify token success response:", data);
         setTokenValid(true);
       } else {
+        const errorData = await response.json().catch(() => ({}));
+        console.error("Verify token failed:", response.status, errorData);
         setError(
-          "Invalid or expired reset link. Please request a new password reset."
+          errorData.message ||
+            "Invalid or expired reset link. Please request a new password reset."
         );
       }
     } catch (err) {
+      console.error("Error verifying reset token:", err);
       setError("Failed to verify reset link. Please try again.");
     } finally {
       setIsVerifying(false);
