@@ -50,7 +50,7 @@ export const tokenUtils = {
 
 // API request helper
 export const apiRequest = async (endpoint: string, options: RequestInit = {}) => {
-  const baseUrl = 'https://staging.answer24.nl/api/v1'
+  const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "https://staging.answer24.nl/api/v1";
   const token = tokenUtils.getToken();
 
   const defaultHeaders: HeadersInit = {
