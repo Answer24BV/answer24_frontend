@@ -15,6 +15,7 @@ import {
 import { useRouter } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import AddMoney from "@/components/AddMoney";
+import { tokenUtils } from "@/utils/auth";
 
 // --- UI Components (Recreated based on common patterns) ---
 
@@ -327,23 +328,23 @@ export default function WalletPage() {
   const user = {
     name: "John Doe",
     email: "john.doe@example.com",
-    avatar: "/Image-1.png",
-    joinDate: "January 15, 2023",
+    avatar: "/Image-1.png", // Ensure this path is valid or remove if not needed
+    joinDate: "January 15, 2023", // Replaced moment with a string for simplicity
   };
 
   const wallet = {
     balance: walletData?.balance || 0,
     currency: "EUR",
-    status: t('status.active'),
+    status: t("status.active"),
   };
 
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
-      case t('status.active').toLowerCase():
+      case t("status.active").toLowerCase():
         return "bg-green-100 text-green-800";
-      case t('status.pending').toLowerCase():
+      case t("status.pending").toLowerCase():
         return "bg-yellow-100 text-yellow-800";
-      case t('status.paid').toLowerCase():
+      case t("status.paid").toLowerCase():
         return "bg-blue-100 text-blue-800";
       default:
         return "bg-gray-100 text-gray-800";
@@ -357,14 +358,57 @@ export default function WalletPage() {
     }).format(amount);
   };
 
-  // Replace API calls with dummy data fetching
+  // Fetch wallet balance from API
   useEffect(() => {
     const fetchWallet = async () => {
       setIsPageLoading(true);
-      // Simulate API call delay
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      setWalletData({ balance: 1250.75 }); 
-      setIsPageLoading(false);
+      try {
+        const token = tokenUtils.getToken();
+
+        if (!token) {
+          console.error("No authentication token found");
+          setIsPageLoading(false);
+          return;
+        }
+
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_API_BASE_URL}/wallet/balance`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              Accept: "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        console.log("Wallet balance API response status:", response.status);
+
+        if (response.ok) {
+          const data = await response.json();
+          console.log("Wallet balance API response:", data);
+
+          // Handle different possible response structures
+          const balance = data.balance || data.data?.balance || 0;
+          setWalletData({ balance });
+        } else {
+          const errorData = await response.json().catch(() => ({}));
+          console.error(
+            "Failed to fetch wallet balance:",
+            response.status,
+            errorData
+          );
+          // Set default balance on error
+          setWalletData({ balance: 0 });
+        }
+      } catch (err) {
+        console.error("Error fetching wallet balance:", err);
+        // Set default balance on error
+        setWalletData({ balance: 0 });
+      } finally {
+        setIsPageLoading(false);
+      }
     };
     fetchWallet();
   }, []);
@@ -372,57 +416,73 @@ export default function WalletPage() {
   useEffect(() => {
     const fetchTransactions = async () => {
       setWalletHistoryLoader(true);
-      // Simulate API call delay
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+
+      // TODO: Replace with real API call when ready
+      // const token = tokenUtils.getToken();
+      // const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/wallet/transactions`, {
+      //   method: 'GET',
+      //   headers: {
+      //     'Content-Type': 'application/json',
+      //     'Accept': 'application/json',
+      //     'Authorization': `Bearer ${token}`,
+      //   },
+      // });
+
+      // For now, set empty transactions array to show "no transactions yet"
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      setWalletHistory([]);
+      setWalletHistoryLoader(false);
+
+      /* COMMENTED OUT MOCK DATA - UNCOMMENT WHEN API IS READY
       const dummyTransactions: Transaction[] = [
         {
           id: "txn_001",
           payment_type: "wallet",
-          mollie_data: { description: t('transactionTypes.wallet') },
+          mollie_data: { description: t("transactionTypes.wallet") },
           mollie_payment_id: "tr_abc123",
           paid_at: new Date().toISOString(),
           amount: 100,
-          status: t('status.paid'),
+          status: t("status.paid"),
         },
         {
           id: "txn_002",
           payment_type: "expense",
-          mollie_data: { description: t('transactionTypes.expense') },
+          mollie_data: { description: t("transactionTypes.expense") },
           mollie_payment_id: "tr_def456",
           paid_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
           amount: 45.5,
-          status: t('status.pending'),
+          status: t("status.pending"),
         },
         {
           id: "txn_003",
           payment_type: "wallet",
-          mollie_data: { description: t('transactionTypes.wallet') },
+          mollie_data: { description: t("transactionTypes.wallet") },
           mollie_payment_id: "tr_ghi789",
           paid_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
           amount: 20.0,
-          status: t('status.active'),
+          status: t("status.active"),
         },
         {
           id: "txn_004",
           payment_type: "expense",
-          mollie_data: { description: t('transactionTypes.expense') },
+          mollie_data: { description: t("transactionTypes.expense") },
           mollie_payment_id: "tr_jkl012",
           paid_at: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
           amount: 15.0,
-          status: t('status.paid'),
+          status: t("status.paid"),
         },
         {
           id: "txn_005",
           payment_type: "wallet",
-          mollie_data: { description: t('transactionTypes.wallet') },
+          mollie_data: { description: t("transactionTypes.wallet") },
           mollie_payment_id: "tr_mno345",
           paid_at: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
           amount: 50.0,
-          status: t('status.paid'),
+          status: t("status.paid"),
         },
       ];
       setWalletHistory(dummyTransactions);
-      setWalletHistoryLoader(false);
+      */
     };
     fetchTransactions();
   }, []);
@@ -432,13 +492,15 @@ export default function WalletPage() {
   }
 
   return (
-    <div className="mt min-h-screen py-20 px-6">
-      <div className="mx-auto space-y-6 max-w-7xl">
+    <div className="p-4 min-h-screen md:p-6">
+      <div className="mx-auto space-y-6 max-w-6xl">
         {/* Header */}
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">{t('title')}</h1>
-            <p className="text-muted-foreground">{t('subtitle')}</p>
+            <h1 className="text-3xl font-bold tracking-tight">Your Wallet</h1>
+            <p className="text-muted-foreground">
+              Manage your transactions and balance
+            </p>
           </div>
         </div>
 
@@ -447,7 +509,7 @@ export default function WalletPage() {
           {/* User Details Card */}
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-lg">{t('accountDetails.title')}</CardTitle>
+              <CardTitle className="text-lg">Account Details</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center space-x-3">
@@ -471,7 +533,7 @@ export default function WalletPage() {
               <Separator />
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">{t('accountDetails.memberSince')}</span>
+                  <span className="text-muted-foreground">Member Since</span>
                   <span>{user.joinDate}</span>
                 </div>
               </div>
@@ -482,7 +544,7 @@ export default function WalletPage() {
           <Card>
             <CardHeader className="pb-3">
               <div className="flex justify-between items-center">
-                <CardTitle className="text-lg">{t('balance.title')}</CardTitle>
+                <CardTitle className="text-lg">Current Balance</CardTitle>
                 <Button
                   variant="ghost"
                   size="icon"
@@ -505,17 +567,17 @@ export default function WalletPage() {
                       : "••••••"}
                   </div>
                   <p className="mt-1 text-sm text-muted-foreground">
-                    {t('balance.available')}
+                    Available Balance
                   </p>
                 </div>
                 <div className="flex gap-4 justify-center items-center text-sm">
                   <div className="flex gap-1 items-center">
                     <Euro className="w-4 h-4 text-green-600" />
-                    <span>{t('balance.currency')}: {wallet.currency}</span>
+                    <span>{wallet.currency}</span>
                   </div>
                   <div className="flex gap-1 items-center">
                     <Wallet className="w-4 h-4 text-blue-600" />
-                    <span>{t('balance.walletType')}</span>
+                    <span>Digital Wallet</span>
                   </div>
                 </div>
               </div>
@@ -528,7 +590,7 @@ export default function WalletPage() {
               <div className="flex items-center justify-between">
                 <CardTitle className="text-lg flex items-center gap-2">
                   <Euro className="w-5 h-5 text-blue-600" />
-                  {t('addMoney.title')}
+                  Add Money
                 </CardTitle>
               </div>
             </CardHeader>
@@ -540,7 +602,7 @@ export default function WalletPage() {
                     className="w-full h-12 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
                   >
                     <Plus className="mr-2 w-5 h-5" />
-                    {t('addMoney.button')}
+                    Add Money
                   </Button>
                 </div>
               </div>
@@ -553,8 +615,8 @@ export default function WalletPage() {
           <CardHeader>
             <div className="flex justify-between items-center">
               <div className="space-y-2">
-                <CardTitle>{t('transactions.title')}</CardTitle>
-                <CardDescription>{t('transactions.subtitle')}</CardDescription>
+                <CardTitle>Your Transactions</CardTitle>
+                <CardDescription>Latest activity</CardDescription>
               </div>
             </div>
           </CardHeader>
@@ -566,11 +628,11 @@ export default function WalletPage() {
                     <Table>
                       <TableHeader>
                         <TableRow>
-                          <TableHead>{t('transactions.headers.transaction')}</TableHead>
-                          <TableHead>{t('transactions.headers.dateTime')}</TableHead>
-                          <TableHead>{t('transactions.headers.amount')}</TableHead>
-                          <TableHead>{t('transactions.headers.status')}</TableHead>
-                          <TableHead>{t('transactions.headers.actions')}</TableHead>
+                          <TableHead>Transaction</TableHead>
+                          <TableHead>Date & Time</TableHead>
+                          <TableHead>Amount</TableHead>
+                          <TableHead>Status</TableHead>
+                          <TableHead>Actions</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -596,10 +658,7 @@ export default function WalletPage() {
                                 </div>
                                 <div>
                                   <p className="font-medium">
-                                    {transaction.payment_type === 'wallet' 
-                                      ? t('transactionTypes.wallet') 
-                                      : t('transactionTypes.expense')}
-                                    {transaction.mollie_data?.description ? `: ${transaction.mollie_data.description}` : ''}
+                                    {transaction.mollie_data.description}
                                   </p>
                                   <p className="text-sm text-muted-foreground">
                                     {transaction.mollie_payment_id}
@@ -649,12 +708,14 @@ export default function WalletPage() {
                                   size="sm"
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    router.push(`/dashboard/account/invoice/${transaction.id}`);
+                                    router.push(
+                                      `/dashboard/account/invoice/${transaction.id}`
+                                    );
                                   }}
                                   className="flex items-center gap-1"
                                 >
                                   <FileText className="w-4 h-4" />
-                                  {t('transactions.view')}
+                                  View
                                 </Button>
                                 {/* <Button
                                   variant="outline"
@@ -678,7 +739,7 @@ export default function WalletPage() {
                       </TableBody>
                     </Table>
                   ) : (
-                    <ErrorComp message={t('transactions.noTransactions')} />
+                    <ErrorComp message="No transactions found." />
                   )}
                 </TabsContent>
               </Tabs>
@@ -691,7 +752,7 @@ export default function WalletPage() {
                   <Loader2 className="mx-auto animate-spin w-6 h-6 text-blue-500" />
                 </div>
               ) : (
-                <ErrorComp message={t('transactions.error')} />
+                <ErrorComp message="Error Fetching wallet History" />
               )}
             </div>
           )}
