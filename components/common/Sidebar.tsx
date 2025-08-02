@@ -7,16 +7,19 @@ import { motion, AnimatePresence, useAnimationControls } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
+
 // Sign out handler
 const signOut = async () => {
   // Handle sign out logic here
   return { error: null };
 };
+
 import {
   LayoutDashboard,
   Settings,
   HelpCircle,
   LogOut,
+  ChevronLeft,
   ChevronRight,
   Menu,
   X,
@@ -31,6 +34,8 @@ import {
   Bell,
   Languages,
   FileText,
+  PanelLeftClose,
+  PanelLeftOpen,
 } from 'lucide-react';
 
 import ANSWER24LOGO from "@/public/answerLogobgRemover-removebg-preview.png";
@@ -41,10 +46,6 @@ import { tokenUtils } from '@/utils/auth';
 import { User } from '@/types/user';
 import { Tooltip } from 'react-tooltip';
 import 'react-tooltip/dist/react-tooltip.css';
-
-
-
-
 
 interface SidebarProps {
   className?: string;
@@ -58,15 +59,28 @@ export function Sidebar({ className, collapsed: propCollapsed, onCollapse }: Sid
   const [user, setUser] = useState<User | null>(null);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(propCollapsed || false);
+  const [isHovered, setIsHovered] = useState(false);
   const sidebarRef = useRef<HTMLDivElement>(null);
   const controls = useAnimationControls();
 
-    const { locale } = useParams();
+  const { locale } = useParams();
   
-    // Generate the href based on the route
-    const getHref = (route: string) => {
-      return `/${locale}${route}`;
-    };
+  // Generate the href based on the route
+  const getHref = (route: string) => {
+    return `/${locale}${route}`;
+  };
+
+  // Check if current route is chat
+  const isChatRoute = currentPath.includes('/dashboard/chat');
+
+  // Auto-collapse on chat route
+  useEffect(() => {
+    if (isChatRoute && !isCollapsed) {
+      setIsCollapsed(true);
+      onCollapse?.(true);
+    }
+  }, [isChatRoute, isCollapsed, onCollapse]);
+
   // Handle click outside to close sidebar
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -77,12 +91,10 @@ export function Sidebar({ className, collapsed: propCollapsed, onCollapse }: Sid
       }
     }
 
-    // Add event listener when mobile menu is open
     if (isMobileOpen) {
       document.addEventListener('mousedown', handleClickOutside);
     }
 
-    // Clean up
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
@@ -92,24 +104,21 @@ export function Sidebar({ className, collapsed: propCollapsed, onCollapse }: Sid
   useEffect(() => {
     const userData = tokenUtils.getUser();
     setUser(userData);
-    const isDesktop = window.innerWidth >= 768; // md breakpoint
+    const isDesktop = window.innerWidth >= 768;
 
     if (isDesktop) {
-      // Always show sidebar on desktop
       controls.start({
         x: 0,
         opacity: 1,
         transition: { type: 'spring', stiffness: 300, damping: 30 }
       });
     } else if (isMobileOpen) {
-      // Show sidebar on mobile when isMobileOpen is true
       controls.start({
         x: 0,
         opacity: 1,
         transition: { type: 'spring', stiffness: 300, damping: 30 }
       });
     } else {
-      // Hide sidebar on mobile when isMobileOpen is false
       controls.start({
         x: '-100%',
         opacity: 0,
@@ -117,17 +126,14 @@ export function Sidebar({ className, collapsed: propCollapsed, onCollapse }: Sid
       });
     }
 
-    // Handle window resize
     const handleResize = () => {
       if (window.innerWidth >= 768) {
-        // On desktop, ensure sidebar is visible
         controls.start({
           x: 0,
           opacity: 1,
           transition: { type: 'spring', stiffness: 300, damping: 30 }
         });
       } else if (!isMobileOpen) {
-        // On mobile, hide if not explicitly opened
         controls.start({
           x: '-100%',
           opacity: 0,
@@ -148,10 +154,11 @@ export function Sidebar({ className, collapsed: propCollapsed, onCollapse }: Sid
   }, [propCollapsed]);
 
   const handleCollapse = () => {
-    setIsCollapsed(!isCollapsed);
+    const newCollapsed = !isCollapsed;
+    setIsCollapsed(newCollapsed);
+    onCollapse?.(newCollapsed);
   };
 
-  // Handle user logout
   const handleUserLogout = async () => {
     try {
       await signOut();
@@ -161,7 +168,7 @@ export function Sidebar({ className, collapsed: propCollapsed, onCollapse }: Sid
     }
   };
 
-  // Navigation items with simplified structure
+  // Navigation items
   const navItems: NavItem[] = [
     {
       title: 'Dashboard',
@@ -182,24 +189,6 @@ export function Sidebar({ className, collapsed: propCollapsed, onCollapse }: Sid
       icon: Wallet,
       roles: ['client', 'partner', 'admin'],
     },
-    // {
-    //   title: 'Services',
-    //   icon: Briefcase,
-    //   href: '#',
-    //   roles: ['client', 'partner', 'admin'],
-    //   subItems: [
-    //     {
-    //       title: 'My Services',
-    //       href: '/dashboard/services',
-    //       icon: Briefcase,
-    //     },
-    //     {
-    //       title: 'New Service',
-    //       href: '/dashboard/services/new',
-    //       icon: Plus,
-    //     },
-    //   ],
-    // },
     {
       title: 'Clients',
       icon: UsersIcon,
@@ -282,21 +271,16 @@ export function Sidebar({ className, collapsed: propCollapsed, onCollapse }: Sid
     (item) => !item.roles || item.roles.includes(user?.userType || 'admin')
   );
 
-  // User initials for avatar
-  const userInitials = user?.name?.[0].toUpperCase() || 'U'; // Replace with actual user data
+  const userInitials = user?.name?.[0].toUpperCase() || 'U';
 
-  // Handle logout
   const handleLogout = async () => {
     await signOut();
     router.push(getHref('/signin'));
   };
 
-  // Check if a nav item is active - handles both with and without locale prefix
   const isNavItemActive = (item: NavItem) => {
-    // Check direct match
     if (currentPath === item.href || currentPath === `/${locale}${item.href}`) return true;
     
-    // Check if any subitems match
     if (item.subItems) {
       return item.subItems.some(subItem => 
         currentPath === subItem.href || 
@@ -309,21 +293,16 @@ export function Sidebar({ className, collapsed: propCollapsed, onCollapse }: Sid
 
   return (
     <>
-      {/* Mobile menu button - Only shown on mobile */}
+      {/* Mobile menu button */}
       <div className="md:hidden">
         <motion.button
           className={cn(
-            'fixed top-4 right-4 z-50 bg-white shadow-lg rounded-full w-10 h-10 flex items-center justify-center',
-            'transition-all duration-200 hover:bg-gray-100',
+            'fixed top-4 right-4 z-50 bg-white shadow-lg rounded-lg p-2',
+            'transition-all duration-200 hover:bg-gray-50',
             'focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500',
-            'shadow-md'
+            'border border-gray-200'
           )}
-          onClick={() => {
-            const isDesktop = window.innerWidth >= 768;
-            if (!isDesktop) {
-              setIsMobileOpen(!isMobileOpen);
-            }
-          }}
+          onClick={() => setIsMobileOpen(!isMobileOpen)}
           aria-label={isMobileOpen ? 'Close menu' : 'Open menu'}
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
@@ -336,24 +315,47 @@ export function Sidebar({ className, collapsed: propCollapsed, onCollapse }: Sid
         </motion.button>
       </div>
 
-      {/* Mobile overlay with click outside - Only on mobile */}
+      {/* Mobile overlay */}
       <AnimatePresence>
         {isMobileOpen && (
           <motion.div
-            className="fixed inset-0 bg-black/20 z-30 md:hidden"
+            className="fixed inset-0 bg-black/50 z-30 md:hidden"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            onClick={() => {
-              const isMobile = window.innerWidth < 768;
-              if (isMobile) {
-                setIsMobileOpen(false);
-              }
-            }}
+            onClick={() => setIsMobileOpen(false)}
             transition={{ duration: 0.2 }}
           />
         )}
       </AnimatePresence>
+
+      {/* Desktop Collapse Button - Positioned outside sidebar */}
+      <div className="hidden md:block">
+        <motion.button
+          onClick={handleCollapse}
+          className={cn(
+            'fixed top-6 z-50 bg-white border border-gray-200 rounded-full p-2 shadow-lg',
+            'hover:bg-gray-50 hover:shadow-xl transition-all duration-200',
+            'focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2',
+            isCollapsed ? 'left-20' : 'left-72' // Position based on sidebar state
+          )}
+          style={{
+            transition: 'left 300ms ease-in-out, transform 200ms ease-in-out'
+          }}
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.95 }}
+          data-tooltip-id="collapse-tooltip"
+          data-tooltip-content={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          data-tooltip-place="right"
+        >
+          {isCollapsed ? (
+            <ChevronRight className="h-4 w-4 text-gray-600" />
+          ) : (
+            <ChevronLeft className="h-4 w-4 text-gray-600" />
+          )}
+        </motion.button>
+        <Tooltip id="collapse-tooltip" />
+      </div>
 
       {/* Sidebar */}
       <motion.aside
@@ -362,104 +364,111 @@ export function Sidebar({ className, collapsed: propCollapsed, onCollapse }: Sid
           'fixed inset-y-0 left-0 z-40 flex flex-col',
           'bg-white border-r border-gray-200',
           'h-screen overflow-hidden',
-          'shadow-lg',
+          'shadow-sm transition-all duration-300 ease-in-out',
+          isCollapsed ? 'w-16' : 'w-64',
           className
         )}
         initial={{ x: '-100%', opacity: 0 }}
         animate={controls}
-        style={{
-          width: isCollapsed ? '5rem' : '16rem',
-          willChange: 'width',
-        }}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
       >
-        {/* Logo and Collapse Button */}
-        <div className="flex items-center justify-between h-16 px-4 border-b border-gray-100">
-          <div className="flex items-center flex-1">
-            <Link
-              href="/dashboard"
-            >
-              <div className="relative h-36 w-36 flex-shrink-0">
-                <Image
-                  src={ANSWER24LOGO}
-                  alt="Logo"
-                  fill
-                  className="object-contain"
-                  priority
-                />
-              </div>
-            </Link>
-          </div>
-          <div className="hidden md:block">
-            <motion.button
-              onClick={handleCollapse}
-              className={cn(
-                'p-2 rounded-full text-gray-500 hover:bg-gray-100',
-                'focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500',
-              )}
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-              aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-              data-tooltip-id="sidebar-tooltip"
-              data-tooltip-content={isCollapsed ? 'Expand' : 'Collapse'}
-            >
-              {isCollapsed ? <Menu className="h-5 w-5" /> : <X className="h-5 w-5" />}
-            </motion.button>
-            <Tooltip id="sidebar-tooltip" place="right" />
-          </div>
+        {/* Logo section */}
+        <div className={cn(
+          'flex items-center h-16 border-b border-gray-100',
+          isCollapsed ? 'px-2 justify-center' : 'px-4'
+        )}>
+          <Link href="/dashboard" className="flex items-center space-x-3">
+            <div className={`relative ${ !isCollapsed ? "h-38 w-38" : "h-5 w-16"} flex-shrink-0`}>
+              <Image
+                src={ANSWER24LOGO}
+                alt="Logo"
+                fill
+                className="object-contain"
+                priority
+              />
+            </div>
+           
+          </Link>
         </div>
 
         {/* User Profile */}
-        <div
-          className={cn(
-            'px-4 py-3 border-b border-gray-100',
-            isCollapsed ? 'px-2' : 'px-4'
-          )}
-        >
-          <div
-            className={cn(
-              'flex items-center space-x-3',
-              isCollapsed ? 'justify-center' : 'justify-between'
-            )}
-          >
-            <div className="flex items-center space-x-3 min-w-0">
-              <div className="flex-shrink-0 w-9 h-9 rounded-full bg-blue-100 flex items-center justify-center">
-                <span className="text-sm font-medium text-blue-600">{userInitials}</span>
-              </div>
-              {!isCollapsed && (
-                <div className="min-w-0">
-                  <p className="text-sm font-medium text-gray-900 truncate">{user?.name || 'User'}</p>
-                  <p className="text-xs text-gray-500 truncate">{user?.email || 'user@example.com'}</p>
-                </div>
-              )}
+        <div className={cn(
+          'px-4 py-3 border-b border-gray-100',
+          isCollapsed ? 'px-2' : 'px-4'
+        )}>
+          <div className={cn(
+            'flex items-center',
+            isCollapsed ? 'justify-center' : 'space-x-3'
+          )}>
+            <div 
+              className="flex-shrink-0 w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-sm"
+              data-tooltip-id={isCollapsed ? "user-tooltip" : undefined}
+              data-tooltip-content={isCollapsed ? user?.name || 'User' : undefined}
+              data-tooltip-place="right"
+            >
+              <span className="text-sm font-semibold text-white">{userInitials}</span>
             </div>
-            {!isCollapsed && (
-              <Button
-                variant="ghost"
-                size="icon"
-                className="text-gray-400 hover:text-gray-500 hover:bg-gray-100 rounded-full w-8 h-8"
-                onClick={handleLogout}
-              >
-                <LogOut className="h-4 w-4" />
-              </Button>
-            )}
+            <AnimatePresence>
+              {!isCollapsed && (
+                <motion.div
+                  className="flex-1 min-w-0"
+                  initial={{ opacity: 0, width: 0 }}
+                  animate={{ opacity: 1, width: 'auto' }}
+                  exit={{ opacity: 0, width: 0 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium text-gray-900 truncate">
+                        {user?.name || 'User'}
+                      </p>
+                      <p className="text-xs text-gray-500 truncate">
+                        {user?.email || 'user@example.com'}
+                      </p>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full p-1.5 ml-2"
+                      onClick={handleLogout}
+                      data-tooltip-id="logout-tooltip"
+                      data-tooltip-content="Sign out"
+                    >
+                      <LogOut className="h-4 w-4" />
+                    </Button>
+                    <Tooltip id="logout-tooltip" />
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+            {isCollapsed && <Tooltip id="user-tooltip" />}
           </div>
         </div>
 
-        {/* Search (only visible when expanded) */}
-        {!isCollapsed && (
-          <div className="px-4 py-3">
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Search className="h-4 w-4 text-gray-400" />
+        {/* Search - only visible when expanded */}
+        <AnimatePresence>
+          {!isCollapsed && (
+            <motion.div
+              className="px-4 py-3"
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.2 }}
+            >
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Search className="h-4 w-4 text-gray-400" />
+                </div>
+                <input
+                  type="text"
+                  placeholder="Search..."
+                  className="block w-full pl-10 pr-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 transition-colors"
+                />
               </div>
-              <input
-                type="text"
-                placeholder="Search..."
-                className="block w-full pl-10 pr-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            </div>
-          </div>
-        )}
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Navigation */}
         <ScrollArea className="flex-1 py-2">
@@ -488,40 +497,9 @@ export function Sidebar({ className, collapsed: propCollapsed, onCollapse }: Sid
                 onClick={() => setIsMobileOpen(false)}
               />
             ))}
-
-            {/* Collapse Button - Only show in collapsed state at bottom */}
-            {isCollapsed && (
-              <motion.button
-                onClick={handleCollapse}
-                className={cn(
-                  'w-full flex items-center justify-center p-3 text-sm font-medium',
-                  'text-gray-600 hover:bg-gray-50 rounded-lg',
-                  'focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500',
-                  'mt-2 mb-4 mx-auto'
-                )}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                transition={{ type: 'spring', stiffness: 400, damping: 10 }}
-                aria-label="Expand sidebar"
-              >
-                <ChevronRight className="h-5 w-5" />
-              </motion.button>
-            )}
           </nav>
         </div>
       </motion.aside>
-      <AnimatePresence>
-        {isMobileOpen && (
-          <motion.div
-            className="fixed inset-0 bg-black/50 z-30 md:hidden"
-            onClick={() => setIsMobileOpen(false)}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-          />
-        )}
-      </AnimatePresence>
     </>
   );
 }

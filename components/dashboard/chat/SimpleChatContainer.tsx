@@ -17,7 +17,7 @@ export function SimpleChatContainer() {
   }
 
   return (
-    <div className="h-screen flex pt-20 px-2">
+    <div className="h-screen flex pt-10 px-2">
       <ChatListSidebar
         onChatSelect={handleChatSelect}
         selectedChatId={selectedChat?.id}
