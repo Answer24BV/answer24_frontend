@@ -7,11 +7,7 @@ import { motion, AnimatePresence, useAnimationControls } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
-// Sign out handler
-const signOut = async () => {
-  // Handle sign out logic here
-  return { error: null };
-};
+// Import auth utilities at the top
 import {
   LayoutDashboard,
   Settings,
@@ -150,8 +146,7 @@ export function Sidebar({ className, collapsed: propCollapsed, onCollapse }: Sid
   // Handle user logout
   const handleUserLogout = async () => {
     try {
-      await signOut();
-      router.push('/signin');
+      tokenUtils.logout();
     } catch (error) {
       console.error('Logout failed:', error);
     }
@@ -268,8 +263,7 @@ export function Sidebar({ className, collapsed: propCollapsed, onCollapse }: Sid
 
   // Handle logout
   const handleLogout = async () => {
-    await signOut();
-    router.push(getHref('/signin'));
+    tokenUtils.logout();
   };
 
   // Check if a nav item is active - handles both with and without locale prefix

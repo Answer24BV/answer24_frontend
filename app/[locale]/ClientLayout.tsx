@@ -6,6 +6,8 @@ import { useHideSomethingOnRoute } from "@/lib/useHideSomethinOnRoute";
 import ChatWidget from "@/components/common/ChatWidget";
 import PWALoader from "@/components/PWALoader";
 import TranslationPreloader from "@/components/TranslationPreloader";
+import ServiceWorkerRegistration from "@/components/ServiceWorkerRegistration";
+import { AuthProvider } from "@/components/AuthProvider";
 
 export default function ClientLayout({
     children,
@@ -17,13 +19,14 @@ export default function ClientLayout({
     const hiddenNavbar = useHideSomethingOnRoute(["/client/autoservicejanssen"]);
 
     return (
-        <>
+        <AuthProvider>
+            <ServiceWorkerRegistration />
             <TranslationPreloader />
             {hiddenNavbar ? null : <Header />}
             <PWALoader />
             {children}
             <ChatWidget />
             {hidden ? null : <Footer />}
-        </>
+        </AuthProvider>
     );
 }

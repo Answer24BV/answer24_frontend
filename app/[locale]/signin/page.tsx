@@ -7,6 +7,7 @@ import { useState, FormEvent } from "react";
 import { useTranslations } from "next-intl";
 import { authAPI, tokenUtils } from "@/utils/auth";
 import { useRouter } from "@/i18n/navigation";
+import { AuthGuard } from "@/components/AuthGuard";
 
 export default function SignIn() {
   const [email, setEmail] = useState("");
@@ -42,10 +43,13 @@ export default function SignIn() {
       // Show success message
       setSuccess("Login successful! Redirecting to dashboard...");
 
-      // Redirect to dashboard after a short delay
+      // Redirect to dashboard immediately for PWA, with delay for web
+      const isPWA = window.matchMedia('(display-mode: standalone)').matches;
+      const redirectDelay = isPWA ? 200 : 800;
+      
       setTimeout(() => {
         router.push("/dashboard");
-      }, 800);
+      }, redirectDelay);
     } catch (err: any) {
       setError(err.message || "Login failed. Please try again.");
     } finally {
@@ -59,7 +63,8 @@ export default function SignIn() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50">
+    <AuthGuard requireAuth={false}>
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50">
       <div className="relative flex flex-col lg:flex-row w-11/12 md:w-3/4 lg:w-4/5 xl:w-2/3 2xl:w-1/2 bg-white rounded-2xl shadow-lg overflow-hidden my-8">
         <div className="relative lg:w-1/2 h-64 lg:h-auto">
           <Image
@@ -189,5 +194,6 @@ export default function SignIn() {
         </div>
       </div>
     </div>
+    </AuthGuard>
   );
 }

@@ -6,15 +6,13 @@ import { Link } from "@/i18n/navigation";
 import { useState, FormEvent, useEffect } from "react";
 import { useTranslations } from "next-intl";
 import { ArrowLeft, Mail } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { tokenUtils } from "@/utils/auth";
+import { AuthGuard } from "@/components/AuthGuard";
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState("");
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const t = useTranslations("SignInPage");
 
   async function handleForgotPasswordSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -63,7 +61,8 @@ export default function ForgotPassword() {
 
   if (isSubmitted) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50">
+      <AuthGuard requireAuth={false}>
+        <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50">
         <div className="relative flex flex-col lg:flex-row w-11/12 md:w-3/4 lg:w-4/5 xl:w-2/3 2xl:w-1/2 bg-white rounded-2xl shadow-lg overflow-hidden my-8">
           <div className="relative lg:w-1/2 h-64 lg:h-auto">
             <Image
@@ -115,11 +114,13 @@ export default function ForgotPassword() {
           </div>
         </div>
       </div>
+      </AuthGuard>
     );
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50">
+    <AuthGuard requireAuth={false}>
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50">
       <div className="relative flex flex-col lg:flex-row w-11/12 md:w-3/4 lg:w-4/5 xl:w-2/3 2xl:w-1/2 bg-white rounded-2xl shadow-lg overflow-hidden my-8">
         <div className="relative lg:w-1/2 h-64 lg:h-auto">
           <Image
@@ -184,5 +185,6 @@ export default function ForgotPassword() {
         </div>
       </div>
     </div>
+    </AuthGuard>
   );
 }

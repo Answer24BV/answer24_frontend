@@ -45,6 +45,42 @@ export const tokenUtils = {
   // Check if user is authenticated
   isAuthenticated: (): boolean => {
     return !!tokenUtils.getToken();
+  },
+
+  // Validate token with server (optional - for extra security)
+  validateToken: async (): Promise<boolean> => {
+    const token = tokenUtils.getToken();
+    if (!token) return false;
+
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || "https://staging.answer24.nl/api/v1"}/auth/validate`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json',
+        },
+      });
+      
+      if (response.ok) {
+        return true;
+      } else {
+        // Token is invalid, remove it
+        tokenUtils.removeToken();
+        return false;
+      }
+    } catch (error) {
+      console.error('Token validation error:', error);
+      return false;
+    }
+  },
+
+  // Logout function
+  logout: () => {
+    tokenUtils.removeToken();
+    // Redirect to signin page
+    if (typeof window !== 'undefined') {
+      window.location.href = '/signin';
+    }
   }
 };
 
