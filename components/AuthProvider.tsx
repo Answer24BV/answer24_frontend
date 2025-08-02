@@ -35,9 +35,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Public routes that don't require authentication
   const publicRoutes = ['/signin', '/signup', '/forgot-password', '/reset-password', '/partner-signup', '/'];
   
-  // Check if current route is public
-  const isPublicRoute = publicRoutes.includes(pathname);
-
   useEffect(() => {
     const checkAuth = async () => {
       setIsLoading(true);
@@ -46,21 +43,30 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         const token = tokenUtils.getToken();
         const userData = tokenUtils.getUser();
         
+        // Check if current route is public (moved inside to have latest pathname)
+        const currentIsPublicRoute = publicRoutes.some(route => pathname.startsWith(route));
+        
         if (token && userData) {
           setIsAuthenticated(true);
           setUser(userData);
           
-          // If user is authenticated and on a public route, redirect to dashboard
-          if (isPublicRoute && pathname !== '/') {
+          // List of auth routes that should redirect to dashboard when authenticated
+          const authRoutes = ['/signin', '/signup', '/forgot-password', '/reset-password', '/partner-signup'];
+          const isAuthRoute = authRoutes.some(route => pathname.startsWith(route));
+          
+          // If on auth route or root, redirect to dashboard
+          if (isAuthRoute || pathname === '/') {
             router.replace('/dashboard');
+            return;
           }
         } else {
           setIsAuthenticated(false);
           setUser(null);
           
-          // If user is not authenticated and on a protected route, redirect to signin
-          if (!isPublicRoute) {
+          // Only redirect to signin if on a protected route while unauthenticated
+          if (!currentIsPublicRoute) {
             router.replace('/signin');
+            return;
           }
         }
       } catch (error) {
@@ -68,7 +74,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setIsAuthenticated(false);
         setUser(null);
         
-        if (!isPublicRoute) {
+        const currentIsPublicRoute = publicRoutes.some(route => pathname.startsWith(route));
+        if (!currentIsPublicRoute) {
           router.replace('/signin');
         }
       } finally {
@@ -77,7 +84,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     };
 
     checkAuth();
-  }, [pathname, router, isPublicRoute]);
+  }, [pathname, router]);
 
   const logout = () => {
     tokenUtils.removeToken();

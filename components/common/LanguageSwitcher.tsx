@@ -11,8 +11,8 @@ const LanguageSwitcher = () => {
   const pathname = usePathname();
 
   const languages = [
-    { code: 'en', name: 'English', icon: '🇬🇧' }, // Placeholder for flag icon
-    { code: 'nl', name: 'Nederlands', icon: '🇳🇱' }, // Placeholder for flag icon
+    { code: 'en', name: '🇬🇧', icon: '🇬🇧' }, // Placeholder for flag icon
+    { code: 'nl', name: '🇳🇱', icon: '🇳🇱' }, // Placeholder for flag icon
   ];
 
   const currentLang = languages.find(lang => lang.code === t('locale'));
@@ -27,9 +27,9 @@ const LanguageSwitcher = () => {
     <div className="relative">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center space-x-2 px-4 py-2 rounded-md text-sm font-medium bg-gray-100 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
+        className="text-6xl flex items-center space-x-2 px-4 py-2 rounded-md text-sm font-medium bg-gray-100 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
       >
-        {currentLang?.icon} <span>{currentLang?.name}</span>
+        {currentLang?.icon}
         <svg
           className={`w-4 h-4 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
           fill="none"
@@ -49,7 +49,7 @@ const LanguageSwitcher = () => {
               onClick={() => changeLanguage(lang.code)}
               className="flex items-center space-x-2 w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100"
             >
-              {lang.icon} <span>{lang.name}</span>
+              {lang.icon}
             </button>
           ))}
         </div>
