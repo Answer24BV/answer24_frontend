@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "@/i18n/navigation";
 import { tokenUtils } from "@/utils/auth";
 
-const PWALoader: React.FC = () => {
+const PWAAuthLoader: React.FC = () => {
   const [progress, setProgress] = useState(0);
   const [visible, setVisible] = useState(false);
   const [isPWA, setIsPWA] = useState(false);
@@ -139,4 +139,4 @@ const PWALoader: React.FC = () => {
   );
 };
 
-export default PWALoader;
+export default PWAAuthLoader;

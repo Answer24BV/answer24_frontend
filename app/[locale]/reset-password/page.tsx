@@ -8,6 +8,7 @@ import { useTranslations } from "next-intl";
 import { ArrowLeft, Eye, EyeOff, CheckCircle } from "lucide-react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { tokenUtils } from "@/utils/auth";
+import { AuthGuard } from "@/components/AuthGuard";
 
 export default function ResetPassword() {
   const [password, setPassword] = useState("");
@@ -23,7 +24,6 @@ export default function ResetPassword() {
 
   const searchParams = useSearchParams();
   const router = useRouter();
-  const t = useTranslations("SignInPage");
 
   const token = searchParams.get("token");
   const email = searchParams.get("email");
@@ -280,7 +280,8 @@ export default function ResetPassword() {
 
   // Main reset password form
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50">
+    <AuthGuard requireAuth={false}>
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50">
       <div className="relative flex flex-col lg:flex-row w-11/12 md:w-3/4 lg:w-4/5 xl:w-2/3 2xl:w-1/2 bg-white rounded-2xl shadow-lg overflow-hidden my-8">
         <div className="relative lg:w-1/2 h-64 lg:h-auto">
           <Image
@@ -380,5 +381,6 @@ export default function ResetPassword() {
         </div>
       </div>
     </div>
+    </AuthGuard>
   );
 }

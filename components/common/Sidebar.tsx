@@ -8,11 +8,7 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
-// Sign out handler
-const signOut = async () => {
-  // Handle sign out logic here
-  return { error: null };
-};
+// Import auth utilities at the top
 
 import {
   LayoutDashboard,
@@ -161,8 +157,7 @@ export function Sidebar({ className, collapsed: propCollapsed, onCollapse }: Sid
 
   const handleUserLogout = async () => {
     try {
-      await signOut();
-      router.push('/signin');
+      tokenUtils.logout();
     } catch (error) {
       console.error('Logout failed:', error);
     }
@@ -274,8 +269,7 @@ export function Sidebar({ className, collapsed: propCollapsed, onCollapse }: Sid
   const userInitials = user?.name?.[0].toUpperCase() || 'U';
 
   const handleLogout = async () => {
-    await signOut();
-    router.push(getHref('/signin'));
+    tokenUtils.logout();
   };
 
   const isNavItemActive = (item: NavItem) => {

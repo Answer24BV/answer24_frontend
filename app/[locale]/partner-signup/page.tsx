@@ -7,6 +7,7 @@ import { useState, FormEvent, useEffect } from "react";
 import { useTranslations } from "next-intl";
 import { authAPI, tokenUtils } from "@/utils/auth";
 import { useRouter } from "@/i18n/navigation";
+import { AuthGuard } from "@/components/AuthGuard";
 
 interface Errors {
   fullName: string;
@@ -259,7 +260,8 @@ export default function PartnerSignUp() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50">
+    <AuthGuard requireAuth={false}>
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50">
       <div
         className={`relative flex flex-col lg:flex-row ${signUpStep === 1 ? 'w-11/12 md:w-3/4 lg:w-4/5 xl:w-2/3 2xl:w-1/2' : 'w-full max-w-7xl'} bg-white rounded-2xl shadow-lg overflow-hidden my-8`}
       >
@@ -562,5 +564,6 @@ export default function PartnerSignUp() {
         </div>
       </div>
     </div>
+    </AuthGuard>
   );
 }

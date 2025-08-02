@@ -1,6 +1,7 @@
 "use client";
 
 import { Sidebar } from "@/components/common/Sidebar";
+import { AuthGuard } from "@/components/AuthGuard";
 import { useEffect, useState } from "react";
 
 export default function DashboardLayout({
@@ -28,12 +29,13 @@ export default function DashboardLayout({
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
-      <Sidebar 
+    <AuthGuard requireAuth={true}>
+      <div className="min-h-screen bg-gray-50 flex">
+        <Sidebar 
         collapsed={sidebarCollapsed}
         onCollapse={handleSidebarCollapse}
       />
-      <main 
+        <main 
         className={`
           flex-1 overflow-auto transition-all duration-300 ease-in-out
           ${sidebarCollapsed 
@@ -43,9 +45,10 @@ export default function DashboardLayout({
         `}
       >
         <div className="mt-7">
-          {children}
-        </div>
+            {children}
+          </div>
       </main>
-    </div>
+      </div>
+    </AuthGuard>
   );
 }
