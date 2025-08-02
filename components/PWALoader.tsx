@@ -1,40 +1,55 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { useTranslations } from "next-intl";
+import { useRouter } from "@/i18n/navigation";
+import { tokenUtils } from "@/utils/auth";
 
 const PWALoader: React.FC = () => {
   const [progress, setProgress] = useState(0);
-  const [visible, setVisible] = useState(false); // Initialize to false
-  const [isPWA, setIsPWA] = useState(false); // New state to track PWA mode
+  const [visible, setVisible] = useState(false);
+  const [isPWA, setIsPWA] = useState(false);
   const progressCircleRef = useRef<SVGCircleElement | null>(null);
-  // const t = useTranslations("PWA_LOADER");
+  const router = useRouter();
 
   useEffect(() => {
     // 1. Detect PWA display mode
     const mediaQuery = window.matchMedia('(display-mode: standalone)');
 
     const checkIfPWA = () => {
-      setIsPWA(mediaQuery.matches);
-      // If it's a PWA, make the loader visible initially
-      if (mediaQuery.matches) {
+      const pwaMode = mediaQuery.matches;
+      setIsPWA(pwaMode);
+      
+      if (pwaMode) {
         setVisible(true);
+        // Check authentication status when PWA starts
+        checkAuthAndRedirect();
       } else {
-        // If not a PWA, ensure the loader is not visible and stop any ongoing animation
         setVisible(false);
+      }
+    };
+
+    const checkAuthAndRedirect = () => {
+      const token = tokenUtils.getToken();
+      const user = tokenUtils.getUser();
+      
+      // If user is authenticated, we'll redirect to dashboard after loading
+      if (token && user) {
+        console.log('PWA: User is authenticated, will redirect to dashboard');
+      } else {
+        console.log('PWA: User not authenticated, will redirect to signin');
       }
     };
 
     // Initial check
     checkIfPWA();
 
-    // Listen for changes in display mode (e.g., if user installs the PWA while on the site)
+    // Listen for changes in display mode
     mediaQuery.addEventListener('change', checkIfPWA);
 
     // 2. Handle the progress animation and visibility based on PWA mode
     let loadingInterval: NodeJS.Timeout | undefined;
 
-    if (isPWA) { // Only run the loading animation if we are in PWA mode
+    if (isPWA) {
       const circle = progressCircleRef.current;
       if (!circle) return;
 
@@ -59,7 +74,22 @@ const PWALoader: React.FC = () => {
         if (currentProgress >= 100) {
           currentProgress = 100;
           clearInterval(loadingInterval);
-          setTimeout(() => setVisible(false), 400); // Delay fade-out after 100%
+          
+          // After loading completes, handle authentication redirect
+          setTimeout(() => {
+            const token = tokenUtils.getToken();
+            const user = tokenUtils.getUser();
+            
+            if (token && user) {
+              // User is authenticated, redirect to dashboard
+              router.replace('/dashboard');
+            } else {
+              // User not authenticated, redirect to signin
+              router.replace('/signin');
+            }
+            
+            setVisible(false);
+          }, 400);
         }
         updateProgress(currentProgress);
       }, interval);
@@ -72,7 +102,7 @@ const PWALoader: React.FC = () => {
         clearInterval(loadingInterval);
       }
     };
-  }, [isPWA]); // Re-run effect when isPWA changes
+  }, [isPWA, router]);
 
   // Don't render the loader if it's not visible or not in PWA mode
   if (!visible || !isPWA) {
