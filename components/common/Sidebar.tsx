@@ -240,7 +240,7 @@ export function Sidebar({ className, collapsed: propCollapsed, onCollapse }: Sid
         },
         {
           title: 'Legal Page Management',
-          href: '/dashboard/admin/legal',
+          href: '/dashboard/admin/legal-pages',
           icon: FileText,
         },
       ],

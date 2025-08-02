@@ -4,22 +4,27 @@ import { useState, useEffect } from 'react';
 import { useLocale } from 'next-intl';
 import { legalPagesService, LegalPage } from '@/lib/legalPages';
 import { useTranslations } from '@/hooks/useTranslations';
-import { Link } from '@/i18n/navigation';
+import { toast } from 'sonner';
+import { Plus, Loader2 } from 'lucide-react';
+import { LegalPageEditor } from '@/components/admin/LegalPageEditor';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+
+const DEFAULT_LANGUAGES = ['en', 'nl'];
 
 export default function LegalPagesManagement() {
   const locale = useLocale();
   const [pages, setPages] = useState<LegalPage[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
-  const [newPageData, setNewPageData] = useState({
-    slug: '',
-    title: '',
-    content: '',
-    language: locale
-  });
-  const [saveStatus, setSaveStatus] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [activeLanguage, setActiveLanguage] = useState(locale);
+  const { t } = useTranslations();
 
-  const { t: dynamicT } = useTranslations();
+  // Available languages - could be fetched from settings in the future
+  const availableLanguages = DEFAULT_LANGUAGES;
 
   useEffect(() => {
     loadPages();
@@ -32,245 +37,215 @@ export default function LegalPagesManagement() {
       setPages(pagesData);
     } catch (error) {
       console.error('Error loading legal pages:', error);
+      toast(" Error loading legal pages", {
+        description: "Failed to load legal pages",
+      });
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleCreateNew = () => {
+    const newPage: LegalPage = {
+      id: 'new-' + Date.now(),
+      slug: '',
+      title: '',
+      content: '',
+      language: activeLanguage,
+      last_updated_at: new Date().toISOString(),
+      last_updated_by: 'current-user', // This should be replaced with actual user info
+      is_active: true,
+    };
+
+    setPages(prev => [newPage, ...prev]);
     setIsCreating(true);
-    setNewPageData({
-      slug: '',
-      title: '',
-      content: '',
-      language: locale
-    });
   };
 
-  const handleCancelCreate = () => {
-    setIsCreating(false);
-    setNewPageData({
-      slug: '',
-      title: '',
-      content: '',
-      language: locale
-    });
-  };
-
-  const handleSaveNew = async () => {
-    if (!newPageData.slug || !newPageData.title) {
-      setSaveStatus('Please fill in slug and title');
-      setTimeout(() => setSaveStatus(''), 3000);
-      return;
-    }
-
-    setSaveStatus('Creating...');
+  const handleSavePage = async (pageData: LegalPage): Promise<boolean> => {
     try {
-      const created = await legalPagesService.createPage(newPageData);
-      if (created) {
-        setSaveStatus('Page created successfully!');
-        setIsCreating(false);
-        setNewPageData({
-          slug: '',
-          title: '',
-          content: '',
-          language: locale
-        });
-        await loadPages();
+      let success: boolean;
+
+      if (pageData.id?.startsWith('new-')) {
+        // Handle new page
+        const { id, ...newPage } = pageData;
+        const created = await legalPagesService.createPage(newPage);
+        success = !!created;
       } else {
-        setSaveStatus('Failed to create page');
+        // Handle update
+        success = await legalPagesService.updatePage(
+          pageData.slug,
+          pageData.language,
+          {
+            title: pageData.title,
+            content: pageData.content,
+          }
+        );
       }
-    } catch (error) {
-      setSaveStatus('Error creating page');
-      console.error('Create error:', error);
-    }
 
-    setTimeout(() => setSaveStatus(''), 3000);
-  };
-
-  const handleDelete = async (slug: string) => {
-    if (!confirm('Are you sure you want to delete this page?')) {
-      return;
-    }
-
-    setSaveStatus('Deleting...');
-    try {
-      const success = await legalPagesService.deletePage(slug, locale);
       if (success) {
-        setSaveStatus('Page deleted successfully!');
         await loadPages();
+        toast("Page saved successfully");
+        return true;
       } else {
-        setSaveStatus('Failed to delete page');
+        throw new Error('Failed to save page');
       }
     } catch (error) {
-      setSaveStatus('Error deleting page');
-      console.error('Delete error:', error);
+      console.error('Error saving page:', error);
+      toast("Error saving page");
+      return false;
     }
-
-    setTimeout(() => setSaveStatus(''), 3000);
   };
 
+  const handleDeletePage = async (slug: string): Promise<void> => {
+    try {
+      await legalPagesService.deletePage(slug, activeLanguage);
+      await loadPages();
+      toast("Page deleted successfully");
+    } catch (error) {
+      console.error('Error deleting page:', error);
+      toast("Error deleting page");
+    }
+  };
+
+  // Filter pages based on search query and active language
+  const filteredPages = pages.filter(page => {
+    const matchesSearch = page.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      page.slug.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesLanguage = page.language === activeLanguage;
+    return matchesSearch && matchesLanguage;
+  });
+
+  // Get pages for the currently active language tab
+  const languagePages = pages.filter(page => page.language === activeLanguage);
+  const activePage = pages.find(p => p.id?.startsWith('new-'));
+
+  // Show loading state
   if (isLoading) {
     return (
-      <div className="container mx-auto px-4 py-26">
-        <div className="text-center">Loading legal pages...</div>
+      <div className="container mx-auto p-4">
+        <div className="flex justify-center py-12">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        </div>
+      </div>
+    );
+  }
+
+  // Show empty state if no pages exist
+  if (pages.length === 0) {
+    return (
+      <div className="container mx-auto p-4">
+        <div className="text-center py-12">
+          <h1 className="text-2xl font-bold mb-2">No legal pages found</h1>
+          <p className="text-muted-foreground mb-6">
+            Get started by creating your first legal page
+          </p>
+          <Button onClick={handleCreateNew} disabled={isCreating}>
+            <Plus className="h-4 w-4 mr-2" />
+            Create First Page
+          </Button>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 py-26">
-      <div className="max-w-6xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold">
-            {dynamicT('admin.legal_pages_title', 'Legal Pages Management')}
-          </h1>
-          <button
-            onClick={handleCreateNew}
-            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-          >
-            {dynamicT('admin.create_new_page', 'Create New Page')}
-          </button>
+    <div className="container mx-auto py-10 px-4 space-y-6">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Legal Pages</h1>
+          <p className="text-muted-foreground">
+            Manage your legal documentation and policies
+          </p>
         </div>
-
-        {saveStatus && (
-          <div className={`mb-4 p-3 rounded ${
-            saveStatus.includes('success') ? 'bg-green-100 text-green-800' : 
-            saveStatus.includes('Error') || saveStatus.includes('Failed') ? 'bg-red-100 text-red-800' :
-            'bg-blue-100 text-blue-800'
-          }`}>
-            {saveStatus}
+        <div className="flex items-center space-x-2">
+          <div className="relative">
+            <Input
+              placeholder="Search pages..."
+              className="w-full md:w-64 pr-8"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery('')}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              >
+                ✕
+              </button>
+            )}
           </div>
-        )}
+          <Button onClick={handleCreateNew} disabled={isLoading || isCreating}>
+            <Plus className="h-4 w-4 mr-2" />
+            New Page
+          </Button>
+        </div>
+      </div>
 
-        {/* Create New Page Form */}
-        {isCreating && (
-          <div className="mb-8 p-6 bg-gray-50 rounded-lg border">
-            <h2 className="text-xl font-semibold mb-4">Create New Legal Page</h2>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Slug (URL identifier)
-                </label>
-                <input
-                  type="text"
-                  value={newPageData.slug}
-                  onChange={(e) => setNewPageData({...newPageData, slug: e.target.value})}
-                  placeholder="e.g., privacy-policy, terms-of-service"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Title
-                </label>
-                <input
-                  type="text"
-                  value={newPageData.title}
-                  onChange={(e) => setNewPageData({...newPageData, title: e.target.value})}
-                  placeholder="Page title"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Content (HTML)
-                </label>
-                <textarea
-                  value={newPageData.content}
-                  onChange={(e) => setNewPageData({...newPageData, content: e.target.value})}
-                  placeholder="Enter HTML content..."
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"
-                  rows={10}
-                />
-              </div>
-              <div className="flex gap-2">
-                <button
-                  onClick={handleSaveNew}
-                  className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
-                >
-                  Create Page
-                </button>
-                <button
-                  onClick={handleCancelCreate}
-                  className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
-                >
-                  Cancel
-                </button>
+      <Card>
+        <CardHeader className="pb-2">
+          <Tabs 
+            value={activeLanguage} 
+            onValueChange={setActiveLanguage}
+            className="w-full"
+          >
+            <div className="flex items-center justify-between">
+              <TabsList>
+                {availableLanguages.map((lang) => (
+                  <TabsTrigger key={lang} value={lang}>
+                    {lang.toUpperCase()}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+              <div className="text-sm text-muted-foreground">
+                {filteredPages.length} {filteredPages.length === 1 ? 'page' : 'pages'} in {activeLanguage.toUpperCase()}
               </div>
             </div>
+          </Tabs>
+        </CardHeader>
+        <CardContent className="pt-6">
+          <div className="space-y-4">
+            {/* Show new page editor if creating */}
+            {activePage && (
+              <LegalPageEditor
+                key={activePage.id}
+                page={activePage}
+                onSave={handleSavePage}
+                onDelete={handleDeletePage}
+                availableLanguages={availableLanguages}
+              />
+            )}
+            
+            {/* Show empty state or page list */}
+            {filteredPages.length === 0 ? (
+              <div className="text-center py-12">
+                <div className="text-muted-foreground mb-2">
+                  No pages found for "{searchQuery}" in {activeLanguage.toUpperCase()}
+                </div>
+                <Button 
+                  variant="outline" 
+                  onClick={handleCreateNew}
+                  disabled={isCreating}
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Create a new page
+                </Button>
+              </div>
+            ) : (
+              filteredPages
+                .filter(page => !page.id?.startsWith('new-'))
+                .map((page) => (
+                  <LegalPageEditor
+                    key={`${page.slug}-${page.language}`}
+                    page={page}
+                    onSave={handleSavePage}
+                    onDelete={handleDeletePage}
+                    availableLanguages={availableLanguages}
+                  />
+                ))
+            )}
           </div>
-        )}
-
-        {/* Pages List */}
-        <div className="bg-white rounded-lg shadow overflow-hidden">
-          <table className="min-w-full">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Title
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Slug
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Language
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Last Updated
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {pages.map((page) => (
-                <tr key={page.id}>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    {page.title}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {page.slug}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {page.language.toUpperCase()}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {new Date(page.last_updated_at).toLocaleDateString()}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                    <Link
-                      href={`/legal/${page.slug}`}
-                      className="text-blue-600 hover:text-blue-900"
-                    >
-                      View
-                    </Link>
-                    <Link
-                      href={`/legal/${page.slug}`}
-                      className="text-green-600 hover:text-green-900"
-                    >
-                      Edit
-                    </Link>
-                    <button
-                      onClick={() => handleDelete(page.slug)}
-                      className="text-red-600 hover:text-red-900"
-                    >
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        {pages.length === 0 && (
-          <div className="text-center py-8 text-gray-500">
-            No legal pages found. Create your first page to get started.
-          </div>
-        )}
-      </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
