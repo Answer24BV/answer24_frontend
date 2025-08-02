@@ -49,10 +49,12 @@ const ChatWidget: React.FC = () => {
   const [filePreview, setFilePreview] = useState<string | null>(null); // For image previews
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // State for inactivity and exit intent
+  // State for inactivity and exit intent with cooldown
   const activityTimerRef = useRef<NodeJS.Timeout | null>(null);
   const [hasPromptedInactivity, setHasPromptedInactivity] = useState(false);
   const [hasPromptedExit, setHasPromptedExit] = useState(false);
+  const [lastExitPromptTime, setLastExitPromptTime] = useState<number>(0);
+  const exitCooldownRef = useRef<number>(2 * 60 * 1000); // 2 minutes in milliseconds
 
   // Function to reset inactivity timer
   const resetActivityTimer = useCallback(() => {
@@ -101,19 +103,29 @@ const ChatWidget: React.FC = () => {
       resetActivityTimer();
     };
 
-    // Event listener for exit intent
+    // Event listener for exit intent with cooldown logic
     const handleMouseLeave = (event: MouseEvent) => {
-      // Check if mouse is moving to the top of the viewport and chat is not open, and we haven't prompted yet
-      if (event.clientY < 50 && !isOpen && !hasPromptedExit) {
+      const currentTime = Date.now();
+      const timeSinceLastPrompt = currentTime - lastExitPromptTime;
+
+      // Check if mouse is moving to the top of the viewport, chat is not open,
+      // we haven't prompted yet in this session, and enough time has passed since last prompt
+      if (
+        event.clientY < 50 &&
+        !isOpen &&
+        !hasPromptedExit &&
+        timeSinceLastPrompt >= exitCooldownRef.current
+      ) {
         setIsOpen(true); // Open the chat
         setActiveTab("chat"); // Switch to chat view
         setMessages((prev) => [
           ...prev,
           { sender: "bot", text: "Leaving so soon?" },
         ]);
-        setHasPromptedExit(true); // Mark that we've prompted
+        setHasPromptedExit(true); // Mark that we've prompted for this session
+        setLastExitPromptTime(currentTime); // Record the time of this prompt
         if (activityTimerRef.current) {
-            clearTimeout(activityTimerRef.current); // Clear inactivity timer if exit intent is triggered
+          clearTimeout(activityTimerRef.current); // Clear inactivity timer if exit intent is triggered
         }
       }
     };
@@ -129,7 +141,13 @@ const ChatWidget: React.FC = () => {
         clearTimeout(activityTimerRef.current);
       }
     };
-  }, [isOpen, hasPromptedInactivity, hasPromptedExit, resetActivityTimer]);
+  }, [
+    isOpen,
+    hasPromptedInactivity,
+    hasPromptedExit,
+    lastExitPromptTime,
+    resetActivityTimer,
+  ]);
 
   // Speech-to-text
   const toggleMic = useCallback(() => {
@@ -139,7 +157,10 @@ const ChatWidget: React.FC = () => {
       alert("Speech recognition not supported in this browser.");
       return;
     }
-    if (!recognitionRef.current || recognitionRef.current.lang !== currentLang) {
+    if (
+      !recognitionRef.current ||
+      recognitionRef.current.lang !== currentLang
+    ) {
       if (recognitionRef.current) {
         recognitionRef.current.stop();
       }
@@ -182,12 +203,14 @@ const ChatWidget: React.FC = () => {
       } else if (file.type === "application/pdf") {
         setFilePreview("/pdf-icon.png"); // Use a generic PDF icon, or embed the PDF viewer
       } else if (
-        file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
+        file.type ===
+          "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
         file.type === "application/msword"
       ) {
         setFilePreview("/doc-icon.png"); // Use a generic Word icon
       } else if (
-        file.type === "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" ||
+        file.type ===
+          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" ||
         file.type === "application/vnd.ms-excel"
       ) {
         setFilePreview("/excel-icon.png"); // Use a generic Excel icon
@@ -245,11 +268,9 @@ const ChatWidget: React.FC = () => {
         }
       }, 1200);
 
-      // Reset inactivity prompt after user sends a message
+      // Reset inactivity prompt after user sends a message, but keep exit prompt state
       setHasPromptedInactivity(false);
-      setHasPromptedExit(false);
       resetActivityTimer();
-
     },
     [input, selectedFile, filePreview, isMuted, currentLang, resetActivityTimer]
   );
@@ -265,28 +286,43 @@ const ChatWidget: React.FC = () => {
       ]);
       setIsTyping(false);
     }, 1200);
-    // Reset inactivity prompt after user interacts
+    // Reset inactivity prompt after user interacts, but keep exit prompt state
     setHasPromptedInactivity(false);
-    setHasPromptedExit(false);
     resetActivityTimer();
   };
 
-  // When the chat widget is explicitly opened or closed, reset the prompts
+  // When the chat widget is explicitly opened or closed, reset only inactivity prompts
   useEffect(() => {
     if (isOpen) {
-        setHasPromptedInactivity(false);
-        setHasPromptedExit(false);
-        if (activityTimerRef.current) {
-            clearTimeout(activityTimerRef.current); // Clear timer when chat is open
-        }
+      setHasPromptedInactivity(false);
+      if (activityTimerRef.current) {
+        clearTimeout(activityTimerRef.current); // Clear timer when chat is open
+      }
     } else {
-        // When chat is closed, reset and restart inactivity timer
-        setHasPromptedInactivity(false);
-        setHasPromptedExit(false);
-        resetActivityTimer();
+      // When chat is closed, reset and restart inactivity timer
+      setHasPromptedInactivity(false);
+      resetActivityTimer();
     }
   }, [isOpen, resetActivityTimer]);
 
+  // Reset exit prompt state only when user navigates to a new page or after cooldown
+  useEffect(() => {
+    const handlePageVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        // Reset exit prompt when user comes back to the page
+        setHasPromptedExit(false);
+      }
+    };
+
+    document.addEventListener("visibilitychange", handlePageVisibilityChange);
+
+    return () => {
+      document.removeEventListener(
+        "visibilitychange",
+        handlePageVisibilityChange
+      );
+    };
+  }, []);
 
   return (
     <>
@@ -375,7 +411,11 @@ const ChatWidget: React.FC = () => {
               <>
                 <div
                   className="flex-1 overflow-x-hidden overflow-y-auto space-y-3 bg-white p-4 text-sm w-full min-h-0 scrollbar-hide"
-                  style={{ minHeight: 0, scrollbarWidth: "none", msOverflowStyle: "none" }}
+                  style={{
+                    minHeight: 0,
+                    scrollbarWidth: "none",
+                    msOverflowStyle: "none",
+                  }}
                 >
                   <style>{`.scrollbar-hide::-webkit-scrollbar{display:none}`}</style>
                   {messages.map((msg, i) => (
@@ -390,13 +430,15 @@ const ChatWidget: React.FC = () => {
                       {msg.text}
                       {msg.file && (
                         <div className="mt-2 p-2 border rounded-lg bg-gray-50 flex items-center gap-2">
-                          {msg.file.type.startsWith("image/") && msg.file.url ? (
+                          {msg.file.type.startsWith("image/") &&
+                          msg.file.url ? (
                             <img
                               src={msg.file.url}
                               alt="File preview"
                               className="max-w-[100px] max-h-[100px] rounded object-contain"
                             />
-                          ) : msg.file.type === "application/pdf" && msg.file.url ? (
+                          ) : msg.file.type === "application/pdf" &&
+                            msg.file.url ? (
                             <img
                               src={msg.file.url} // This would be your PDF icon
                               alt="PDF icon"
@@ -435,7 +477,8 @@ const ChatWidget: React.FC = () => {
                   {selectedFile && (
                     <div className="flex items-center justify-between p-2 bg-gray-100 rounded-lg mb-2">
                       <div className="flex items-center gap-2">
-                        {filePreview && selectedFile.type.startsWith("image/") ? (
+                        {filePreview &&
+                        selectedFile.type.startsWith("image/") ? (
                           <img
                             src={filePreview}
                             alt="Preview"
@@ -492,7 +535,9 @@ const ChatWidget: React.FC = () => {
                           window.SpeechRecognition ||
                           window.webkitSpeechRecognition;
                         if (!SpeechRecognition) {
-                          alert("Speech recognition not supported in this browser.");
+                          alert(
+                            "Speech recognition not supported in this browser."
+                          );
                           return;
                         }
                         if (
