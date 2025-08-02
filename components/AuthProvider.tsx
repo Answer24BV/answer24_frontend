@@ -36,7 +36,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const publicRoutes = ['/signin', '/signup', '/forgot-password', '/reset-password', '/partner-signup', '/'];
   
   // Check if current route is public
-  const isPublicRoute = publicRoutes.some(route => pathname.includes(route));
+  const isPublicRoute = publicRoutes.includes(pathname);
 
   useEffect(() => {
     const checkAuth = async () => {
