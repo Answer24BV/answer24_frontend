@@ -29,7 +29,7 @@ export function LineChart({ title, data, color = "#3b82f6" }: LineChartProps) {
   }
 
   return (
-    <Card className="border border-gray-200 shadow-sm">
+    <Card className="border-none shadow-none">
       <CardHeader className="pb-4">
         <CardTitle className="text-lg font-semibold text-gray-900">{title}</CardTitle>
       </CardHeader>

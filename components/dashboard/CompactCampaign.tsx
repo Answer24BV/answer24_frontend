@@ -24,7 +24,7 @@ export function CompactCampaigns({ campaigns }: CompactCampaignsProps) {
   }
 
   return (
-    <Card className="border border-gray-200 shadow-sm">
+    <Card className="border-none shadow-none">
       <CardHeader className="pb-3">
         <CardTitle className="text-lg font-semibold text-gray-900">Active Campaigns</CardTitle>
       </CardHeader>

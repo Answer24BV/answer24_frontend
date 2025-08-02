@@ -19,8 +19,10 @@ import { DonutChart } from "./chart/DonutChart"
 import { QuickActionsModern } from "./QuickActionModern"
 import { AiTipsModern } from "./AITipsModern"
 import { useTranslations } from "next-intl"
+import { CampaignTabs } from "./CampaignTabs"
 
 export function CleanDashboardContainer() {
+  const [activeCampaignTab, setActiveCampaignTab] = useState<'all' | 'active' | 'paused' | 'draft'>('active');
   const [stats, setStats] = useState<DashboardStats | null>(null)
   const [campaigns, setCampaigns] = useState<Campaign[]>([])
   const [tips, setTips] = useState<OptimizationTip[]>([])
@@ -108,22 +110,23 @@ export function CleanDashboardContainer() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto p-10 ">
+      <div className="max-w-7xl mx-auto px-6 py-8">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">{t('title')}</h1>
-          <p className="text-gray-600">{t('subtitle')}</p>
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold text-gray-900">{t('title')}</h1>
+          <p className="text-gray-500 mt-1">{t('subtitle')}</p>
         </div>
 
         {/* Stats Cards */}
         {stats && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <div className="mt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <SimpleStatsCard
               title={t('stats.totalSpend')}
               value={stats.totalSpend}
               change={stats.spendChange}
               format="currency"
               icon={<DollarSign className="h-5 w-5" />}
+              colorIndex={0}
             />
             <SimpleStatsCard
               title={t('stats.totalClicks')}
@@ -131,6 +134,7 @@ export function CleanDashboardContainer() {
               change={stats.clicksChange}
               format="number"
               icon={<MousePointer className="h-5 w-5" />}
+              colorIndex={1}
             />
             <SimpleStatsCard
               title={t('stats.totalImpressions')}
@@ -138,6 +142,7 @@ export function CleanDashboardContainer() {
               change={stats.averageCTR}
               format="number"
               icon={<Eye className="h-5 w-5" />}
+              colorIndex={2}
             />
             <SimpleStatsCard
               title="CTR"
@@ -145,33 +150,46 @@ export function CleanDashboardContainer() {
               change={stats.averageCTR}
               format="percentage"
               icon={<Target className="h-5 w-5" />}
+              colorIndex={3}
             />
           </div>
         )}
 
         {/* Charts Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          <LineChart title="Weekly Clicks Trend" data={weeklyLineData} color="#3b82f6" />
-          <DonutChart title="Campaign Spend Distribution" data={campaignDonutData} />
+        <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div className="bg-white rounded-xl border border-gray-100 p-6 shadow-sm">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">Weekly Clicks Trend</h3>
+              <LineChart title="" data={weeklyLineData} color="#3b82f6" />
+          </div>
+          <div className="bg-white rounded-xl border border-gray-100 p-6 shadow-sm">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">Campaign Spend Distribution</h3>
+              <DonutChart title="" data={campaignDonutData} />
+          </div>
         </div>
 
         {/* Main Content Grid - Compact Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Campaigns - Compact Table */}
-          <div className="lg:col-span-2">
-            <CompactCampaigns campaigns={campaigns} />
-            <AiTipsModern tips={tips} />
+        <div className="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-4">
+          {/* Left Column - Campaigns and Tips */}
+          <div className="lg:col-span-2 space-y-4">
+            <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+              <div className="p-4 pb-0">
+                <h3 className="text-lg font-medium text-gray-900">Campaigns</h3>
+                <CampaignTabs 
+                  activeTab={activeCampaignTab} 
+                  onTabChange={setActiveCampaignTab} 
+                  className="mt-4"
+                />
+              </div>
+                <CompactCampaigns campaigns={campaigns} />
+            </div>
+            <div className="bg-white rounded-xl border border-gray-100  shadow-sm">
+              <AiTipsModern tips={tips} />
+            </div>
           </div>
-          {/* AI Tips */}
-            
-          {/* Right Column */}
-          <div className="space-y-6">
-            {/* Quick Actions */}
-            {/* <QuickActionsGrid /> */}
+          
+          {/* Right Column - Quick Actions */}
+          <div className="space-y-">
             <QuickActionsModern />
-
-            {/* AI Tips - Compact */}
-            {/* <CompactAiTips tips={tips} /> */}
           </div>
         </div>
       </div>

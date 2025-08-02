@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import LanguageSwitcher from "./LanguageSwitcher";
 import { Link } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
-import ANSWER24LOGO from "@/public/Answer24Logo.png"
+import ANSWER24LOGO from "@/public/answerLogobgRemover-removebg-preview.png"
 import Image from "next/image"
 
 export function Navbar() {

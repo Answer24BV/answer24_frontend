@@ -29,6 +29,8 @@ import {
   Wallet,
   Plus,
   Bell,
+  Languages,
+  FileText,
 } from 'lucide-react';
 
 import ANSWER24LOGO from "@/public/answerLogobgRemover-removebg-preview.png";
@@ -37,6 +39,10 @@ import { NavItem } from '@/types/sidebar';
 import { NavItem as NavItemComponent } from './NavItem';
 import { tokenUtils } from '@/utils/auth';
 import { User } from '@/types/user';
+import { Tooltip } from 'react-tooltip';
+import 'react-tooltip/dist/react-tooltip.css';
+
+
 
 
 
@@ -142,9 +148,7 @@ export function Sidebar({ className, collapsed: propCollapsed, onCollapse }: Sid
   }, [propCollapsed]);
 
   const handleCollapse = () => {
-    const newCollapsed = !isCollapsed;
-    setIsCollapsed(newCollapsed);
-    onCollapse?.(newCollapsed);
+    setIsCollapsed(!isCollapsed);
   };
 
   // Handle user logout
@@ -226,14 +230,29 @@ export function Sidebar({ className, collapsed: propCollapsed, onCollapse }: Sid
           icon: UsersIcon,
         },
         {
-          title: 'Blog',
+          title: 'Blog Management',
           href: '/dashboard/admin/blog',
           icon: Newspaper,
+        },
+        {
+          title: 'FAQ Management',
+          href: '/dashboard/admin/faq',
+          icon: HelpCircle,
         },
         {
           title: 'Settings',
           href: '/dashboard/account',
           icon: Settings,
+        },
+        {
+          title: 'Translation Management',
+          href: '/dashboard/admin/translations',
+          icon: Languages,
+        },
+        {
+          title: 'Legal Page Management',
+          href: '/dashboard/admin/legal',
+          icon: FileText,
         },
       ],
     },
@@ -350,11 +369,7 @@ export function Sidebar({ className, collapsed: propCollapsed, onCollapse }: Sid
         animate={controls}
         style={{
           width: isCollapsed ? '5rem' : '16rem',
-          willChange: 'transform, width, opacity',
-          transform: 'translateZ(0)',
-          WebkitBackfaceVisibility: 'hidden',
-          WebkitPerspective: '1000',
-          WebkitTransform: 'translate3d(0,0,0)',
+          willChange: 'width',
         }}
       >
         {/* Logo and Collapse Button */}
@@ -373,6 +388,23 @@ export function Sidebar({ className, collapsed: propCollapsed, onCollapse }: Sid
                 />
               </div>
             </Link>
+          </div>
+          <div className="hidden md:block">
+            <motion.button
+              onClick={handleCollapse}
+              className={cn(
+                'p-2 rounded-full text-gray-500 hover:bg-gray-100',
+                'focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500',
+              )}
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+              data-tooltip-id="sidebar-tooltip"
+              data-tooltip-content={isCollapsed ? 'Expand' : 'Collapse'}
+            >
+              {isCollapsed ? <Menu className="h-5 w-5" /> : <X className="h-5 w-5" />}
+            </motion.button>
+            <Tooltip id="sidebar-tooltip" place="right" />
           </div>
         </div>
 

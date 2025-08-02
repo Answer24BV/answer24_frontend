@@ -227,6 +227,34 @@ export default function Faq() {
     setIsChatModalOpen(true)
   }
 
+  // Handle new question submission to AI
+  const handleNewQuestion = async (question: string) => {
+    setIsLoadingAnswer(true)
+    try {
+      const response = await fetch('/api/faq/ask', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ question })
+      })
+      
+      if (!response.ok) throw new Error('Failed to get answer')
+      
+      const data = await response.json()
+      setCurrentAnswer(data.answer)
+      setCurrentQuestion(question)
+      setCurrentFaqId(`temp-${Date.now()}`)
+      
+      // Add to recent questions if needed
+      return data.answer
+    } catch (error) {
+      console.error('Error asking question:', error)
+      setCurrentAnswer('Sorry, I encountered an error while processing your question. Please try again.')
+      throw error
+    } finally {
+      setIsLoadingAnswer(false)
+    }
+  }
+
   // Handle feedback submission
   const handleFeedback = (isHelpful: boolean) => {
     fetch('/api/faq', {
@@ -455,6 +483,7 @@ export default function Faq() {
         answer={currentAnswer}
         isLoading={isLoadingAnswer}
         onFeedback={handleFeedback}
+        onNewQuestion={handleNewQuestion}
       />
     </div>
   )
