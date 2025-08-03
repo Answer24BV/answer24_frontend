@@ -598,15 +598,17 @@ const ChatWidget: React.FC = () => {
             )}
           </div>
           <div className="text-center text-xs text-gray-400 py-2 border-t bg-gray-50">
-            <button
-              className="w-full flex items-center justify-center px-4 py-3 rounded-xl bg-gray-100 hover:bg-[#e0e7ff] border border-gray-200 border border-gray-300 text-base font-semibold text-black transition mb-2"
-              onClick={() => setActiveTab("chat")}
-            >
-              Chat with answer24{" "}
-              <span className="ml-2">
-                <Send className="inline w-5 h-5" />
-              </span>
-            </button>
+            {activeTab === "home" && (
+              <button
+                className="w-full flex items-center justify-center px-4 py-3 rounded-xl bg-gray-100 hover:bg-[#e0e7ff] border border-gray-200 text-base font-semibold text-black transition mb-2"
+                onClick={() => setActiveTab("chat")}
+              >
+                Chat with answer24{" "}
+                <span className="ml-2">
+                  <Send className="inline w-5 h-5" />
+                </span>
+              </button>
+            )}
             Powered by{" "}
             <span className="font-semibold text-[#2563eb]">answer24</span>
           </div>
