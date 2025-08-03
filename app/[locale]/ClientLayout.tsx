@@ -17,6 +17,7 @@ export default function ClientLayout({
 }) {
     const pathname = usePathname();
     const isDashboardPage = pathname.startsWith("/dashboard");
+    const isDashboardChatPage = pathname === "/dashboard/chat";
 
     // hook to hide something on route
     const hiddenNavbar = useHideSomethingOnRoute(["/client/autoservicejanssen"]);
@@ -28,7 +29,7 @@ export default function ClientLayout({
             {hiddenNavbar ? null : <Header />}
             <PWALoader />
             {children}
-            <ChatWidget />
+            {!isDashboardChatPage && <ChatWidget />}
             {isDashboardPage ? null : <Footer />}
         </AuthProvider>
     );
