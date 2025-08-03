@@ -1,41 +1,23 @@
 "use client";
-import React, { FormEvent, useEffect, useRef, useState } from 'react';
-import { toast } from 'react-toastify';
-import { Plus, Shield, Zap, Euro, Loader2 } from 'lucide-react'; // Replaced FaSpinner with Loader2, FaEuroSign with Euro
-import { useRouter } from 'next/navigation';
-
+import React, { FormEvent, useEffect, useRef, useState } from "react";
+import { toast } from "react-toastify";
+import { Plus, Shield, Zap, Euro, Loader2 } from "lucide-react"; // Replaced FaSpinner with Loader2, FaEuroSign with Euro
 const AddMoney = ({ handleClose }: { handleClose: () => void }) => {
   const [amount, setAmount] = useState(0);
   const ref = useRef<HTMLFormElement>(null);
   const [loader, setLoader] = useState(false);
-  const router = useRouter();
 
   const handleAddMoney = async (e: FormEvent) => {
     e.preventDefault();
-    setLoader(true);
 
-    try {
-      if (amount <= 0) {
-        throw new Error("Invalid amount.");
-      }
-
-      // Simulate API call delay and success/failure
-      await new Promise(resolve => setTimeout(resolve, 1500));
-
-      const dummyResponse = {
-        checkout_url: `/dummy-checkout?amount=${amount}` // Simulate a checkout URL
-      };
-
-      // Simulate successful payment
-      toast.success(`Successfully added €${amount.toFixed(2)} to your wallet.`);
-      router.push(dummyResponse.checkout_url); // Redirect to dummy checkout
-      handleClose();
-
-    } catch (error: any) {
-      toast.error(error.message || "Failed to add money.");
-    } finally {
-      setLoader(false);
+    if (amount <= 0) {
+      toast.error("Please enter a valid amount.");
+      return;
     }
+
+    // TODO: Integrate with checkout API when ready
+    // For now, do nothing - just prevent form submission
+    console.log(`Add Money clicked with amount: €${amount}`);
   };
 
   const quickAmounts = [25, 50, 100, 200];
@@ -61,7 +43,7 @@ const AddMoney = ({ handleClose }: { handleClose: () => void }) => {
 
   useEffect(() => {
     // Add CSS to hide scrollbar
-    const style = document.createElement('style');
+    const style = document.createElement("style");
     style.textContent = `
             .modal-scrollbar-hide::-webkit-scrollbar {
                 display: none;
@@ -79,7 +61,7 @@ const AddMoney = ({ handleClose }: { handleClose: () => void }) => {
   }, []);
 
   return (
-    <div className='bg-black/50 fixed bg-opacity-50 backdrop-blur-sm top-0 left-0 w-full h-full flex flex-col justify-center overflow-hidden z-50'>
+    <div className="bg-black/50 fixed bg-opacity-50 backdrop-blur-sm top-0 left-0 w-full h-full flex flex-col justify-center overflow-hidden z-50">
       <form
         ref={ref}
         onSubmit={handleAddMoney}
@@ -92,12 +74,16 @@ const AddMoney = ({ handleClose }: { handleClose: () => void }) => {
               <Plus className="w-8 h-8 text-white" />
             </div>
           </div>
-          <h3 className='text-2xl font-bold text-gray-800'>Add Money to Wallet</h3>
+          <h3 className="text-2xl font-bold text-gray-800">
+            Add Money to Wallet
+          </h3>
         </div>
 
         {/* Amount Selection */}
         <div className="space-y-4">
-          <label className="text-sm font-semibold text-gray-700">Select Amount</label>
+          <label className="text-sm font-semibold text-gray-700">
+            Select Amount
+          </label>
 
           {/* Quick Amount Buttons */}
           <div className="grid grid-cols-4 gap-3">
@@ -108,8 +94,8 @@ const AddMoney = ({ handleClose }: { handleClose: () => void }) => {
                 onClick={() => handleQuickAmount(quickAmount)}
                 className={`p-3 rounded-lg border-2 transition-all duration-200 ${
                   amount === quickAmount
-                    ? 'border-blue-500 bg-blue-50 text-blue-700'
-                    : 'border-gray-200 hover:border-blue-300 hover:bg-gray-50'
+                    ? "border-blue-500 bg-blue-50 text-blue-700"
+                    : "border-gray-200 hover:border-blue-300 hover:bg-gray-50"
                 }`}
               >
                 <div className="text-lg font-semibold">€{quickAmount}</div>
@@ -126,10 +112,10 @@ const AddMoney = ({ handleClose }: { handleClose: () => void }) => {
               type="number"
               className="w-full pl-12 pr-4 py-4 border-0 border-b-2 pb-2 outline-none bg-transparent text-[#27272a] placeholder:text-[#27272a] focus:outline-none focus:ring-0 border-blue-500 focus:border-blue-500 dark:border-neutral-600 dark:text-white dark:placeholder:text-neutral-500 text-xl font-semibold text-center"
               value={amount !== 0 ? amount : ""}
-              placeholder='0.00'
+              placeholder="0.00"
               min={0}
               step="0.01"
-              onChange={e => setAmount(Number(e.target.value))}
+              onChange={(e) => setAmount(Number(e.target.value))}
             />
           </div>
         </div>
@@ -144,9 +130,9 @@ const AddMoney = ({ handleClose }: { handleClose: () => void }) => {
             Cancel
           </button>
           <button
-            type='submit'
+            type="submit"
             disabled={amount <= 0 || loader}
-            className='flex-1 px-4 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none'
+            className="flex-1 px-4 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
           >
             {loader ? (
               <div className="flex items-center justify-center gap-2">
@@ -172,6 +158,6 @@ const AddMoney = ({ handleClose }: { handleClose: () => void }) => {
       </form>
     </div>
   );
-}
+};
 
 export default AddMoney;
