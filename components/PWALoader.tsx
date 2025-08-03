@@ -104,7 +104,11 @@ const PWALoader: React.FC = () => {
   return (
     <div
       id="pwa-loader-container"
-      className="flex fixed inset-0 z-[9999] justify-center items-center min-h-screen overflow-hidden bg-gray-100"
+      className="flex fixed inset-0 z-[9999] justify-center items-center min-h-screen overflow-hidden"
+      style={{
+        backgroundColor: `rgba(243, 244, 246, ${1 - progress / 100})`,
+        transition: 'background-color 0.1s ease',
+      }}
     >
       <div className="flex relative justify-center items-center w-52 h-52 z-10">
         <svg className="absolute top-0 left-0 w-full h-full -rotate-90">
