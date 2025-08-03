@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Badge } from "@/components/ui/badge"
 import { Switch } from "@/components/ui/switch"
 import { cn } from "@/lib/utils"
+import { useRouter } from "@/i18n/navigation"
 
 interface PricingTier {
   name: string
@@ -17,6 +18,9 @@ interface PricingTier {
   popular?: boolean
   buttonText: string
   buttonVariant: "default" | "outline"
+  gradient?: string
+  textColor?: string
+  bg?: string
 }
 
 const pricingTiers: PricingTier[] = [
@@ -28,6 +32,8 @@ const pricingTiers: PricingTier[] = [
     features: ["Up to 5 projects", "10GB storage", "Basic support", "Standard templates", "Mobile app access"],
     buttonText: "Get Started",
     buttonVariant: "outline",
+    gradient: "from-blue-400 to-cyan-300",
+    textColor: "text-blue-900"
   },
   {
     name: "Professional",
@@ -46,6 +52,9 @@ const pricingTiers: PricingTier[] = [
     popular: true,
     buttonText: "Start Free Trial",
     buttonVariant: "default",
+    gradient: "from-purple-500 to-pink-500",
+    textColor: "text-white",
+    bg: "bg-red-400"
   },
   {
     name: "Enterprise",
@@ -64,14 +73,24 @@ const pricingTiers: PricingTier[] = [
     ],
     buttonText: "Contact Sales",
     buttonVariant: "outline",
+    gradient: "from-emerald-400 to-teal-400",
+    textColor: "text-emerald-900",
+    bg: "bg-red-400"
   },
+]
+
+const gradient = [
+  "from-blue-400 to-cyan-300",
+  "from-purple-500 to-pink-500",
+  "from-emerald-400 to-teal-400"
 ]
 
 export default function Pricing() {
   const [isYearly, setIsYearly] = useState(false)
+  const router = useRouter()
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background to-muted/20 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="text-center mb-12">
@@ -98,53 +117,61 @@ export default function Pricing() {
         </div>
 
         {/* Pricing Cards */}
-        <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+        <div className={`grid md:grid-cols-3 gap-8 max-w-5xl mx-auto`}>
           {pricingTiers.map((tier, index) => (
             <Card
               key={tier.name}
               className={cn(
-                "relative transition-all duration-200 hover:shadow-lg",
-                tier.popular && "border-primary shadow-lg scale-105",
+                `bg-gradient-to-br ${tier.gradient} relative transition-all duration-300 hover:shadow-xl hover:-translate-y-1 overflow-hidden`,
+                tier.popular && `border-2 border-purple-500  shadow-xl scale-[1.02]`,
               )}
             >
               {tier.popular && (
-                <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                  <Badge className="bg-primary text-primary-foreground px-3 py-1 flex items-center gap-1">
+                <div className="absolute -top-1 left-1/2 transform -translate-x-1/2">
+                  <Badge className="bg-gradient-to-r from-purple-200 to-pink-200 text-black px-3 py-1 flex items-center gap-1 shadow-md">
                     <Star className="h-3 w-3 fill-current" />
                     Most Popular
                   </Badge>
                 </div>
               )}
 
-              <CardHeader className="text-center pb-8">
-                <CardTitle className="text-2xl font-bold">{tier.name}</CardTitle>
-                <CardDescription className="text-muted-foreground">{tier.description}</CardDescription>
-                <div className="mt-4">
+              <CardHeader className="text-center pb- relative">
+                {/* <div className={`absolute inset-0 bg-gradient-to-br ${tier.gradient} opacity-25`} /> */}
+                <CardTitle className={`text-2xl font-bold relative ${tier.textColor} drop-shadow-sm`}>{tier.name}</CardTitle>
+                <CardDescription className="text-foreground/80 font-medium">{tier.description}</CardDescription>
+                <div className="mt-">
                   <div className="flex items-baseline justify-center">
-                    <span className="text-4xl font-bold">${isYearly ? tier.yearlyPrice : tier.monthlyPrice}</span>
-                    <span className="text-muted-foreground ml-1">/{isYearly ? "year" : "month"}</span>
+                    <span className={`text-4xl font-bold ${tier.textColor} drop-shadow-sm`}>${isYearly ? tier.yearlyPrice : tier.monthlyPrice}</span>
+                    <span className="text-foreground/80 ml-1 font-medium">/{isYearly ? "year" : "month"}</span>
                   </div>
                   {isYearly && (
-                    <p className="text-sm text-muted-foreground mt-1">
+                    <p className="text-sm text-foreground/80 mt-1 font-medium">
                       ${Math.round(tier.yearlyPrice / 12)}/month billed annually
                     </p>
                   )}
                 </div>
               </CardHeader>
 
-              <CardContent>
+              <CardContent className="relative">
+                {/* <div className={`absolute inset-0 bg-gradient-to-b ${tier.gradient} opacity-20`} /> */}
                 <ul className="space-y-3">
                   {tier.features.map((feature, featureIndex) => (
                     <li key={featureIndex} className="flex items-start gap-3">
-                      <Check className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                      <span className="text-sm text-foreground">{feature}</span>
+                      <Check className={`h-5 w-5 ${tier.textColor} mt-0.5 flex-shrink-0`} />
+                      <span className="text-sm text-foreground font-medium">{feature}</span>
                     </li>
                   ))}
                 </ul>
               </CardContent>
 
-              <CardFooter>
-                <Button className="w-full" variant={tier.buttonVariant} size="lg">
+              <CardFooter className="relative">
+                {/* <div className={`absolute inset-0 bg-gradient-to-br ${tier.gradient} opacity-15`} /> */}
+                <Button 
+                  className="w-full relative z-10 transition-all duration-300 hover:scale-105" 
+                  variant={tier.buttonVariant} 
+                  size="lg"
+                  onClick={() => router.push('/partner-signup')}
+                >
                   {tier.buttonText}
                 </Button>
               </CardFooter>
@@ -154,29 +181,29 @@ export default function Pricing() {
 
         {/* FAQ Section */}
         <div className="mt-16 text-center">
-          <h3 className="text-2xl font-bold mb-4">Frequently Asked Questions</h3>
+          <h3 className="text-2xl font-bold mb-4 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Frequently Asked Questions</h3>
           <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto text-left">
             <div>
-              <h4 className="font-semibold mb-2">Can I change plans anytime?</h4>
+              <h4 className="font-semibold mb-2 text-blue-700">Can I change plans anytime?</h4>
               <p className="text-muted-foreground text-sm">
                 Yes, you can upgrade or downgrade your plan at any time. Changes will be reflected in your next billing
                 cycle.
               </p>
             </div>
             <div>
-              <h4 className="font-semibold mb-2">Is there a free trial?</h4>
+              <h4 className="font-semibold mb-2 text-purple-700">Is there a free trial?</h4>
               <p className="text-muted-foreground text-sm">
                 Yes, we offer a 14-day free trial for the Professional plan. No credit card required.
               </p>
             </div>
             <div>
-              <h4 className="font-semibold mb-2">What payment methods do you accept?</h4>
+              <h4 className="font-semibold mb-2 text-blue-700">What payment methods do you accept?</h4>
               <p className="text-muted-foreground text-sm">
                 We accept all major credit cards, PayPal, and bank transfers for Enterprise plans.
               </p>
             </div>
             <div>
-              <h4 className="font-semibold mb-2">Can I cancel anytime?</h4>
+              <h4 className="font-semibold mb-2 text-purple-700">Can I cancel anytime?</h4>
               <p className="text-muted-foreground text-sm">
                 Absolutely. You can cancel your subscription at any time with no cancellation fees.
               </p>
@@ -185,18 +212,28 @@ export default function Pricing() {
         </div>
 
         {/* CTA Section */}
-        <div className="mt-16 text-center bg-muted/30 rounded-2xl p-8">
-          <h3 className="text-2xl font-bold mb-4">Ready to get started?</h3>
-          <p className="text-muted-foreground mb-6 max-w-2xl mx-auto">
+        <div className="mt-16 text-center bg-gradient-to-r from-blue-100 to-purple-100 rounded-2xl p-8 border border-blue-200 shadow-sm relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-200/40 to-purple-200/40 -z-0" />
+          <h3 className="text-2xl font-bold mb-4 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Ready to get started?</h3>
+          <p className="text-foreground/80 mb-6 max-w-2xl mx-auto font-medium">
             Join thousands of satisfied customers who trust our platform for their business needs.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="px-8">
-              Start Free Trial
-            </Button>
-            <Button size="lg" variant="outline" className="px-8 bg-transparent">
-              Contact Sales
-            </Button>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center relative z-10">
+            <Button 
+            size="lg" 
+            className="px-8 bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:opacity-90 transition-all duration-300"
+            onClick={() => router.push('/partner-signup')}
+          >
+            Start Free Trial
+          </Button>
+          <Button 
+            size="lg" 
+            variant="outline" 
+            className="px-8 border-2 border-purple-500 text-purple-600 hover:bg-purple-50 transition-all duration-300"
+            onClick={() => router.push('/partner-signup')}
+          >
+            Contact Sales
+          </Button>
           </div>
         </div>
       </div>

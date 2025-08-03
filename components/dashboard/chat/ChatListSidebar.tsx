@@ -36,7 +36,7 @@ export function ChatListSidebar({ onChatSelect, selectedChatId, currentUserId }:
   })
 
   return (
-    <div className="w-80 bg-transparent border-r border-gray-200 flex flex-col h-full">
+    <div className="w-full md:w-80 bg-transparent border-r border-gray-200 flex flex-col h-full">
       {/* Header */}
       <div className="p-4 border-b border-gray-100">
         <div className="flex items-center justify-between mb-4">

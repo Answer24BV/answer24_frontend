@@ -389,7 +389,7 @@ export default function Faq() {
           </div>
         ) : (
           filteredCategories.map((category) => (
-            <div key={category.id} className="bg-white rounded-xl shadow-sm border overflow-hidden">
+            <div key={category.id} className="bg-white rounded-xl overflow-hidden">
               <button
                 onClick={() => toggleCategory(category.id)}
                 className={`w-full flex items-center justify-between p-4 text-left ${category.bgColor} transition-colors`}
@@ -411,7 +411,7 @@ export default function Faq() {
               {expandedCategories[category.id] && (
                 <div className="divide-y">
                   {category.subcategories.map((subcategory) => (
-                    <div key={subcategory.id} className="p-4 border-t">
+                    <div key={subcategory.id} className="p-4">
                       <h3 className="font-medium text-gray-700 mb-3 text-sm uppercase tracking-wider">
                         {subcategory.name}
                       </h3>
@@ -420,7 +420,7 @@ export default function Faq() {
                         {subcategory.items.map((item) => (
                           <div 
                             key={item.id} 
-                            className="border rounded-lg overflow-hidden transition-shadow hover:shadow-md"
+                            className="rounded-lg overflow-hidden transition-shadow hover:shadow-md"
                           >
                             <button
                               className="w-full flex justify-between items-start p-4 text-left hover:bg-gray-50 transition-colors"
@@ -435,7 +435,7 @@ export default function Faq() {
                             </button>
                             
                             {expandedItems[item.id] && (
-                              <div className="p-4 pt-0 border-t">
+                              <div className="p-4 pt-0">
                                 <div className="text-gray-600 mb-4 prose max-w-none">
                                   {item.answer || "No answer available. Click 'Ask AI' to generate one."}
                                 </div>

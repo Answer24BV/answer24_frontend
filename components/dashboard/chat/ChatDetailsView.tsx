@@ -3,7 +3,7 @@
 import type React from "react"
 
 import { useState, useEffect, useRef } from "react"
-import { MoreHorizontal, Plus, Smile, Mic } from "lucide-react"
+import { MoreHorizontal, Plus, Smile, Mic, ArrowLeft, PanelLeft, PanelRight } from "lucide-react"
 import type { Chat, Message } from "@/types/chat"
 import { getChatMessages, sendMessage } from "@/app/actions/chat"
 import { Button } from "@/components/ui/button"
@@ -13,9 +13,12 @@ import { cn } from "@/lib/utils"
 interface ChatDetailViewProps {
   chat: Chat
   currentUserId: string
+  onBack: () => void
+  onToggleChatList: () => void
+  isChatListVisible: boolean
 }
 
-export function ChatDetailView({ chat, currentUserId }: ChatDetailViewProps) {
+export function ChatDetailView({ chat, currentUserId, onBack, onToggleChatList, isChatListVisible }: ChatDetailViewProps) {
   const [messages, setMessages] = useState<Message[]>([])
   const [newMessage, setNewMessage] = useState("")
   const [isLoading, setIsLoading] = useState(false)
@@ -61,6 +64,26 @@ export function ChatDetailView({ chat, currentUserId }: ChatDetailViewProps) {
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-gray-100">
         <div className="flex items-center gap-3">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="p-1.5 h-8 w-8 md:hidden"
+            onClick={onBack}
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="p-1.5 h-8 w-8 hidden md:flex"
+            onClick={onToggleChatList}
+          >
+            {isChatListVisible ? (
+              <PanelLeft className="h-4 w-4" />
+            ) : (
+              <PanelRight className="h-4 w-4" />
+            )}
+          </Button>
           <h2 className="text-lg font-semibold text-gray-900">{otherUser.name}</h2>
           {otherUser.status === "online" && (
             <div className="flex items-center gap-1">

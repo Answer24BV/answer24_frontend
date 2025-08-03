@@ -155,17 +155,6 @@ const Footer = () => {
           <p className="text-gray-500 text-sm">
             &copy; {currentYear} Answer24. {dynamicT('footer.all_rights', 'All rights reserved.')}
           </p>
-          <div className="flex space-x-6 mt-4 md:mt-0">
-            <Link href="/privacy-policy" className="text-gray-500 hover:text-blue-600 text-sm transition-colors">
-              {dynamicT('footer.privacy', 'Privacy Policy')}
-            </Link>
-            <Link href="/terms" className="text-gray-500 hover:text-blue-600 text-sm transition-colors">
-              {dynamicT('footer.terms', 'Terms of Service')}
-            </Link>
-            <Link href="/cookies" className="text-gray-500 hover:text-blue-600 text-sm transition-colors">
-              {dynamicT('footer.cookies', 'Cookie Policy')}
-            </Link>
-          </div>
         </div>
       </div>
     </footer>

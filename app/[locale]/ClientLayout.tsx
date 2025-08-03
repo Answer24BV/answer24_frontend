@@ -25,9 +25,9 @@ export default function ClientLayout({
         <AuthProvider>
             <ServiceWorkerRegistration />
             <TranslationPreloader />
-            {hiddenNavbar ? null : <Header />}
+            {isDashboardPage ? null : <Header />}
             <PWALoader />
-            {children}
+            <main className={isDashboardPage ? "pt-20" : ""}>{children}</main>
             <ChatWidget />
             {isDashboardPage ? null : <Footer />}
         </AuthProvider>

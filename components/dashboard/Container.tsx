@@ -157,8 +157,8 @@ export function CleanDashboardContainer() {
 
         {/* Charts Section */}
         <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <div className="bg-white rounded-xl border border-gray-100 p-6 shadow-sm">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Weekly Clicks Trend</h3>
+          <div className="bg-white rounded-xl border border-gray-100  shadow-sm">
+            <h3 className="text-lg font-medium text-gray-900 mb-4 px-6 py-4">Weekly Clicks Trend</h3>
               <LineChart title="" data={weeklyLineData} color="#3b82f6" />
           </div>
           <div className="bg-white rounded-xl border border-gray-100 p-6 shadow-sm">

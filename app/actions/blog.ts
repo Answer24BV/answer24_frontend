@@ -1,5 +1,5 @@
-"use server";
-
+// import { cookies } from 'next/headers';
+"use server"
 import { z } from "zod";
 import {
   Blog,
@@ -35,32 +35,64 @@ export async function createBlog(
   }
 
   try {
+    const token = tokenUtils.getToken();
+    if (!token) {
+      console.error('No authentication token found');
+      return { 
+        errors: { 
+          _form: ["Authentication required. Please log in again."] 
+        } 
+      };
+    }
+
+    console.log('Using token for blog creation:', token);
     const response = await fetch(`${BASE_URL}/blog`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": tokenUtils.getToken() || "",
+        "Authorization": `Bearer ${token}`,
       },
       body: JSON.stringify(validatedFields.data),
+      cache: 'no-store',
     });
 
     const result = await response.json();
     
     if (!response.ok) {
+      console.error('API Error Response:', result);
+      
+      if (response.status === 401) {
+        // Clear invalid token and redirect to login
+        tokenUtils.removeToken();
+        return { 
+          errors: { 
+            _form: ["Your session has expired. Please log in again."] 
+          } 
+        };
+      }
+      
       // If the API returns validation errors, return them
       if (response.status === 422 && result.errors) {
         return { errors: result.errors };
       }
+      
       // For other errors, include the error message from the API if available
-      throw new Error(result.message || "Failed to create blog post");
+      throw new Error(result.message || `Failed to create blog post (Status: ${response.status})`);
     }
 
     revalidatePath("/admin/blog");
+    revalidatePath("/blog");
     return { success: true, data: result.data };
   } catch (error) {
     console.error('Create blog error:', error);
     return {
-      errors: { _form: [error instanceof Error ? error.message : "An unexpected error occurred."] },
+      errors: { 
+        _form: [
+          error instanceof Error 
+            ? error.message 
+            : "An unexpected error occurred while creating the blog post."
+        ] 
+      },
     };
   }
 }
@@ -79,34 +111,63 @@ export async function updateBlog(
   }
 
   try {
+    const token = tokenUtils.getToken();
+    if (!token) {
+      return { 
+        errors: { 
+          _form: ["Authentication required. Please log in again."] 
+        } 
+      };
+    }
+
     const response = await fetch(`${BASE_URL}/blog/${id}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": tokenUtils.getToken() || "",
+        "Authorization": `Bearer ${token}`,
       },
       body: JSON.stringify(validatedFields.data),
+      cache: 'no-store',
     });
 
     const result = await response.json();
     
     if (!response.ok) {
+      console.error('API Error Response:', result);
+      
+      if (response.status === 401) {
+        // Clear invalid token and redirect to login
+        tokenUtils.removeToken();
+        return { 
+          errors: { 
+            _form: ["Your session has expired. Please log in again."] 
+          } 
+        };
+      }
+      
       // If the API returns validation errors, return them
       if (response.status === 422 && result.errors) {
         return { errors: result.errors };
       }
+      
       // For other errors, include the error message from the API if available
-      console.log("error", result.message)
-      throw new Error(result.message || "Failed to update blog post");
+      throw new Error(result.message || `Failed to update blog post (Status: ${response.status})`);
     }
 
-    // revalidatePath("/admin/blog");
-
+    revalidatePath("/admin/blog");
+    revalidatePath(`/blog/${result.data?.slug}`);
+    revalidatePath("/blog");
     return { success: true, data: result.data };
   } catch (error) {
     console.error('Update blog error:', error);
     return {
-      errors: { _form: [error instanceof Error ? error.message : "An unexpected error occurred."] },
+      errors: { 
+        _form: [
+          error instanceof Error 
+            ? error.message 
+            : "An unexpected error occurred while updating the blog post."
+        ] 
+      },
     };
   }
 }
@@ -114,11 +175,20 @@ export async function updateBlog(
 // Server action to delete a blog post
 export async function deleteBlog(id: string) {
   try {
+    const token = tokenUtils.getToken();
+    if (!token) {
+      return { 
+        errors: { 
+          _form: ["Authentication required. Please log in again."] 
+        } 
+      };
+    }
+
     const response = await fetch(`${BASE_URL}/blog/${id}`, {
       method: "DELETE",
       headers: {
-        // Add any necessary authentication headers
-        "Authorization": tokenUtils.getToken() || "",
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`,
       },
     });
 

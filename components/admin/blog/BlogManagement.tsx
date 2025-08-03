@@ -399,7 +399,7 @@ const BlogManagement = () => {
             <Card key={blog.id} className="flex flex-col hover:shadow-lg transition-shadow">
               <div className="relative aspect-[16/9] overflow-hidden group">
                  <Image
-                  src={blog.blog_image}
+                  src={blog.blog_image || ''}
                   alt={blog.title}
                   fill
                   className="object-cover group-hover:scale-105 transition-transform duration-300"
@@ -442,7 +442,7 @@ const BlogManagement = () => {
                 <p className="text-sm text-muted-foreground line-clamp-3">{blog.excerpt}</p>
               </CardContent>
               <CardFooter className="text-xs text-muted-foreground pt-0">
-                Posted on {new Date(blog.published_at).toLocaleDateString()}
+                Posted on {new Date(blog?.published_at || '').toLocaleDateString()}
               </CardFooter>
             </Card>
           ))}
