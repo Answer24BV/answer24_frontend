@@ -47,6 +47,8 @@ export default function PartnerSignUp() {
   >([]);
   const [loadingPlans, setLoadingPlans] = useState(false);
   const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string | null>(null);
+  const [showPaymentMethods, setShowPaymentMethods] = useState(false);
 
   const [errors, setErrors] = useState<Errors>({
     fullName: "",
@@ -207,9 +209,17 @@ export default function PartnerSignUp() {
     }
   }
 
-  async function handlePlanSelection(planId: string): Promise<void> {
-    setError("");
+  function handlePlanSelection(planId: string): void {
     setSelectedPlanId(planId);
+    setShowPaymentMethods(true);
+    setError("");
+  }
+
+  async function handleSubscription(paymentMethod: string): Promise<void> {
+    if (!selectedPlanId) return;
+    
+    setError("");
+    setSelectedPaymentMethod(paymentMethod);
 
     try {
       const token = tokenUtils.getToken();
@@ -222,7 +232,8 @@ export default function PartnerSignUp() {
             Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify({
-            plan_id: planId,
+            plan_id: selectedPlanId,
+            payment_method: paymentMethod,
           }),
         }
       );
@@ -251,7 +262,7 @@ export default function PartnerSignUp() {
       console.error("Error subscribing partner to plan:", err);
       setError(err.message || "Plan selection failed. Please try again.");
     } finally {
-      setSelectedPlanId(null);
+      setSelectedPaymentMethod(null);
     }
   }
 
@@ -304,12 +315,48 @@ export default function PartnerSignUp() {
                     Loading partner subscription plans...
                   </span>
                 </div>
+              ) : showPaymentMethods && selectedPlanId ? (
+                <div className="max-w-md mx-auto">
+                  <h3 className="text-xl font-bold mb-4 text-center">
+                    Choose Payment Method
+                  </h3>
+                  <div className="space-y-4">
+                    <Button
+                      onClick={() => handleSubscription("wallet")}
+                      disabled={selectedPaymentMethod === "wallet"}
+                      className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 disabled:opacity-50"
+                    >
+                      {selectedPaymentMethod === "wallet" ? "Processing..." : "Pay with Wallet"}
+                    </Button>
+                    <Button
+                      onClick={() => handleSubscription("mollie")}
+                      disabled={selectedPaymentMethod === "mollie"}
+                      className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 disabled:opacity-50"
+                    >
+                      {selectedPaymentMethod === "mollie" ? "Processing..." : "Pay with Mollie"}
+                    </Button>
+                  </div>
+                  <div className="mt-4 text-center">
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setShowPaymentMethods(false);
+                        setSelectedPlanId(null);
+                      }}
+                      className="text-gray-600 hover:text-gray-800"
+                    >
+                      ← Back to Plans
+                    </Button>
+                  </div>
+                </div>
               ) : subscriptionPlans.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   {subscriptionPlans.map((plan) => (
                     <div
                       key={plan.id}
-                      className="bg-white rounded-xl shadow p-6 border"
+                      className={`bg-white rounded-xl shadow p-6 border ${
+                        selectedPlanId === plan.id ? 'ring-2 ring-blue-500' : ''
+                      }`}
                       style={{borderColor: plan.color}}
                     >
                       <div className="flex items-baseline justify-between mb-2">
@@ -330,11 +377,10 @@ export default function PartnerSignUp() {
                       </div>
                       <Button
                         onClick={() => handlePlanSelection(plan.id)}
-                        disabled={selectedPlanId === plan.id}
-                        className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold mb-4 disabled:opacity-50 cursor-pointer"
+                        className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold mb-4 cursor-pointer"
                         style={{backgroundColor: plan.color}}
                       >
-                        {selectedPlanId === plan.id ? "Processing..." : "Select Plan"}
+                        Select Plan
                       </Button>
                       {plan.features && plan.features.length > 0 && (
                         <div>

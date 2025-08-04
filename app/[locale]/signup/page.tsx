@@ -47,6 +47,10 @@ export default function SignUp() {
   >([]);
   const [loadingPlans, setLoadingPlans] = useState(false);
   const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<
+    string | null
+  >(null);
+  const [showPaymentMethods, setShowPaymentMethods] = useState(false);
 
   const [errors, setErrors] = useState<Errors>({
     fullName: "",
@@ -207,9 +211,17 @@ export default function SignUp() {
     }
   }
 
-  async function handlePlanSelection(planId: string): Promise<void> {
-    setError("");
+  function handlePlanSelection(planId: string): void {
     setSelectedPlanId(planId);
+    setShowPaymentMethods(true);
+    setError("");
+  }
+
+  async function handleSubscription(paymentMethod: string): Promise<void> {
+    if (!selectedPlanId) return;
+
+    setError("");
+    setSelectedPaymentMethod(paymentMethod);
 
     try {
       const token = tokenUtils.getToken();
@@ -222,7 +234,8 @@ export default function SignUp() {
             Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify({
-            plan_id: planId,
+            plan_id: selectedPlanId,
+            payment_method: paymentMethod,
           }),
         }
       );
@@ -251,7 +264,7 @@ export default function SignUp() {
       console.error("Error subscribing to plan:", err);
       setError(err.message || "Plan selection failed. Please try again.");
     } finally {
-      setSelectedPlanId(null);
+      setSelectedPaymentMethod(null);
     }
   }
 
@@ -262,318 +275,363 @@ export default function SignUp() {
   return (
     <AuthGuard requireAuth={false}>
       <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50">
-      <div
-        className={`relative flex flex-col lg:flex-row ${
-          signUpStep === 1
-            ? "w-11/12 md:w-3/4 lg:w-4/5 xl:w-2/3 2xl:w-1/2"
-            : "w-full max-w-7xl"
-        } bg-white rounded-2xl shadow-lg overflow-hidden my-8`}
-      >
-        {signUpStep === 1 && (
-          <div className="relative lg:w-1/2 h-64 lg:h-auto">
-            <Image
-              src="/image.png"
-              alt="House with magnifying glass"
-              fill
-              className="object-cover"
-              sizes="(max-width: 1024px) 100vw, 50vw"
-            />
-          </div>
-        )}
-
         <div
-          className={`${
-            signUpStep === 1 ? "lg:w-1/2" : "w-full"
-          } p-8 lg:p-12 flex flex-col justify-center w-full`}
+          className={`relative flex flex-col lg:flex-row ${
+            signUpStep === 1
+              ? "w-11/12 md:w-3/4 lg:w-4/5 xl:w-2/3 2xl:w-1/2"
+              : "w-full max-w-7xl"
+          } bg-white rounded-2xl shadow-lg overflow-hidden my-8`}
         >
-          {signUpStep === 2 ? (
-            <>
-              <div className="mb-2 text-gray-700 font-medium">
-                {t("signUp.selectPlan")}
-              </div>
-              <h2 className="text-2xl font-bold mb-4">
-                {t("signUp.subscriptionPlans")}
-              </h2>
+          {signUpStep === 1 && (
+            <div className="relative lg:w-1/2 h-64 lg:h-auto">
+              <Image
+                src="/image.png"
+                alt="House with magnifying glass"
+                fill
+                className="object-cover"
+                sizes="(max-width: 1024px) 100vw, 50vw"
+              />
+            </div>
+          )}
 
-              {error && (
-                <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg text-sm mb-6">
-                  {error}
+          <div
+            className={`${
+              signUpStep === 1 ? "lg:w-1/2" : "w-full"
+            } p-8 lg:p-12 flex flex-col justify-center w-full`}
+          >
+            {signUpStep === 2 ? (
+              <>
+                <div className="mb-2 text-gray-700 font-medium">
+                  {t("signUp.selectPlan")}
                 </div>
-              )}
-
-              {loadingPlans ? (
-                <div className="flex justify-center items-center py-12">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                  <span className="ml-3 text-gray-600">
-                    Loading subscription plans...
-                  </span>
-                </div>
-              ) : subscriptionPlans.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                  {subscriptionPlans.map((plan) => (
-                    <div
-                      key={plan.id}
-                      className="bg-white rounded-xl shadow p-6 border"
-                      style={{ borderColor: plan.color }}
-                    >
-                      <div className="flex items-baseline justify-between mb-2">
-                        <span className="text-xl font-bold">
-                          {plan.display_name || plan.name}
-                        </span>
-                        <span className="text-blue-600 font-bold text-lg">
-                          {plan.formatted_price}
-                        </span>
-                      </div>
-                      {plan.duration_days && (
-                        <div className="text-xs text-gray-500 mb-2">
-                          {plan.duration_days} days duration
-                        </div>
-                      )}
-                      <div className="mb-4 text-gray-700 text-sm">
-                        {plan.description}
-                      </div>
-                      <Button
-                        onClick={() => handlePlanSelection(plan.id)}
-                        disabled={selectedPlanId === plan.id}
-                        className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold mb-4 disabled:opacity-50 cursor-pointer"
-                        style={{ backgroundColor: plan.color }}
-                      >
-                        {selectedPlanId === plan.id
-                          ? "Processing..."
-                          : "Select Plan"}
-                      </Button>
-                      {plan.features && plan.features.length > 0 && (
-                        <div>
-                          <div className="font-semibold mb-1">
-                            Features included:
-                          </div>
-                          <ul className="text-xs text-gray-700 list-disc pl-5">
-                            {plan.features.map(
-                              (feature: any, index: number) => (
-                                <li key={index}>
-                                  {typeof feature === "string"
-                                    ? feature
-                                    : JSON.stringify(feature)}
-                                </li>
-                              )
-                            )}
-                          </ul>
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-12">
-                  <p className="text-gray-600">
-                    No subscription plans available at the moment.
-                  </p>
-                  <Button
-                    onClick={fetchSubscriptionPlans}
-                    variant="outline"
-                    className="mt-4"
-                  >
-                    Retry Loading Plans
-                  </Button>
-                </div>
-              )}
-
-              <div className="mt-6 text-center">
-                <Button
-                  variant="outline"
-                  onClick={() => setSignUpStep(1)}
-                  className="text-gray-600 hover:text-gray-800"
-                >
-                  ← Back to Account Details
-                </Button>
-              </div>
-            </>
-          ) : (
-            <>
-              <div className="mb-6">
-                <h1 className="text-2xl font-bold text-gray-800 mb-2">
-                  {t("signUp.welcomeMessage")}
-                </h1>
-                <p className="text-blue-600 text-lg">
-                  {t("signUp.signUpWithEmail")}
-                </p>
-              </div>
-
-              <form className="space-y-6" onSubmit={handleAccountDetailsSubmit}>
-                <button
-                  type="button"
-                  onClick={handleGoogleSignIn}
-                  className="w-full flex items-center justify-center space-x-2 border border-gray-300 rounded-lg py-3 text-gray-700 font-semibold hover:bg-gray-50 transition-colors"
-                >
-                  <Image
-                    src="/google-icon.svg"
-                    alt="Google"
-                    width={20}
-                    height={20}
-                  />
-                  <span>{t("signInWithGoogle")}</span>
-                </button>
-
-                <div className="relative flex items-center justify-center my-6">
-                  <span className="absolute bg-white px-2 text-sm text-gray-500">
-                    {t("or")}
-                  </span>
-                  <div className="w-full border-t border-gray-300"></div>
-                </div>
+                <h2 className="text-2xl font-bold mb-4">
+                  {t("signUp.subscriptionPlans")}
+                </h2>
 
                 {error && (
-                  <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg text-sm">
+                  <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg text-sm mb-6">
                     {error}
                   </div>
                 )}
 
-                <div className="space-y-2">
-                  <input
-                    id="fullName"
-                    name="fullName"
-                    type="text"
-                    autoComplete="name"
-                    required
-                    placeholder={t("signUp.fullName")}
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    className="w-full px-0 py-3 text-gray-700 bg-transparent border-0 border-b-2 border-gray-300 focus:border-blue-600 focus:outline-none placeholder-gray-500"
-                  />
-                  {errors.fullName && (
-                    <div className="text-xs text-red-600">
-                      {errors.fullName}
+                {loadingPlans ? (
+                  <div className="flex justify-center items-center py-12">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                    <span className="ml-3 text-gray-600">
+                      Loading subscription plans...
+                    </span>
+                  </div>
+                ) : showPaymentMethods && selectedPlanId ? (
+                  <div className="max-w-md mx-auto">
+                    <h3 className="text-xl font-bold mb-4 text-center">
+                      Choose Payment Method
+                    </h3>
+                    <div className="space-y-4">
+                      <Button
+                        onClick={() => handleSubscription("wallet")}
+                        disabled={selectedPaymentMethod === "wallet"}
+                        className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 disabled:opacity-50"
+                      >
+                        {selectedPaymentMethod === "wallet"
+                          ? "Processing..."
+                          : "Pay with Wallet"}
+                      </Button>
+                      <Button
+                        onClick={() => handleSubscription("mollie")}
+                        disabled={selectedPaymentMethod === "mollie"}
+                        className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 disabled:opacity-50"
+                      >
+                        {selectedPaymentMethod === "mollie"
+                          ? "Processing..."
+                          : "Pay with Mollie"}
+                      </Button>
                     </div>
-                  )}
-                </div>
-
-                <div className="space-y-2">
-                  <input
-                    id="email"
-                    name="email"
-                    type="email"
-                    autoComplete="email"
-                    required
-                    placeholder={t("email")}
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="w-full px-0 py-3 text-gray-700 bg-transparent border-0 border-b-2 border-gray-300 focus:border-blue-600 focus:outline-none placeholder-gray-500"
-                  />
-                  {errors.email && (
-                    <div className="text-xs text-red-600">{errors.email}</div>
-                  )}
-                </div>
-
-                <div className="space-y-2">
-                  <input
-                    id="phone"
-                    name="phone"
-                    type="tel"
-                    autoComplete="tel"
-                    required
-                    placeholder="Telefoonnummer"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    className="w-full px-0 py-3 text-gray-700 bg-transparent border-0 border-b-2 border-gray-300 focus:border-blue-600 focus:outline-none placeholder-gray-500"
-                  />
-                  {errors.phone && (
-                    <div className="text-xs text-red-600">{errors.phone}</div>
-                  )}
-                </div>
-
-                <div className="space-y-2">
-                  <input
-                    id="password"
-                    name="password"
-                    type="password"
-                    autoComplete="new-password"
-                    required
-                    placeholder={t("password")}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="w-full px-0 py-3 text-gray-700 bg-transparent border-0 border-b-2 border-gray-300 focus:border-blue-600 focus:outline-none placeholder-gray-500"
-                  />
-                  {errors.password && (
-                    <div className="text-xs text-red-600">
-                      {errors.password}
+                    <div className="mt-4 text-center">
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          setShowPaymentMethods(false);
+                          setSelectedPlanId(null);
+                        }}
+                        className="text-gray-600 hover:text-gray-800"
+                      >
+                        ← Back to Plans
+                      </Button>
                     </div>
-                  )}
-                </div>
-
-                <div className="space-y-2">
-                  <input
-                    id="confirmPassword"
-                    name="confirmPassword"
-                    type="password"
-                    autoComplete="new-password"
-                    required
-                    placeholder={t("signUp.passwordAgain")}
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="w-full px-0 py-3 text-gray-700 bg-transparent border-0 border-b-2 border-gray-300 focus:border-blue-600 focus:outline-none placeholder-gray-500"
-                  />
-                  {errors.confirmPassword && (
-                    <div className="text-xs text-red-600">
-                      {errors.confirmPassword}
-                    </div>
-                  )}
-                </div>
-
-                <div className="flex items-start space-x-3 mt-6">
-                  <input
-                    id="agreeTerms"
-                    name="agreeTerms"
-                    type="checkbox"
-                    checked={agreeTerms}
-                    onChange={(e) => setAgreeTerms(e.target.checked)}
-                    className="mt-1 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                  />
-                  <label htmlFor="agreeTerms" className="text-sm text-gray-600">
-                    {t("termsText")}{" "}
-                    <Link href="#" className="text-blue-600 hover:underline">
-                      {t("termsOfService")}
-                    </Link>{" "}
-                    and{" "}
-                    <Link href="#" className="text-blue-600 hover:underline">
-                      {t("privacyPolicy")}
-                    </Link>
-                  </label>
-                </div>
-                {errors.agreeTerms && (
-                  <div className="text-xs text-red-600">
-                    {errors.agreeTerms}
+                  </div>
+                ) : subscriptionPlans.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                    {subscriptionPlans.map((plan) => (
+                      <div
+                        key={plan.id}
+                        className={`bg-white rounded-xl shadow p-6 border ${
+                          selectedPlanId === plan.id
+                            ? "ring-2 ring-blue-500"
+                            : ""
+                        }`}
+                        style={{ borderColor: plan.color }}
+                      >
+                        <div className="flex items-baseline justify-between mb-2">
+                          <span className="text-xl font-bold">
+                            {plan.display_name || plan.name}
+                          </span>
+                          <span className="text-blue-600 font-bold text-lg">
+                            {plan.formatted_price}
+                          </span>
+                        </div>
+                        {plan.duration_days && (
+                          <div className="text-xs text-gray-500 mb-2">
+                            {plan.duration_days} days duration
+                          </div>
+                        )}
+                        <div className="mb-4 text-gray-700 text-sm">
+                          {plan.description}
+                        </div>
+                        <Button
+                          onClick={() => handlePlanSelection(plan.id)}
+                          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold mb-4 cursor-pointer"
+                          style={{ backgroundColor: plan.color }}
+                        >
+                          Select Plan
+                        </Button>
+                        {plan.features && plan.features.length > 0 && (
+                          <div>
+                            <div className="font-semibold mb-1">
+                              Features included:
+                            </div>
+                            <ul className="text-xs text-gray-700 list-disc pl-5">
+                              {plan.features.map(
+                                (feature: any, index: number) => (
+                                  <li key={index}>
+                                    {typeof feature === "string"
+                                      ? feature
+                                      : JSON.stringify(feature)}
+                                  </li>
+                                )
+                              )}
+                            </ul>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-12">
+                    <p className="text-gray-600">
+                      No subscription plans available at the moment.
+                    </p>
+                    <Button
+                      onClick={fetchSubscriptionPlans}
+                      variant="outline"
+                      className="mt-4"
+                    >
+                      Retry Loading Plans
+                    </Button>
                   </div>
                 )}
 
-                <Button
-                  type="submit"
-                  disabled={isLoading}
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg mt-8 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isLoading ? "Processing..." : t("signUp.continueButton")}
-                </Button>
-
-                <div className="text-center text-sm text-gray-600 mt-6">
-                  {t("alreadyCustomer")}{" "}
-                  <Link
-                    href="/signin"
-                    className="text-blue-600 hover:underline"
+                <div className="mt-6 text-center">
+                  <Button
+                    variant="outline"
+                    onClick={() => setSignUpStep(1)}
+                    className="text-gray-600 hover:text-gray-800"
                   >
-                    {t("login")}
-                  </Link>{" "}
-                  or{" "}
-                  <Link
-                    href="/partner-signup"
-                    className="text-blue-600 hover:underline"
-                  >
-                    {t("signupPartner")}
-                  </Link>
+                    ← Back to Account Details
+                  </Button>
                 </div>
-              </form>
-            </>
-          )}
+              </>
+            ) : (
+              <>
+                <div className="mb-6">
+                  <h1 className="text-2xl font-bold text-gray-800 mb-2">
+                    {t("signUp.welcomeMessage")}
+                  </h1>
+                  <p className="text-blue-600 text-lg">
+                    {t("signUp.signUpWithEmail")}
+                  </p>
+                </div>
+
+                <form
+                  className="space-y-6"
+                  onSubmit={handleAccountDetailsSubmit}
+                >
+                  <button
+                    type="button"
+                    onClick={handleGoogleSignIn}
+                    className="w-full flex items-center justify-center space-x-2 border border-gray-300 rounded-lg py-3 text-gray-700 font-semibold hover:bg-gray-50 transition-colors"
+                  >
+                    <Image
+                      src="/google-icon.svg"
+                      alt="Google"
+                      width={20}
+                      height={20}
+                    />
+                    <span>{t("signInWithGoogle")}</span>
+                  </button>
+
+                  <div className="relative flex items-center justify-center my-6">
+                    <span className="absolute bg-white px-2 text-sm text-gray-500">
+                      {t("or")}
+                    </span>
+                    <div className="w-full border-t border-gray-300"></div>
+                  </div>
+
+                  {error && (
+                    <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg text-sm">
+                      {error}
+                    </div>
+                  )}
+
+                  <div className="space-y-2">
+                    <input
+                      id="fullName"
+                      name="fullName"
+                      type="text"
+                      autoComplete="name"
+                      required
+                      placeholder={t("signUp.fullName")}
+                      value={fullName}
+                      onChange={(e) => setFullName(e.target.value)}
+                      className="w-full px-0 py-3 text-gray-700 bg-transparent border-0 border-b-2 border-gray-300 focus:border-blue-600 focus:outline-none placeholder-gray-500"
+                    />
+                    {errors.fullName && (
+                      <div className="text-xs text-red-600">
+                        {errors.fullName}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <input
+                      id="email"
+                      name="email"
+                      type="email"
+                      autoComplete="email"
+                      required
+                      placeholder={t("email")}
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="w-full px-0 py-3 text-gray-700 bg-transparent border-0 border-b-2 border-gray-300 focus:border-blue-600 focus:outline-none placeholder-gray-500"
+                    />
+                    {errors.email && (
+                      <div className="text-xs text-red-600">{errors.email}</div>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <input
+                      id="phone"
+                      name="phone"
+                      type="tel"
+                      autoComplete="tel"
+                      required
+                      placeholder="Telefoonnummer"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      className="w-full px-0 py-3 text-gray-700 bg-transparent border-0 border-b-2 border-gray-300 focus:border-blue-600 focus:outline-none placeholder-gray-500"
+                    />
+                    {errors.phone && (
+                      <div className="text-xs text-red-600">{errors.phone}</div>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <input
+                      id="password"
+                      name="password"
+                      type="password"
+                      autoComplete="new-password"
+                      required
+                      placeholder={t("password")}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="w-full px-0 py-3 text-gray-700 bg-transparent border-0 border-b-2 border-gray-300 focus:border-blue-600 focus:outline-none placeholder-gray-500"
+                    />
+                    {errors.password && (
+                      <div className="text-xs text-red-600">
+                        {errors.password}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <input
+                      id="confirmPassword"
+                      name="confirmPassword"
+                      type="password"
+                      autoComplete="new-password"
+                      required
+                      placeholder={t("signUp.passwordAgain")}
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      className="w-full px-0 py-3 text-gray-700 bg-transparent border-0 border-b-2 border-gray-300 focus:border-blue-600 focus:outline-none placeholder-gray-500"
+                    />
+                    {errors.confirmPassword && (
+                      <div className="text-xs text-red-600">
+                        {errors.confirmPassword}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex items-start space-x-3 mt-6">
+                    <input
+                      id="agreeTerms"
+                      name="agreeTerms"
+                      type="checkbox"
+                      checked={agreeTerms}
+                      onChange={(e) => setAgreeTerms(e.target.checked)}
+                      className="mt-1 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                    />
+                    <label
+                      htmlFor="agreeTerms"
+                      className="text-sm text-gray-600"
+                    >
+                      {t("termsText")}{" "}
+                      <Link href="#" className="text-blue-600 hover:underline">
+                        {t("termsOfService")}
+                      </Link>{" "}
+                      and{" "}
+                      <Link href="#" className="text-blue-600 hover:underline">
+                        {t("privacyPolicy")}
+                      </Link>
+                    </label>
+                  </div>
+                  {errors.agreeTerms && (
+                    <div className="text-xs text-red-600">
+                      {errors.agreeTerms}
+                    </div>
+                  )}
+
+                  <Button
+                    type="submit"
+                    disabled={isLoading}
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg mt-8 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isLoading ? "Processing..." : t("signUp.continueButton")}
+                  </Button>
+
+                  <div className="text-center text-sm text-gray-600 mt-6">
+                    {t("alreadyCustomer")}{" "}
+                    <Link
+                      href="/signin"
+                      className="text-blue-600 hover:underline"
+                    >
+                      {t("login")}
+                    </Link>{" "}
+                    or{" "}
+                    <Link
+                      href="/partner-signup"
+                      className="text-blue-600 hover:underline"
+                    >
+                      {t("signupPartner")}
+                    </Link>
+                  </div>
+                </form>
+              </>
+            )}
+          </div>
         </div>
       </div>
-    </div>
     </AuthGuard>
   );
 }
