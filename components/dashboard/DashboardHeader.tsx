@@ -49,6 +49,10 @@ export function DashboardHeader() {
   const t = useTranslations("Navigation")
   const currentPath = usePathname()
 
+  const handleLogout = () => {
+    tokenUtils.logout()
+    setUser(null)
+  }
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 20)
@@ -59,6 +63,7 @@ export function DashboardHeader() {
     return () => window.removeEventListener("scroll", handleScroll)
   }, [])
 
+  console.log("the user is", user)
   const navItems: NavItem[] = [
     {
       title: "Dashboard",
@@ -80,34 +85,16 @@ export function DashboardHeader() {
       roles: ["client", "partner", "admin"],
     },
     {
-      title: "Clients",
-      icon: UsersIcon,
-      href: "#",
-      roles: ["partner", "admin"],
-      subItems: [
-        {
-          title: "All Clients",
-          href: "/dashboard/clients",
-          icon: UsersIcon,
-        },
-        {
-          title: "Add New",
-          href: "/dashboard/clients/new",
-          icon: Plus,
-        },
-      ],
-    },
-    {
       title: "Admin",
       icon: UserCog,
       href: "#",
       roles: ["admin"],
       subItems: [
-        {
-          title: "Users",
-          href: "/dashboard/admin/users",
-          icon: UsersIcon,
-        },
+        // {
+        //   title: "Users",
+        //   href: "/dashboard/admin/users",
+        //   icon: UsersIcon,
+        // },
         {
           title: "Blog Management",
           href: "/dashboard/admin/blog",
@@ -143,7 +130,7 @@ export function DashboardHeader() {
   ]
 
   const filteredNavItems = navItems.filter(
-    (item) => !item.roles || item.roles.includes(user?.userType || "admin")
+    (item) => !item.roles || item.roles.includes(user?.role?.name || "admin")
   )
 
   const isNavItemActive = (item: NavItem) => {
@@ -269,7 +256,7 @@ export function DashboardHeader() {
                 </DropdownMenuItem>
                 <DropdownMenuItem>
                   <Link
-                    href="/dashboard/account/wallet"
+                    href="/dashboard/wallet"
                     className="flex  items-center"
                   >
                     <Wallet className="mr-2 h-4 w-4" />
@@ -277,7 +264,7 @@ export function DashboardHeader() {
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>
+                <DropdownMenuItem onClick={handleLogout}>
                   <LogOut className="mr-2 h-4 w-4" />
                   <span>{t("userMenu.logOut")}</span>
                 </DropdownMenuItem>

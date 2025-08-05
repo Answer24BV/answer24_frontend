@@ -39,6 +39,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const checkAuth = async () => {
       setIsLoading(true);
       
+      // Detect if running in PWA mode
+      const isPWA = window.matchMedia('(display-mode: standalone)').matches;
+      
       try {
         const token = tokenUtils.getToken();
         const userData = tokenUtils.getUser();
@@ -56,7 +59,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           
           // If on auth route or root, redirect to dashboard
           if (isAuthRoute || pathname === '/') {
-            router.replace('/dashboard');
+            // For PWA, add delay to let loader finish
+            const redirectDelay = isPWA ? 2500 : 0;
+            setTimeout(() => {
+              router.replace('/dashboard');
+            }, redirectDelay);
             return;
           }
         } else {
@@ -65,7 +72,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           
           // Only redirect to signin if on a protected route while unauthenticated
           if (!currentIsPublicRoute) {
-            router.replace('/signin');
+            // For PWA, add delay to let loader finish
+            const redirectDelay = isPWA ? 2500 : 0;
+            setTimeout(() => {
+              router.replace('/signin');
+            }, redirectDelay);
             return;
           }
         }
@@ -76,10 +87,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         
         const currentIsPublicRoute = publicRoutes.some(route => pathname.startsWith(route));
         if (!currentIsPublicRoute) {
-          router.replace('/signin');
+          const redirectDelay = isPWA ? 2500 : 0;
+          setTimeout(() => {
+            router.replace('/signin');
+          }, redirectDelay);
         }
       } finally {
-        setIsLoading(false);
+        // For PWA, keep loading state longer to sync with loader animation
+        const loadingDelay = isPWA ? 2000 : 0;
+        setTimeout(() => {
+          setIsLoading(false);
+        }, loadingDelay);
       }
     };
 

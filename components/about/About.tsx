@@ -73,7 +73,7 @@ export function AboutPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
           >
-            <Link href="/signup">
+            <Link href="/nl/signup">
               <Button className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-xl">
                 {t('ctaButton')}
                 <ArrowRight className="ml-2 w-4 h-4" />

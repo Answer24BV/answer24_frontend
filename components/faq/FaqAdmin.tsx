@@ -94,6 +94,7 @@ export function FaqAdmin() {
       try {
         setIsLoading(true)
         const data = await fetchFAQs()
+        console.log(data)
         setFaqs(data)
       } catch (error) {
         console.error('Failed to load FAQs:', error)

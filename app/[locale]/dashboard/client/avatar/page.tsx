@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { AvatarCard } from "@/components/client/avatar/AvatarCard"
-import { getAvatars } from "@/app/actions/avatar"
+import { getAvatars } from "@/app/[locale]/actions/avatar"
 import type { Avatar, SubscriptionPlan } from "@/types/avatar"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Button } from "@/components/ui/button"

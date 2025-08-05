@@ -10,8 +10,12 @@ export const tokenUtils = {
     }
   },
 
-  // Get token from localStorage
-   getToken: (): string | null => {
+  // Get token from localStorage or from cookies
+  getToken: (token?: string): string | null => {
+    // If token is provided, use it (for server actions)
+    if (token) return token;
+    
+    // Otherwise try to get from localStorage (client-side)
     if (typeof window !== 'undefined') {
       return localStorage.getItem(TOKEN_KEY);
     }
@@ -79,7 +83,7 @@ export const tokenUtils = {
     tokenUtils.removeToken();
     // Redirect to signin page
     if (typeof window !== 'undefined') {
-      window.location.href = '/signin';
+      window.location.href = '/nl/signin';
     }
   }
 };
@@ -90,13 +94,10 @@ export const apiRequest = async (endpoint: string, options: RequestInit = {}) =>
   const token = tokenUtils.getToken();
 
   const defaultHeaders: HeadersInit = {
+    'Content-Type': 'application/json',
     'Accept': 'application/json',
+    ...(token ? { 'Authorization': `Bearer ${token}` } : {})
   };
-
-  // Add authorization header if token exists
-  if (token) {
-    defaultHeaders['Authorization'] = `Bearer ${token}`;
-  }
 
   const config: RequestInit = {
     ...options,
@@ -137,7 +138,6 @@ export const authAPI = {
       }),
     });
   },
-
   // Register (normal signup)
   register: async (data: {
     name: string;

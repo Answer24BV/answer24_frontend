@@ -13,12 +13,12 @@ const PWAAuthLoader: React.FC = () => {
 
   useEffect(() => {
     // 1. Detect PWA display mode
-    const mediaQuery = window.matchMedia('(display-mode: standalone)');
+    const mediaQuery = window.matchMedia("(display-mode: standalone)");
 
     const checkIfPWA = () => {
       const pwaMode = mediaQuery.matches;
       setIsPWA(pwaMode);
-      
+
       if (pwaMode) {
         setVisible(true);
         // Check authentication status when PWA starts
@@ -31,12 +31,12 @@ const PWAAuthLoader: React.FC = () => {
     const checkAuthAndRedirect = () => {
       const token = tokenUtils.getToken();
       const user = tokenUtils.getUser();
-      
+
       // If user is authenticated, we'll redirect to dashboard after loading
       if (token && user) {
-        console.log('PWA: User is authenticated, will redirect to dashboard');
+        console.log("PWA: User is authenticated, will redirect to dashboard");
       } else {
-        console.log('PWA: User not authenticated, will redirect to signin');
+        console.log("PWA: User not authenticated, will redirect to signin");
       }
     };
 
@@ -44,7 +44,7 @@ const PWAAuthLoader: React.FC = () => {
     checkIfPWA();
 
     // Listen for changes in display mode
-    mediaQuery.addEventListener('change', checkIfPWA);
+    mediaQuery.addEventListener("change", checkIfPWA);
 
     // 2. Handle the progress animation and visibility based on PWA mode
     let loadingInterval: NodeJS.Timeout | undefined;
@@ -67,27 +67,27 @@ const PWAAuthLoader: React.FC = () => {
 
       let currentProgress = 0;
       const duration = 2000; // Total duration for progress animation
-      const interval = 20;    // Update interval
+      const interval = 20; // Update interval
 
       loadingInterval = setInterval(() => {
         currentProgress += 100 / (duration / interval);
         if (currentProgress >= 100) {
           currentProgress = 100;
           clearInterval(loadingInterval);
-          
+
           // After loading completes, handle authentication redirect
           setTimeout(() => {
             const token = tokenUtils.getToken();
             const user = tokenUtils.getUser();
-            
+
             if (token && user) {
               // User is authenticated, redirect to dashboard
-              router.replace('/dashboard');
+              router.replace("/dashboard");
             } else {
               // User not authenticated, redirect to signin
-              router.replace('/signin');
+              router.replace("/signin");
             }
-            
+
             setVisible(false);
           }, 400);
         }
@@ -97,7 +97,7 @@ const PWAAuthLoader: React.FC = () => {
 
     // Cleanup function
     return () => {
-      mediaQuery.removeEventListener('change', checkIfPWA);
+      mediaQuery.removeEventListener("change", checkIfPWA);
       if (loadingInterval) {
         clearInterval(loadingInterval);
       }
@@ -115,12 +115,18 @@ const PWAAuthLoader: React.FC = () => {
       className="flex fixed inset-0 z-[9999] justify-center items-center min-h-screen overflow-hidden"
       style={{
         backgroundColor: `rgba(243,244,246,${1 - progress / 100})`, // bg-gray-100 with animated alpha
-        transition: 'background-color 0.3s',
+        transition: "background-color 0.3s",
       }}
     >
       <div className="flex relative justify-center items-center w-52 h-52 z-10">
         <svg className="absolute top-0 left-0 w-full h-full -rotate-90">
-          <circle className="fill-none stroke-gray-200" strokeWidth={10} cx={104} cy={104} r={90} />
+          <circle
+            className="fill-none stroke-gray-200"
+            strokeWidth={10}
+            cx={104}
+            cy={104}
+            r={90}
+          />
           <circle
             ref={progressCircleRef}
             className="transition-all duration-300 ease-linear fill-none stroke-blue-500 stroke-round"
@@ -132,7 +138,9 @@ const PWAAuthLoader: React.FC = () => {
         </svg>
         <div className="flex relative z-10 flex-col justify-center items-center text-center text-gray-800">
           <img src="/icon-192.png" alt="Logo" className="mb-4 w-20 h-20" />
-          <div className="text-2xl font-semibold text-gray-800">{progress}%</div>
+          <div className="text-2xl font-semibold text-gray-800">
+            {progress}%
+          </div>
         </div>
       </div>
     </div>

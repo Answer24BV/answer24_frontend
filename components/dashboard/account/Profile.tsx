@@ -10,27 +10,188 @@ import { Security } from "./Security";
 import { Notifications } from "./Notifications";
 import { Billing } from "./Billing";
 import { usePathname } from "next/navigation";
+import { tokenUtils } from "@/utils/auth";
+import { toast } from "sonner";
 
-// Mock API call
+// API call to update user profile
 const updateUserProfile = async (data: { fullName: string; profilePicture: string }) => {
-  console.log("Updating profile with:", data);
-  // Simulate network delay
-  await new Promise(resolve => setTimeout(resolve, 1000));
-  // In a real app, you would make a request to your backend here
-  return { success: true, message: "Profile updated successfully!" };
+  try {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_BASE_URL || "https://staging.answer24.nl/api/v1"}/user/profile`,
+      {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${tokenUtils.getToken()}`
+        },
+        body: JSON.stringify({
+          name: data.fullName,
+          profile_picture: data.profilePicture
+        })
+      }
+    );
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to update profile');
+    }
+
+    const userData = await response.json();
+    if (userData.user) {
+      tokenUtils.setUser(userData.user);
+    }
+
+    return { success: true, message: "Profile updated successfully!" };
+  } catch (error) {
+    console.error('Error updating profile:', error);
+    return { 
+      success: false, 
+      message: error instanceof Error ? error.message : 'Failed to update profile' 
+    };
+  }
 };
+
+interface UserData {
+  id?: string;
+  name?: string;
+  email?: string;
+  profile_picture?: string | null;
+  created_at?: string;
+  updated_at?: string;
+}
+
+interface ProfileContentProps {
+  user: Partial<UserData>;
+  fullName: string;
+  email: string;
+  profilePicture: string;
+  onProfilePictureChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onProfileSubmit: (e: React.FormEvent) => void;
+  setFullName: (name: string) => void;
+}
+
+const ProfileContent = ({
+  user,
+  fullName,
+  email,
+  profilePicture,
+  onProfilePictureChange,
+  onProfileSubmit,
+  setFullName
+}: ProfileContentProps) => (
+  <div className="space-y-4">
+    <div>
+      <h2 className="text-2xl font-semibold text-gray-900">Profile Information</h2>
+      <p className="text-gray-500 mt-1">Update your personal information and photo</p>
+    </div>
+    <div className="border-t border-gray-100 pt-6">
+      <div className="flex flex-col sm:flex-row gap-8">
+        <div className="flex flex-col items-center">
+          <div className="relative">
+            <Avatar className="w-32 h-32 border-4 border-white shadow-lg">
+              <AvatarImage 
+                src={profilePicture || '/images/avatar-placeholder.png'} 
+                alt="Profile picture" 
+              />
+              <AvatarFallback className="text-2xl bg-gray-100">
+                {fullName ? fullName.split(' ').map(n => n[0]).join('').toUpperCase() : 'U'}
+              </AvatarFallback>
+            </Avatar>
+            <label
+              htmlFor="profile-picture-upload"
+              className="absolute -bottom-2 -right-2 bg-blue-600 text-white rounded-full p-2 cursor-pointer hover:bg-blue-700 transition-all shadow-lg hover:shadow-xl"
+            >
+              <Camera size={18} />
+            </label>
+            <input
+              id="profile-picture-upload"
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={onProfilePictureChange}
+            />
+          </div>
+          <div className="mt-4 text-center">
+            <Button variant="outline">Change Picture</Button>
+            <p className="text-xs text-gray-500 mt-2">JPG, GIF or PNG. 1MB max.</p>
+          </div>
+        </div>
+        
+        <div className="flex-1">
+          <form onSubmit={onProfileSubmit} className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <Label htmlFor="full-name" className="text-sm font-medium text-gray-700 mb-1.5 block">
+                  Full Name
+                </Label>
+                <Input
+                  id="full-name"
+                  className="w-full"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  placeholder="Enter your full name"
+                />
+              </div>
+              <div>
+                <Label htmlFor="email" className="text-sm font-medium text-gray-700 mb-1.5 block">
+                  Email
+                </Label>
+                <Input 
+                  id="email" 
+                  className="w-full bg-gray-50" 
+                  value={email} 
+                  disabled 
+                  placeholder={email || 'Your email address'}
+                />
+                <p className="mt-1 text-xs text-gray-500">Contact support to change your email</p>
+              </div>
+            </div>
+            <div className="pt-4 flex justify-end border-t border-gray-100">
+              <Button 
+                type="submit"
+                className="px-6 py-2.5 text-sm font-medium"
+              >
+                Save Changes
+              </Button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+);
 
 export function Profile() {
   const [activeTab, setActiveTab] = useState("profile");
-  const [fullName, setFullName] = useState("John Doe");
-  const [email, setEmail] = useState("john.doe@example.com");
-  const [profilePicture, setProfilePicture] = useState(
-    "https://github.com/shadcn.png"
-  );
+  const [user, setUser] = useState<Partial<UserData> | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [profilePicture, setProfilePicture] = useState("");
+  const pathname = usePathname();
 
-  const handleProfilePictureChange = (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
+  // Fetch user data on component mount
+  useEffect(() => {
+    const fetchUserData = () => {
+      try {
+        const userData = tokenUtils.getUser();
+        if (userData) {
+          setUser(userData);
+          setFullName(userData.name || '');
+          setEmail(userData.email || '');
+          setProfilePicture(userData.profile_picture || '');
+        }
+      } catch (error) {
+        console.error('Error fetching user data:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchUserData();
+  }, []);
+
+  const handleProfilePictureChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
@@ -43,16 +204,33 @@ export function Profile() {
 
   const handleProfileSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const response = await updateUserProfile({ fullName, profilePicture });
-    if (response.success) {
-      alert(response.message);
+    if (!fullName.trim()) {
+      toast.error('Please enter your full name');
+      return;
+    }
+
+    try {
+      const response = await updateUserProfile({ fullName, profilePicture });
+      if (response.success) {
+        const updatedUser: UserData = { 
+          ...user, 
+          name: fullName, 
+          profile_picture: profilePicture || null 
+        };
+        setUser(updatedUser);
+        tokenUtils.setUser(updatedUser);
+      }
+      toast.success(response.message);
+    } catch (error) {
+      console.error('Profile update error:', error);
+      toast.error('Failed to update profile. Please try again.');
     }
   };
 
-  const renderContent = () => {
+  const renderTabContent = () => {
     switch (activeTab) {
       case "profile":
-        return <ProfileContent />;
+        return renderContent();
       case "security":
         return <Security />;
       case "notifications":
@@ -60,92 +238,40 @@ export function Profile() {
       case "billing":
         return <Billing />;
       default:
-        return <ProfileContent />;
+        return renderContent();
     }
   };
 
-  const ProfileContent = () => (
-    <div className="space-y-4">
-      <div>
-        <h2 className="text-2xl font-semibold text-gray-900">Profile Information</h2>
-        <p className="text-gray-500 mt-1">Update your personal information and photo</p>
-      </div>
-      <div className="border-t border-gray-100 pt-6">
-        <div className="flex flex-col sm:flex-row gap-8">
-          <div className="flex flex-col items-center">
-            <div className="relative">
-              <Avatar className="w-32 h-32 border-4 border-white shadow-lg">
-                <AvatarImage src={profilePicture} alt="Profile picture" />
-                <AvatarFallback className="text-2xl">
-                  {fullName.split(' ').map(n => n[0]).join('')}
-                </AvatarFallback>
-              </Avatar>
-              <label
-                htmlFor="profile-picture-upload"
-                className="absolute -bottom-2 -right-2 bg-blue-600 text-white rounded-full p-2 cursor-pointer hover:bg-blue-700 transition-all shadow-lg hover:shadow-xl"
-              >
-                <Camera size={18} />
-              </label>
-              <input
-                id="profile-picture-upload"
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={handleProfilePictureChange}
-              />
-            </div>
-            <div className="mt-4 text-center">
-              <Button variant="outline">Change Picture</Button>
-              <p className="text-xs text-gray-500 mt-2">JPG, GIF or PNG. 1MB max.</p>
-            </div>
-          </div>
+  const renderContent = () => {
+    if (isLoading) {
+      return (
+        <div className="flex items-center justify-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
         </div>
-      </div>
-      <div className="flex-1">
-        <form onSubmit={handleProfileSubmit} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <Label htmlFor="full-name" className="text-sm font-medium text-gray-700 mb-1.5 block">
-                Full Name
-              </Label>
-              <Input
-                id="full-name"
-                className="w-full"
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                placeholder="Enter your full name"
-              />
-            </div>
-            <div>
-              <Label htmlFor="email" className="text-sm font-medium text-gray-700 mb-1.5 block">
-                Email
-              </Label>
-              <Input 
-                id="email" 
-                className="w-full bg-gray-50" 
-                value={email} 
-                disabled 
-                placeholder="Your email address"
-              />
-              <p className="mt-1 text-xs text-gray-500">Contact support to change your email</p>
-            </div>
-          </div>
-          <div className="pt-4 flex justify-end border-t border-gray-100">
-            <Button 
-              type="submit"
-              className="px-6 py-2.5 text-sm font-medium"
-            >
-              Save Changes
-            </Button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
+      );
+    }
 
-  // Get current path to highlight active tab
-  const pathname = usePathname();
-  
+    if (!user) {
+      return (
+        <div className="text-center py-12">
+          <p className="text-gray-600">Failed to load user data. Please try again later.</p>
+        </div>
+      );
+    }
+
+    return (
+      <ProfileContent 
+        user={user}
+        fullName={fullName}
+        email={email}
+        profilePicture={profilePicture}
+        onProfilePictureChange={handleProfilePictureChange}
+        onProfileSubmit={handleProfileSubmit}
+        setFullName={setFullName}
+      />
+    );
+  };
+
   // Define tabs configuration
   const tabs = [
     { id: 'profile', icon: User, label: 'Profile' },
@@ -199,10 +325,8 @@ export function Profile() {
           </div>
 
           {/* Main Content */}
-          <div className="flex-1 bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-            <div className="p-6 md:p-8">
-              {renderContent()}
-            </div>
+          <div className="flex-1 bg-white rounded-xl shadow-sm p-6">
+            {renderTabContent()}
           </div>
         </div>
       </div>

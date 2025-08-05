@@ -1,3 +1,5 @@
+// Updated BlogManagement.tsx with proper file upload handling
+
 'use client';
 import { useState, useRef, ChangeEvent, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
@@ -30,24 +32,91 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { PlusCircle, Edit, Trash2, Image as ImageIcon, X, Loader2, FileText } from 'lucide-react';
+import { PlusCircle, Edit, Trash2, FileText, Image as ImageIcon, X, Loader2, FileImage, AlertCircle } from 'lucide-react';
 import Image from 'next/image';
 import { toast } from "sonner"
 import { Label } from '@/components/ui/label';
 import { Blog } from '@/types/blog.d';
-import { createBlog, updateBlog, deleteBlog, getAllBlogs } from '@/app/actions/blog';
+import { createBlog, updateBlog } from "@/app/[locale]/actions/blog";
+import { deleteBlog, getAllBlogs } from "@/app/[locale]/actions/blog-utils";
 import BlogSkeleton from '@/components/blog/BlogSkeleton';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import BLOGIMAGEPLACEHOLDER from "@/public/image.png"
 
 const BlogManagement = () => {
   const [blogs, setBlogs] = useState<Blog[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingBlog, setEditingBlog] = useState<Blog | null>(null);
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null); // Add this state
+  
+  // Form state
+  interface BlogFormData {
+    title: string;
+    slug: string;
+    content: string;
+    excerpt: string;
+    status: 'draft' | 'published';
+  }
+
+  const [formData, setFormData] = useState<BlogFormData>({
+    title: '',
+    slug: '',
+    content: '',
+    excerpt: '',
+    status: 'draft'
+  });
+
+  // Update form data when editing a blog
+  useEffect(() => {
+    if (editingBlog) {
+      setFormData({
+        title: editingBlog.title,
+        slug: editingBlog.slug || '',
+        content: editingBlog.content,
+        excerpt: editingBlog.excerpt || '',
+        status: editingBlog.status as 'draft' | 'published'
+      });
+    } else {
+      setFormData({
+        title: '',
+        slug: '',
+        content: '',
+        excerpt: '',
+        status: 'draft'
+      });
+    }
+  }, [editingBlog]);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    
+    setFormData((prev: BlogFormData) => {
+      const newData = {
+        ...prev,
+        [name]: name === 'status' ? value as 'draft' | 'published' : value
+      };
+      
+      // If title changed and we're not editing, update the slug
+      if (name === 'title' && !editingBlog) {
+        const slug = value
+          .toLowerCase()
+          .replace(/[^\w\s-]/g, '')
+          .replace(/\s+/g, '-')
+          .replace(/--+/g, '-')
+          .trim();
+        newData.slug = slug;
+      }
+      
+      return newData;
+    });
+  };
+
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [blogToDelete, setBlogToDelete] = useState<string | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -69,25 +138,15 @@ const BlogManagement = () => {
     // Reset form state first
     setEditingBlog(null);
     setPreviewImage(null);
+    setSelectedFile(null); // Reset selected file
     // Then open the dialog
     setIsFormOpen(true);
   };
 
   const handleEdit = async (blog: Blog) => {
-    try {
-      const updatedBlog = await updateBlog(blog.slug, blog);
-      if (updatedBlog.success && updatedBlog.data) {
-        setBlogs(blogs.map((b) => (b.slug === blog.slug ? updatedBlog.data as Blog : b)));
-        toast("Blog updated", {
-          description: 'Your blog post has been successfully updated.',
-        });
-      }
-    } catch (error) {
-      setError('An error occurred while updating the blog post.');
-      console.error(error);
-    }
     setEditingBlog(blog);
     setPreviewImage(blog.blog_image || null);
+    setSelectedFile(null); // Reset file when editing
     setIsFormOpen(true);
   };
 
@@ -97,25 +156,89 @@ const BlogManagement = () => {
   };
 
   const handleDeleteConfirm = async () => {
-    if (blogToDelete) {
-      await deleteBlog(blogToDelete);
+    if (!blogToDelete) return;
+    
+    try {
+      const token = localStorage.getItem('auth_token');
+      if (!token) {
+        setError('Authentication required. Please log in again.');
+        return;
+      }
+      const result = await deleteBlog(blogToDelete, token);
+      
+      if (result && 'errors' in result && result.errors) {
+        console.error('Delete errors:', result.errors);
+        const errorMessages = result.errors._form || [];
+        setError(Array.isArray(errorMessages) ? errorMessages.join('\n') : 'An error occurred');
+        return;
+      }
+      
       setBlogs(blogs.filter((blog) => blog.slug !== blogToDelete));
       setIsDeleteDialogOpen(false);
       toast("The blog post has been successfully deleted.", {
-        description: 'The blog post has been successfully deleted.',
+        description: "The blog post has been removed from the system.",
+      });
+    } catch (err) {
+      console.error('Error deleting blog post:', err);
+      setError('An unexpected error occurred while deleting the blog post.');
+      toast.error("Error", {
+        description: 'Failed to delete the blog post. Please try again.',
       });
     }
   };
 
+  // Updated image change handler
   const handleImageChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPreviewImage(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+    
+    if (!file) {
+      setError('No file selected');
+      return;
     }
+
+    // Validate file type more strictly
+    const validImageTypes = [
+      'image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp',
+      'image/svg+xml', 'image/bmp', 'image/tiff', 'image/x-icon'
+    ];
+    
+    if (!validImageTypes.includes(file.type.toLowerCase())) {
+      setError('Please upload a valid image file (JPEG, JPG, PNG, GIF, WebP, SVG, BMP, TIFF, or ICO)');
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      return;
+    }
+
+    // Validate file extension to match MIME type
+    const fileName = file.name.toLowerCase();
+    const validExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg', '.bmp', '.tif', '.tiff', '.ico'];
+    const fileExtension = fileName.substring(fileName.lastIndexOf('.')).toLowerCase();
+    
+    if (!validExtensions.includes(fileExtension)) {
+      setError('Invalid file extension. Please upload a valid image file.');
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    if (file.size > maxSize) {
+      setError('Image size should be less than 5MB');
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      return;
+    }
+
+    // Store the actual file object
+    setSelectedFile(file);
+    setError(null);
+
+    // Create preview URL
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (reader.result) {
+        setPreviewImage(reader.result as string);
+      }
+    };
+    reader.readAsDataURL(file);
   };
 
   const triggerFileInput = () => {
@@ -128,41 +251,60 @@ const BlogManagement = () => {
     
     // Clear the preview and file input
     setPreviewImage(null);
+    setSelectedFile(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
-      // Create a new input element to replace the current one
-      const newInput = document.createElement('input');
-      newInput.type = 'file';
-      newInput.style.display = 'none';
-      newInput.onchange = fileInputRef.current.onchange;
-      fileInputRef.current.replaceWith(newInput);
-      fileInputRef.current = newInput;
     }
   };
 
+  // Updated form submit handler
   const handleFormSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setIsSubmitting(true);
     setError(null);
     
+    // Validate required fields
+    if (!formData.title.trim()) {
+      setError('Title is required');
+      return;
+    }
+    
+    if (!formData.content.trim()) {
+      setError('Content is required');
+      return;
+    }
+    
+    setIsSubmitting(true);
+
     try {
-      const formData = new FormData(e.currentTarget);
-      const data: Omit<Blog, 'id' | 'slug' | 'status_name' | 'published_at' | 'is_published' | 'is_draft' | 'created_at' | 'updated_at' | 'sort_order'> = {
-        title: formData.get('title') as string,
-        content: formData.get('content') as string,
-        status: (formData.get('status') as 'draft' | 'published') || 'draft',
-        excerpt: formData.get('excerpt') as string,
-        blog_image: previewImage || '', // Ensure blog_image is always a string
-      };
+      // Get the token from localStorage
+      const token = localStorage.getItem('auth_token');
+      if (!token) {
+        setError('Authentication required. Please log in again.');
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Prepare the data for submission using FormData
+      const formDataToSubmit = new FormData();
+      
+      formDataToSubmit.append('title', formData.title.trim());
+      formDataToSubmit.append('slug', formData.slug);
+      formDataToSubmit.append('content', formData.content.trim());
+      formDataToSubmit.append('excerpt', formData.excerpt?.trim() || '');
+      formDataToSubmit.append('status', formData.status);
+      
+      // Add the file if selected
+      if (selectedFile) {
+        formDataToSubmit.append('blog_image', selectedFile);
+      }
+
+      console.log('Submitting blog with FormData');
 
       if (editingBlog) {
-        const result = await updateBlog(editingBlog.id, data);
+        const result = await updateBlog(editingBlog.id, formDataToSubmit, token);
         
         if ('errors' in result) {
-          // Handle validation errors
           console.error('Update errors:', result.errors);
-          
-          // Format and display validation errors
           const errorMessages = Object.entries(result.errors)
             .flatMap(([field, messages]) => 
               Array.isArray(messages) 
@@ -182,15 +324,13 @@ const BlogManagement = () => {
           setIsFormOpen(false);
           setEditingBlog(null);
           setPreviewImage(null);
+          setSelectedFile(null);
         }
       } else {
-        const result = await createBlog(data);
+        const result = await createBlog(formDataToSubmit, token);
         
-        if ('errors' in result) {
-          // Handle validation errors
+        if (result && result.errors) {
           console.error('Create errors:', result.errors);
-          
-          // Format and display validation errors
           const errorMessages = Object.entries(result.errors)
             .flatMap(([field, messages]) => 
               Array.isArray(messages) 
@@ -199,6 +339,7 @@ const BlogManagement = () => {
             );
             
           setError(errorMessages.join('\n'));
+          toast.error("Error creating blog", { description: errorMessages.join(', ') });
           return;
         }
         
@@ -209,13 +350,15 @@ const BlogManagement = () => {
           });
           setIsFormOpen(false);
           setPreviewImage(null);
+          setSelectedFile(null);
         }
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error saving blog post:', err);
-      setError('An unexpected error occurred while saving the blog post.');
+      const errorMessage = err?.message || 'An unexpected error occurred while saving the blog post.';
+      setError(errorMessage);
       toast.error("Error", {
-        description: 'Failed to save the blog post. Please try again.',
+        description: errorMessage,
       });
     } finally {
       setIsSubmitting(false);
@@ -223,7 +366,6 @@ const BlogManagement = () => {
   };
 
   if (isLoading) return <BlogSkeleton/>;
-  if (error) return <div className="p-4 text-red-500 flex item-center justify-center text-center">Error: {error}</div>;
 
   return (
     <div className="container mx-auto px-4 pt-26">
@@ -250,6 +392,14 @@ const BlogManagement = () => {
 
       {/* Header Section */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+        {error && (
+          <Alert className='absolute top-20 right-6 w-72'>
+            <AlertTitle>Something went wrong!</AlertTitle>
+            <AlertDescription>
+              {error}
+            </AlertDescription>
+          </Alert>
+        )}
         <div>
           <h1 className="text-2xl md:text-3xl font-bold">Admin Blog Management</h1>
           <p className="text-sm text-muted-foreground">
@@ -258,11 +408,10 @@ const BlogManagement = () => {
         </div>
         <Dialog open={isFormOpen} onOpenChange={(open) => {
           if (!open) {
-            // Only reset form state when closing
             setEditingBlog(null);
             setPreviewImage(null);
+            setSelectedFile(null);
           }
-          // Always update the open state
           setIsFormOpen(open);
         }}>
           <DialogTrigger asChild>
@@ -326,16 +475,54 @@ const BlogManagement = () => {
                   </div>
                 </div>
 
-                <div className="grid gap-4">
+                <div className="grid gap-4 py-4">
                   <div className="space-y-2">
                     <Label htmlFor="title">Title</Label>
                     <Input 
                       id="title" 
                       name="title" 
-                      defaultValue={editingBlog?.title} 
+                      value={formData.title}
+                      onChange={handleInputChange}
                       placeholder="Enter blog title"
                       required 
                     />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="slug">Slug</Label>
+                      {!editingBlog && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="text-xs h-6 px-2"
+                          onClick={() => {
+                            const slug = formData.title
+                              .toLowerCase()
+                              .replace(/[^\w\s-]/g, '')
+                              .replace(/\s+/g, '-')
+                              .replace(/--+/g, '-')
+                              .trim();
+                            setFormData((prev: BlogFormData) => ({ ...prev, slug }));
+                          }}
+                          disabled={!formData.title}
+                        >
+                          Generate from title
+                        </Button>
+                      )}
+                    </div>
+                    <Input
+                      id="slug"
+                      name="slug"
+                      value={formData.slug}
+                      onChange={handleInputChange}
+                      placeholder="blog-post-url"
+                      required
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      This will be used in the URL. Use hyphens between words.
+                    </p>
                   </div>
 
                   <div className="space-y-2">
@@ -343,9 +530,11 @@ const BlogManagement = () => {
                     <Textarea
                       id="excerpt"
                       name="excerpt"
-                      defaultValue={editingBlog?.excerpt || ''}
+                      value={formData.excerpt}
+                      onChange={handleInputChange}
                       placeholder="Enter a short excerpt for the blog post..."
                       className="min-h-[100px]"
+                      required
                     />
                   </div>
 
@@ -354,7 +543,8 @@ const BlogManagement = () => {
                     <Textarea 
                       id="content" 
                       name="content" 
-                      defaultValue={editingBlog?.content || ''} 
+                      value={formData.content}
+                      onChange={handleInputChange}
                       placeholder="Write your blog content here..."
                       required 
                       rows={8} 
@@ -372,6 +562,7 @@ const BlogManagement = () => {
                     setIsFormOpen(false);
                     setEditingBlog(null);
                     setPreviewImage(null);
+                    setSelectedFile(null);
                   }}
                 >
                   Cancel
@@ -398,12 +589,19 @@ const BlogManagement = () => {
           {blogs.map((blog) => (
             <Card key={blog.id} className="flex flex-col hover:shadow-lg transition-shadow">
               <div className="relative aspect-[16/9] overflow-hidden group">
-                 <Image
-                  src={blog.blog_image || ''}
-                  alt={blog.title}
-                  fill
-                  className="object-cover group-hover:scale-105 transition-transform duration-300"
-                />
+                {blog.blog_image ? (
+                  <Image
+                    src={BLOGIMAGEPLACEHOLDER.src}
+                    alt={blog.title}
+                    fill
+                    className="object-cover group-hover:scale-105 transition-transform duration-300"
+                    // unoptimized={blog.blog_image?.includes('via.placeholder.com')}
+                  />
+                ) : (
+                  <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+                    <FileImage className="h-12 w-12 text-gray-400" />
+                  </div>
+                )}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-4">
                   <div className="flex space-x-2">
                     <Button 

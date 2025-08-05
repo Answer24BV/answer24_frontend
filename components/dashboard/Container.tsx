@@ -8,7 +8,7 @@ import {
   getOptimizationTips,
   getChartData,
   getPerformanceData,
-} from "@/app/actions/dashboard"
+} from "@/app/[locale]/actions/dashboard"
 import { SimpleStatsCard } from "./StatsCard"
 import { CompactCampaigns } from "./CompactCampaign"
 import { CompactAiTips } from "./AITips"

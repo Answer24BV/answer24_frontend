@@ -5,10 +5,10 @@ import { Input } from '@/components/ui/input';
 import { Search, ArrowRight, Clock, Calendar, BookOpen } from 'lucide-react';
 import Image from 'next/image';
 import { Link } from '@/i18n/navigation';
-import { getAllBlogs } from '@/app/actions/blog';
 import { Blog } from '@/types/blog.d';
 import BlogSkeleton from './BlogSkeleton';
 import BLOGIMAGEPLACEHOLDER from "@/public/image.png"
+import { getAllBlogs } from '@/app/[locale]/actions/blog';
 
 const BlogComponent = () => {
   const [blogs, setBlogs] = useState<Blog[]>([]);
@@ -81,7 +81,7 @@ const BlogComponent = () => {
                     <div className="flex items-center text-sm text-muted-foreground mb-3">
                       <span className="flex items-center">
                         <Calendar className="h-4 w-4 mr-1" />
-                        {new Date(featuredPost.published_at).toLocaleDateString('en-US', {
+                        {new Date(featuredPost.published_at as any).toLocaleDateString('en-US', {
                           month: 'short',
                           day: 'numeric',
                           year: 'numeric'
@@ -146,7 +146,7 @@ const BlogComponent = () => {
                   <div className="h-full flex flex-col bg-card rounded-xl overflow-hidden border border-border hover:shadow-md transition-shadow duration-300">
                     <div className="relative aspect-[16/9] overflow-hidden">
                       <Image
-                        src={post.blog_image}
+                        src={post.blog_image || BLOGIMAGEPLACEHOLDER.src}
                         alt={post.title}
                         fill
                         className="object-cover transition-transform duration-500 group-hover:scale-105"
