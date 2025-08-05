@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useLocale } from 'next-intl';
 import { legalPagesService, LegalPage } from '@/lib/legalPages';
 import { useTranslations } from '@/hooks/useTranslations';
-import { toast } from 'sonner';
+import { toast } from 'react-toastify';
 import { Plus, Loader2 } from 'lucide-react';
 import { LegalPageEditor } from '@/components/admin/LegalPageEditor';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -37,9 +37,7 @@ export default function LegalPagesManagement() {
       setPages(pagesData);
     } catch (error) {
       console.error('Error loading legal pages:', error);
-      toast(" Error loading legal pages", {
-        description: "Failed to load legal pages",
-      });
+      toast("Error loading legal pages");
     } finally {
       setIsLoading(false);
     }

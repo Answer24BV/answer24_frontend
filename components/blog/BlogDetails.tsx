@@ -34,7 +34,7 @@ const BlogDetails = ({
         <div className="flex items-center text-sm text-muted-foreground mb-4">
           <span className="flex items-center">
             <Calendar className="h-4 w-4 mr-1" />
-            {new Date(post.published_at).toLocaleDateString('en-US', {
+            {post.published_at && new Date(post.published_at).toLocaleDateString('en-US', {
               year: 'numeric',
               month: 'long',
               day: 'numeric',
@@ -117,7 +117,7 @@ const BlogDetails = ({
                     {relatedPost.title}
                   </h3>
                   <div className="flex items-center text-xs text-muted-foreground mt-1">
-                    <span>{new Date(relatedPost.published_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+                    <span>{relatedPost.published_at && new Date(relatedPost.published_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
                   </div>
                 </Link>
               </article>

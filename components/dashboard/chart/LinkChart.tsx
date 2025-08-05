@@ -16,21 +16,21 @@ export function LineChart({ title, data, color = "#3b82f6" }: LineChartProps) {
   // Create SVG path for the line
   const createPath = () => {
     const width = 400
-    const height = 150
-    const padding = 20
+    const height = 100
+    const padding = -20
 
     return data
       .map((point, index) => {
-        const x = padding + (index * (width - 2 * padding)) / (data.length - 1)
-        const y = height - padding - ((point.value - minValue) / range) * (height - 2 * padding)
+        const x = padding + (index * (width - 3 * padding)) / (data.length - 1)
+        const y = height - padding - ((point.value - minValue) / range) * (height - 4 * padding)
         return `${index === 0 ? "M" : "L"} ${x} ${y}`
       })
       .join(" ")
   }
 
   return (
-    <Card className="border-none shadow-none">
-      <CardHeader className="pb-4">
+    <Card className="border-none shadow-none ">
+      <CardHeader className="pb-6">
         <CardTitle className="text-lg font-semibold text-gray-900">{title}</CardTitle>
       </CardHeader>
       <CardContent>
@@ -49,8 +49,8 @@ export function LineChart({ title, data, color = "#3b82f6" }: LineChartProps) {
 
             {/* Data points */}
             {data.map((point, index) => {
-              const x = 20 + (index * 360) / (data.length - 1)
-              const y = 160 - ((point.value - minValue) / range) * 120
+              const x = 40 + (index * 360) / (data.length - 1)
+              const y = 120 - ((point.value - minValue) / range) * 120
               return (
                 <circle
                   key={index}
@@ -67,9 +67,9 @@ export function LineChart({ title, data, color = "#3b82f6" }: LineChartProps) {
 
             {/* X-axis labels */}
             {data.map((point, index) => {
-              const x = 20 + (index * 360) / (data.length - 1)
+              const x = 30 + (index * 360) / (data.length - 1)
               return (
-                <text key={index} x={x} y="175" textAnchor="middle" className="text-xs fill-gray-600">
+                <text key={index} x={x} y="185" textAnchor="middle" className="text-xs fill-gray-600">
                   {point.name}
                 </text>
               )

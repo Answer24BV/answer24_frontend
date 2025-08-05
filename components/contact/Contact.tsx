@@ -176,7 +176,7 @@ export function ContactPage() {
                     {
                       icon: Phone,
                       label: "Phone",
-                      value: "+3140 = 2100325",
+                      value: "+3140-2100325 / 040-2100325",
                       color: "gray",
                     },
                     {

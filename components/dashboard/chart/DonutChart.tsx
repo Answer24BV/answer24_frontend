@@ -9,7 +9,7 @@ interface DonutChartProps {
 
 export function DonutChart({ title, data }: DonutChartProps) {
   const total = data.reduce((sum, item) => sum + item.value, 0)
-  const radius = 60
+  const radius = 70
   const strokeWidth = 20
   const normalizedRadius = radius - strokeWidth * 0.5
   const circumference = normalizedRadius * 2 * Math.PI
@@ -48,16 +48,16 @@ export function DonutChart({ title, data }: DonutChartProps) {
                     strokeDasharray={strokeDasharray}
                     strokeDashoffset={strokeDashoffset}
                     r={normalizedRadius}
-                    cx={radius}
+                    cx={radius} 
                     cy={radius}
-                    className="transition-all duration-300 hover:stroke-opacity-80"
+                    className="p-4  transition-all duration-300 hover:stroke-opacity-80"
                   />
                 )
               })}
             </svg>
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="text-center">
-                <div className="text-2xl font-bold text-gray-900">{total.toLocaleString()}</div>
+                <div className="text-xl font-bold text-gray-900">{total.toLocaleString()}</div>
                 <div className="text-xs text-gray-600">Total</div>
               </div>
             </div>

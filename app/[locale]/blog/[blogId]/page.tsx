@@ -2,7 +2,7 @@
 import React, { use, useEffect, useState } from 'react';
 import { notFound, useParams } from 'next/navigation';
 import BlogDetails from '@/components/blog/BlogDetails';
-import { getBlogBySlug } from '@/app/actions/blog';
+import { getBlogBySlug } from '@/app/[locale]/actions/blog-utils';
 import { Blog } from '@/types/blog.d';
 
 export default function BlogPostPage() {

@@ -7,17 +7,17 @@ import { motion, AnimatePresence } from "framer-motion"
 import { useTranslations } from "next-intl"
 
 interface FeatureCardProps {
-  icon: any
-  title: string
-  description: string
-  content: string
-  color: string
-  index: number
+  icon: any;
+  title: string;
+  description: string;
+  color: string;
+  index: number;
+  isActive: boolean;
+  handleClick: (index: number) => void;
 }
 
-const FeatureCard = ({ icon: Icon, title, description, content, color, index }: FeatureCardProps) => {
-  const t = useTranslations("FeatureSection")
-  const [isExpanded, setIsExpanded] = useState(false)
+const FeatureCard = ({ icon: Icon, title, description, color, index, isActive, handleClick }: FeatureCardProps) => {
+  const t = useTranslations("FeatureSection");
 
   return (
     <motion.div
@@ -28,7 +28,7 @@ const FeatureCard = ({ icon: Icon, title, description, content, color, index }: 
       className="group snap-center min-w-[300px] md:min-w-[350px] flex-shrink-0 px-2"
       layout
     >
-      <Card className="h-full border-0 shadow-lg hover:shadow-2xl transition-all duration-300 bg-gradient-to-br from-white to-gray-50/50 overflow-hidden relative">
+      <Card className={`h-full border-0 shadow-lg hover:shadow-2xl transition-all duration-300 bg-gradient-to-br from-white to-gray-50/50 overflow-hidden relative ${isActive ? 'border-blue-500' : ''}`}>
         <CardContent className="p-8 relative z-10">
           <motion.div layout="position" className="flex items-center mb-6">
             <div
@@ -45,35 +45,12 @@ const FeatureCard = ({ icon: Icon, title, description, content, color, index }: 
             </h3>
           </motion.div>
           <motion.p layout="position" className="text-gray-600 leading-relaxed mb-6">{description}</motion.p>
-          
-          <AnimatePresence>
-            {isExpanded && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                exit={{ opacity: 0, height: 0 }}
-                transition={{ duration: 0.4, ease: "easeInOut" }}
-                className="overflow-hidden"
-              >
-                <div className="prose prose-blue max-w-none pb-4">
-                  {content.split('\n\n').map((paragraph, i) => {
-                    if (paragraph.startsWith('**')) {
-                      const text = paragraph.replace(/\*\*/g, '')
-                      return <p key={i} className="font-semibold text-gray-900 mt-4 mb-2">{text}</p>
-                    }
-                    return <p key={i} className="mb-4 text-gray-700 leading-relaxed">{paragraph}</p>
-                  })}
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
           <button 
-            onClick={() => setIsExpanded(!isExpanded)}
+            onClick={() => handleClick(index)}
             className="flex items-center text-blue-600 font-medium text-sm hover:text-blue-700"
           >
-            {isExpanded ? t('show_less') : t('learn_more')}
-            <ChevronDown className={`ml-1 w-4 h-4 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} />
+            {isActive ? t('show_less') : t('learn_more')}
+            <ChevronDown className={`ml-1 w-4 h-4 transition-transform duration-300 ${isActive ? 'rotate-180' : ''}`} />
           </button>
         </CardContent>
       </Card>
@@ -95,17 +72,27 @@ const CarouselButton = ({ onClick, children, disabled = false }: { onClick: () =
 export function FeaturesSection() {
   const t = useTranslations("FeatureSection")
   const [currentIndex, setCurrentIndex] = useState(0)
+  const [expandedIndex, setExpandedIndex] = useState<number | null>(null)
   const carouselRef = useRef<HTMLDivElement>(null)
   const cardRefs = useRef<(HTMLDivElement | null)[]>([])
+  const contentRef = useRef<HTMLDivElement>(null)
+
+  const handleCardClick = (index: number) => {
+    setExpandedIndex(prevIndex => (prevIndex === index ? null : index));
+    scrollToIndex(index, true);
+  };
   
-  const scrollToIndex = (index: number) => {
+  const scrollToIndex = (index: number, isButtonClick: boolean = false) => {
     if (cardRefs.current[index]) {
       cardRefs.current[index]?.scrollIntoView({
         behavior: 'smooth',
         block: 'nearest',
         inline: 'center'
-      })
-      setCurrentIndex(index)
+      });
+      setCurrentIndex(index);
+      if (isButtonClick && contentRef.current) {
+        contentRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
     }
   }
 
@@ -202,16 +189,17 @@ export function FeaturesSection() {
               {features.map((feature, index) => (
                 <div 
                   key={index} 
-                  ref={el => { if (el) cardRefs.current[index] = el }} 
+                  ref={el => { if (el) cardRefs.current[index] = el }}
                   className="flex-shrink-0 snap-center w-[calc(100vw-4rem)] sm:w-[calc(50vw-4rem)] lg:w-[calc(33.333vw-4rem)] px-2"
                 >
                   <FeatureCard
                     icon={feature.icon}
                     title={feature.title}
                     description={feature.description}
-                    content={feature.content}
                     color={feature.color}
                     index={index}
+                    isActive={expandedIndex === index}
+                    handleClick={handleCardClick}
                   />
                 </div>
               ))}
@@ -227,6 +215,29 @@ export function FeaturesSection() {
               />
             ))}
           </div>
+        </div>
+        
+        <div ref={contentRef}>
+          <AnimatePresence mode="wait">
+            {expandedIndex !== null && (
+              <motion.div
+                key={expandedIndex}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.5, ease: "easeInOut" }}
+                className="mt-16 prose prose-blue max-w-4xl mx-auto"
+              >
+                {features[expandedIndex].content.split('\n\n').map((paragraph, i) => {
+                  if (paragraph.startsWith('**')) {
+                    const text = paragraph.replace(/\*\*/g, '')
+                    return <p key={i} className="font-semibold text-gray-900 mt-4 mb-2">{text}</p>
+                  }
+                  return <p key={i} className="mb-4 text-gray-700 leading-relaxed">{paragraph}</p>
+                })}
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </div>
     </section>

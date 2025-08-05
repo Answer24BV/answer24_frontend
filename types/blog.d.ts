@@ -16,21 +16,24 @@ export interface BlogData {
     meta:  Meta;
 }
 
-export interface Blog {
-    id:           string;
-    title:        string;
-    slug:         string;
-    content:      string;
-    excerpt:      string;
-    status:       string;
-    status_name:  string;
-    published_at: Date;
-    sort_order:   number;
+export interface BlogFormData {
+    title: string;
+    content: string;
+    excerpt?: string;
+    status: 'draft' | 'published';
+    blog_image?: string;
+}
+
+export interface Blog extends BlogFormData {
+    id: string;
+    slug: string;
+    status_name: string;
+    published_at: Date | null;
+    sort_order: number;
     is_published: boolean;
-    is_draft:     boolean;
-    created_at:   Date;
-    updated_at:   Date;
-    blog_image: string
+    is_draft: boolean;
+    created_at: Date;
+    updated_at: Date;
 }
 
 export interface Links {

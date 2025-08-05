@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { useTranslations } from "next-intl"
+import Link from "next/link"
 import { motion } from "framer-motion"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -72,10 +73,12 @@ export function AboutPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
           >
-            <Button className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-xl">
-              {t('ctaButton')}
-              <ArrowRight className="ml-2 w-4 h-4" />
-            </Button>
+            <Link href="/nl/signup">
+              <Button className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-xl">
+                {t('ctaButton')}
+                <ArrowRight className="ml-2 w-4 h-4" />
+              </Button>
+            </Link>
           </motion.div>
         </div>
       </section>

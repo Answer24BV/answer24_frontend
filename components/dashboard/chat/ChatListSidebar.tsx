@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { Plus, MoreHorizontal, SlidersHorizontal } from "lucide-react"
 import type { Chat } from "@/types/chat"
-import { getChats } from "@/app/actions/chat"
+import { getChats } from "@/app/[locale]/actions/chat"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
@@ -36,7 +36,7 @@ export function ChatListSidebar({ onChatSelect, selectedChatId, currentUserId }:
   })
 
   return (
-    <div className="w-80 bg-transparent border-r border-gray-200 flex flex-col h-full">
+    <div className="w-full md:w-80 bg-transparent border-r border-gray-200 flex flex-col h-full">
       {/* Header */}
       <div className="p-4 border-b border-gray-100">
         <div className="flex items-center justify-between mb-4">

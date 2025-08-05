@@ -77,11 +77,11 @@ const Footer = () => {
                   {dynamicT('footer.about', 'About Us')}
                 </Link>
               </li>
-              <li>
+              {/* <li>
                 <Link href="/services" className="text-gray-600 hover:text-blue-600 transition-colors text-sm">
                   {dynamicT('footer.services', 'Services')}
                 </Link>
-              </li>
+              </li> */}
               <li>
                 <Link href="/pricing" className="text-gray-600 hover:text-blue-600 transition-colors text-sm">
                   {dynamicT('footer.pricing', 'Pricing')}
@@ -132,9 +132,10 @@ const Footer = () => {
             </h3>
             <address className="not-italic space-y-3">
               <p className="text-gray-600 text-sm">
-                {dynamicT('footer.address', '123 Business Street')}<br />
+                Valkenierstraat 133, <br /> 5553CP Valkenswaard
+                {/* {dynamicT('footer.address', '123 Business Street')}<br />
                 {dynamicT('footer.city', 'Amsterdam, 1011 AB')}<br />
-                {dynamicT('footer.country', 'Netherlands')}
+                {dynamicT('footer.country', 'Netherlands')} */}
               </p>
               <p className="text-gray-600 text-sm">
                 <a href="mailto:info@answer24.com" className="hover:text-blue-600 transition-colors">
@@ -143,7 +144,7 @@ const Footer = () => {
               </p>
               <p className="text-gray-600 text-sm">
                 <a href="tel:+31123456789" className="hover:text-blue-600 transition-colors">
-                  +31 123 456 789
+                +3140-2100325 / 040-2100325
                 </a>
               </p>
             </address>
@@ -155,17 +156,6 @@ const Footer = () => {
           <p className="text-gray-500 text-sm">
             &copy; {currentYear} Answer24. {dynamicT('footer.all_rights', 'All rights reserved.')}
           </p>
-          <div className="flex space-x-6 mt-4 md:mt-0">
-            <Link href="/privacy-policy" className="text-gray-500 hover:text-blue-600 text-sm transition-colors">
-              {dynamicT('footer.privacy', 'Privacy Policy')}
-            </Link>
-            <Link href="/terms" className="text-gray-500 hover:text-blue-600 text-sm transition-colors">
-              {dynamicT('footer.terms', 'Terms of Service')}
-            </Link>
-            <Link href="/cookies" className="text-gray-500 hover:text-blue-600 text-sm transition-colors">
-              {dynamicT('footer.cookies', 'Cookie Policy')}
-            </Link>
-          </div>
         </div>
       </div>
     </footer>

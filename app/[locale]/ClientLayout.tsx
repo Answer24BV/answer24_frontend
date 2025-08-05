@@ -9,7 +9,7 @@ import PWALoader from "@/components/PWALoader";
 import TranslationPreloader from "@/components/TranslationPreloader";
 import ServiceWorkerRegistration from "@/components/ServiceWorkerRegistration";
 import { AuthProvider } from "@/components/AuthProvider";
-import CookiePopup from "@/components/CookiePopup";
+import { ToastContainer } from "react-toastify";
 
 export default function ClientLayout({
     children,
@@ -27,12 +27,12 @@ export default function ClientLayout({
         <AuthProvider>
             <ServiceWorkerRegistration />
             <TranslationPreloader />
-            {hiddenNavbar ? null : <Header />}
+            {isDashboardPage ? null : <Header />}
             <PWALoader />
-            {children}
+            <main className={isDashboardPage ? "pt-20" : ""}>{children}</main>
             {!isDashboardChatPage && <ChatWidget />}
             {isDashboardPage ? null : <Footer />}
-            <CookiePopup />
+            <ToastContainer position="top-right" autoClose={5000} />
         </AuthProvider>
     );
 }
