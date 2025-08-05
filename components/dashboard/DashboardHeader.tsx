@@ -41,6 +41,7 @@ import { User } from "@/types/user"
 import { NavItem } from "@/types/sidebar"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
+import NotificationBell from "@/components/common/NotificationBell"
 
 export function DashboardHeader() {
   const [isScrolled, setIsScrolled] = useState(false)
@@ -82,6 +83,12 @@ export function DashboardHeader() {
       title: "Finance",
       href: "/dashboard/wallet",
       icon: Wallet,
+      roles: ["client", "partner", "admin"],
+    },
+    {
+      title: "Notifications",
+      href: `/${user?.role?.name || 'client'}/notifications`,
+      icon: Bell,
       roles: ["client", "partner", "admin"],
     },
     {
@@ -232,6 +239,7 @@ export function DashboardHeader() {
           {/* Desktop CTA */}
           <div className="hidden md:flex items-center space-x-4">
             <LanguageSwitcher />
+            <NotificationBell />
             <DropdownMenu>
               <DropdownMenuTrigger asChild className="cursor-pointer">
                 <Button
@@ -323,6 +331,12 @@ export function DashboardHeader() {
                   {item.title}
                 </Link>
               ))}
+              <div className="pt-4 border-t border-gray-200">
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-700 font-medium">Notifications</span>
+                  <NotificationBell />
+                </div>
+              </div>
             </div>
           </motion.div>
         )}

@@ -1,10 +1,10 @@
 import React from 'react'
 import AllNotifications from '@/components/AllNotifications'
 
-const page = () => {
+const AdminNotificationsPage = () => {
     return (
-        <AllNotifications />
+        <AllNotifications userType="admin" />
     )
 }
 
-export default page
+export default AdminNotificationsPage

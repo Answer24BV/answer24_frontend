@@ -13,16 +13,27 @@ import { getNotifications, Notification } from '@/app/actions/notificationAction
 import Avatar from '@/components/common/Avatar';
 import Link from 'next/link';
 import { toast } from 'react-hot-toast';
+import { tokenUtils } from '@/utils/auth';
+import { useParams } from 'next/navigation';
 
 const NotificationBell: React.FC = () => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
+  const { locale } = useParams();
+  
+  // Get user type for proper routing from logged-in user data
+  const user = tokenUtils.getUser();
+  const userType = user?.role?.name || 'client';
+  const notificationsPath = `/${locale}/${userType}/notifications`;
 
   const fetchNotifications = async () => {
     try {
       setIsLoading(true);
-      const data = await getNotifications(1, 5); // Get first 5 notifications
+      // Get user type from logged-in user data
+      const user = tokenUtils.getUser();
+      const userType = user?.role?.name as 'admin' | 'partner' | 'client';
+      const data = await getNotifications(1, 5, userType); // Get first 5 notifications
       setNotifications(data);
       setUnreadCount(data.filter(n => !n.read).length);
     } catch (error: any) {
@@ -61,7 +72,7 @@ const NotificationBell: React.FC = () => {
           <div className="flex items-center justify-between">
             <h3 className="font-semibold text-gray-900">Notifications</h3>
             <Link 
-              href="/partner/notifications" 
+              href={notificationsPath} 
               className="text-sm text-blue-600 hover:text-blue-700"
             >
               View all
@@ -79,7 +90,7 @@ const NotificationBell: React.FC = () => {
             notifications.map((notification) => (
               <Link
                 key={notification.id}
-                href={notification.link || '/partner/notifications'}
+                href={notification.link ? `/${locale}${notification.link}` : notificationsPath}
                 className="block p-4 hover:bg-gray-50 border-b last:border-b-0 transition-colors"
               >
                 <div className="flex items-start gap-3">
@@ -118,7 +129,7 @@ const NotificationBell: React.FC = () => {
         {notifications.length > 0 && (
           <div className="p-3 border-t bg-gray-50">
             <Link 
-              href="/partner/notifications"
+              href={notificationsPath}
               className="block text-center text-sm text-blue-600 hover:text-blue-700 font-medium"
             >
               View all notifications

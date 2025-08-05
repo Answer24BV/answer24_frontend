@@ -27,6 +27,7 @@ import ANSWER24LOGO from "@/public/Answer24Logo.png"
 import Image from "next/image"
 import { tokenUtils } from "@/utils/auth"
 import { User } from "@/types/user";
+import NotificationBell from "./NotificationBell";
 
 export function PrivateNavbar() {
   const [isScrolled, setIsScrolled] = useState(false)

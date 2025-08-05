@@ -22,6 +22,7 @@ import { useTranslations } from "next-intl"
 import { CampaignTabs } from "./CampaignTabs"
 import { usePushNotifications } from "@/hooks/usePushNotifications"
 import { tokenUtils } from "@/utils/auth"
+import NotificationTest from "@/components/common/NotificationTest"
 
 export function CleanDashboardContainer() {
   const [activeCampaignTab, setActiveCampaignTab] = useState<'all' | 'active' | 'paused' | 'draft'>('active');
@@ -194,8 +195,9 @@ export function CleanDashboardContainer() {
           </div>
           
           {/* Right Column - Quick Actions */}
-          <div className="space-y-">
+          <div className="space-y-4">
             <QuickActionsModern />
+            <NotificationTest />
           </div>
         </div>
       </div>

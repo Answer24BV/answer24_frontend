@@ -2,13 +2,10 @@
 import React from 'react'
 import AllNotifications from '@/components/AllNotifications'
 
-const page = () => {
-
-
+const PartnerNotificationsPage = () => {
     return (
-        <AllNotifications />
+        <AllNotifications userType="partner" />
     )
-
 }
 
-export default page
+export default PartnerNotificationsPage
