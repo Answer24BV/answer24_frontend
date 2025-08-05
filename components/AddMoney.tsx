@@ -1,7 +1,8 @@
 "use client";
 import React, { FormEvent, useEffect, useRef, useState } from "react";
 import { toast } from "react-toastify";
-import { Plus, Shield, Zap, Euro, Loader2 } from "lucide-react"; // Replaced FaSpinner with Loader2, FaEuroSign with Euro
+import { Plus, Shield, Zap, Euro, Loader2 } from "lucide-react";
+import { apiRequest } from "@/utils/auth";
 const AddMoney = ({ handleClose }: { handleClose: () => void }) => {
   const [amount, setAmount] = useState(0);
   const ref = useRef<HTMLFormElement>(null);
@@ -15,9 +16,34 @@ const AddMoney = ({ handleClose }: { handleClose: () => void }) => {
       return;
     }
 
-    // TODO: Integrate with checkout API when ready
-    // For now, do nothing - just prevent form submission
-    console.log(`Add Money clicked with amount: €${amount}`);
+    setLoader(true);
+
+    try {
+      const response = await apiRequest("/wallet/deposit", {
+        method: "POST",
+        body: JSON.stringify({
+          amount: amount,
+        }),
+      });
+
+      console.log("Deposit response:", response);
+
+      // Check if response contains checkout_url
+      if (response.data && response.data.checkout_url) {
+        // Redirect to checkout URL to complete payment
+        window.location.href = response.data.checkout_url;
+      } else {
+        toast.success(`Successfully added €${amount} to your wallet!`);
+        handleClose();
+      }
+    } catch (error: any) {
+      console.error("Deposit error:", error);
+      toast.error(
+        error.message || "Failed to add money to wallet. Please try again."
+      );
+    } finally {
+      setLoader(false);
+    }
   };
 
   const quickAmounts = [25, 50, 100, 200];
