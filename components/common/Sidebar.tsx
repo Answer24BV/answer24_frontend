@@ -34,6 +34,8 @@ import {
   PanelLeftOpen,
 } from 'lucide-react';
 
+import NotificationBell from './NotificationBell';
+
 import ANSWER24LOGO from "@/public/answerLogobgRemover-removebg-preview.png";
 import Image from "next/image";
 import { NavItem } from '@/types/sidebar';
@@ -182,6 +184,12 @@ export function Sidebar({ className, collapsed: propCollapsed, onCollapse }: Sid
       title: 'Finance',
       href: '/dashboard/wallet',
       icon: Wallet,
+      roles: ['client', 'partner', 'admin'],
+    },
+    {
+      title: 'Notifications',
+      href: '/partner/notifications',
+      icon: Bell,
       roles: ['client', 'partner', 'admin'],
     },
     {
@@ -421,17 +429,20 @@ export function Sidebar({ className, collapsed: propCollapsed, onCollapse }: Sid
                         {user?.email || 'user@example.com'}
                       </p>
                     </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full p-1.5 ml-2"
-                      onClick={handleLogout}
-                      data-tooltip-id="logout-tooltip"
-                      data-tooltip-content="Sign out"
-                    >
-                      <LogOut className="h-4 w-4" />
-                    </Button>
-                    <Tooltip id="logout-tooltip" />
+                    <div className="flex items-center gap-1 ml-2">
+                      <NotificationBell />
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full p-1.5"
+                        onClick={handleLogout}
+                        data-tooltip-id="logout-tooltip"
+                        data-tooltip-content="Sign out"
+                      >
+                        <LogOut className="h-4 w-4" />
+                      </Button>
+                      <Tooltip id="logout-tooltip" />
+                    </div>
                   </div>
                 </motion.div>
               )}

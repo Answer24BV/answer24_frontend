@@ -20,6 +20,8 @@ import { QuickActionsModern } from "./QuickActionModern"
 import { AiTipsModern } from "./AITipsModern"
 import { useTranslations } from "next-intl"
 import { CampaignTabs } from "./CampaignTabs"
+import { usePushNotifications } from "@/hooks/usePushNotifications"
+import { tokenUtils } from "@/utils/auth"
 
 export function CleanDashboardContainer() {
   const [activeCampaignTab, setActiveCampaignTab] = useState<'all' | 'active' | 'paused' | 'draft'>('active');
@@ -30,6 +32,10 @@ export function CleanDashboardContainer() {
   const [performanceData, setPerformanceData] = useState<PerformanceData[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  
+  // Initialize push notifications
+  const user = tokenUtils.getUser()
+  const { sendTestNotification } = usePushNotifications(user?.id)
 
   useEffect(() => {
     const loadDashboardData = async () => {

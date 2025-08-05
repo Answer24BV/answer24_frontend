@@ -9,6 +9,7 @@ import PWALoader from "@/components/PWALoader";
 import TranslationPreloader from "@/components/TranslationPreloader";
 import ServiceWorkerRegistration from "@/components/ServiceWorkerRegistration";
 import { AuthProvider } from "@/components/AuthProvider";
+import CookiePopup from "@/components/CookiePopup";
 
 export default function ClientLayout({
     children,
@@ -31,6 +32,7 @@ export default function ClientLayout({
             {children}
             {!isDashboardChatPage && <ChatWidget />}
             {isDashboardPage ? null : <Footer />}
+            <CookiePopup />
         </AuthProvider>
     );
 }
