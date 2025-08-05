@@ -90,11 +90,11 @@ export function DashboardHeader() {
       href: "#",
       roles: ["admin"],
       subItems: [
-        // {
-        //   title: "Users",
-        //   href: "/dashboard/admin/users",
-        //   icon: UsersIcon,
-        // },
+        {
+          title: "Avatar management",
+          href: "/dashboard/admin/avatar",
+          icon: UsersIcon,
+        },
         {
           title: "Blog Management",
           href: "/dashboard/admin/blog",
@@ -147,24 +147,27 @@ export function DashboardHeader() {
       animate={{ y: 0 }}
       transition={{ duration: 0.6, ease: "easeOut" }}
       className={cn(
-        "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
-        isScrolled ? "bg-white/80 backdrop-blur-sm shadow-md" : "bg-transparent"
+        "fixed top-0 left-0 right-0 z-50 transition-all duration-300 border-b border-gray-100/10",
+        isScrolled 
+          ? "bg-white/90 backdrop-blur-lg shadow-lg" 
+          : "bg-white/80 backdrop-blur-sm"
       )}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-20">
+        <div className="flex items-center justify-between h-16 md:h-20">
           {/* Logo */}
-          <Link href="/dashboard">
+          <Link href="/dashboard" className="flex items-center space-x-2 group">
             <Image
               src={ANSWER24LOGO}
               alt="Answer24 Logo"
               width={150}
               height={150}
+              className="transition-transform duration-300 group-hover:scale-105"
             />
           </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-8">
+          <div className="hidden md:flex items-center space-x-1">
             {filteredNavItems.map((item) => (
               <div key={item.title} className="relative group">
                 {item.subItems ? (
@@ -173,29 +176,43 @@ export function DashboardHeader() {
                       <Button
                         variant="ghost"
                         className={cn(
-                          "text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200 flex items-center",
-                          isNavItemActive(item) && "text-blue-600"
+                          "rounded-full px-4 py-2 text-gray-700 hover:bg-gray-100 hover:text-blue-600 font-medium transition-all duration-200 flex items-center group-hover:scale-105",
+                          isNavItemActive(item) && "text-blue-600 bg-blue-50"
                         )}
                       >
                         {item.title}
-                        <ChevronDown className="ml-1 h-4 w-4" />
+                        <ChevronDown className="ml-1 h-4 w-4 transition-transform group-data-[state=open]:rotate-180" />
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent>
+                    <DropdownMenuContent 
+                      align="center"
+                      className="mt-2 p-2 rounded-xl shadow-xl border border-gray-100 min-w-[200px]"
+                      sideOffset={10}
+                    >
                       {item.subItems.map((subItem) => (
-                        <DropdownMenuItem key={subItem.title} asChild>
-                          <Link href={subItem.href || "#"}>{subItem.title}</Link>
+                        <DropdownMenuItem 
+                          key={subItem.title} 
+                          className="px-3 py-2.5 rounded-lg text-sm font-medium text-gray-700 hover:bg-blue-50 hover:text-blue-600 cursor-pointer transition-colors"
+                          asChild
+                        >
+                          <Link href={subItem.href || "#"} className="w-full">
+                            {subItem.icon && <item.icon className="mr-2 h-4 w-4" />}
+                            {subItem.title}
+                          </Link>
                         </DropdownMenuItem>
                       ))}
                     </DropdownMenuContent>
                   </DropdownMenu>
                 ) : (
-                  <motion.div whileHover={{ y: -2 }}>
+                  <motion.div 
+                    whileHover={{ y: -2 }}
+                    className="overflow-hidden rounded-full"
+                  >
                     <Link
                       href={item.href || "#"}
                       className={cn(
-                        "text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200",
-                        isNavItemActive(item) && "text-blue-600"
+                        "block px-4 py-2 rounded-full text-gray-700 hover:bg-gray-100 hover:text-blue-600 font-medium transition-all duration-200",
+                        isNavItemActive(item) && "text-blue-600 bg-blue-50"
                       )}
                     >
                       {item.title}

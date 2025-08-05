@@ -5,9 +5,9 @@ import { LegalPage } from '@/lib/legalPages';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { toast } from 'sonner';
+import { toast } from 'react-toastify';
 import { Loader2, Save, X, Eye, Edit, Trash2 } from 'lucide-react';
 
 interface LegalPageEditorProps {
@@ -41,9 +41,7 @@ export function LegalPageEditor({ page, onSave, onDelete, availableLanguages }: 
 
   const handleSave = async () => {
     if (!formData.title.trim() || !formData.slug.trim()) {
-      toast("Error", {
-        description: "Title and slug are required",
-      });
+      toast("Error Title and slug are required");
       return;
     }
 
@@ -51,15 +49,11 @@ export function LegalPageEditor({ page, onSave, onDelete, availableLanguages }: 
     try {
       const success = await onSave(formData);
       if (success) {
-        toast("Success", {
-          description: "Page saved successfully",
-        });
+        toast("Success Page saved successfully");
         setIsEditing(false);
       }
     } catch (error) {
-      toast("Error", {
-        description: "Failed to save page",
-      });
+      toast("Error Failed to save page");
     } finally {
       setIsSaving(false);
     }
@@ -73,13 +67,9 @@ export function LegalPageEditor({ page, onSave, onDelete, availableLanguages }: 
     setIsDeleting(true);
     try {
       await onDelete(page.slug);
-      toast("Success", {
-        description: "Page deleted successfully",
-      });
+      toast("Success Page deleted successfully");
     } catch (error) {
-      toast("Error", {
-        description: "Failed to delete page",
-      });
+      toast("Error Failed to delete page");
     } finally {
       setIsDeleting(false);
     }

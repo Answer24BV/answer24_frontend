@@ -2,7 +2,7 @@
 
 import { useLocale } from 'next-intl';
 import { useState, useEffect } from 'react';
-import { toast } from 'sonner';
+import { toast } from 'react-toastify';
 import { Loader2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { AboutPageEditor } from '@/components/admin/AboutPageEditor';
@@ -27,9 +27,7 @@ export default function AboutPageManagement() {
       setAboutData(data);
     } catch (error) {
       console.error('Error loading about page:', error);
-      toast.error('Error', {
-        description: 'Failed to load about page content',
-      });
+      toast.error('Error loading about page');
     } finally {
       setIsLoading(false);
     }
@@ -50,14 +48,10 @@ export default function AboutPageManagement() {
         throw new Error('Failed to save about page content');
       }
 
-      toast.success('Success', {
-        description: 'About page content saved successfully',
-      });
+      toast.success('About page content saved successfully');
     } catch (error) {
       console.error('Error saving about page:', error);
-      toast.error('Error', {
-        description: 'Failed to save about page content',
-      });
+      toast.error('Error saving about page');
     } finally {
       setIsLoading(false);
     }

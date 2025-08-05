@@ -9,6 +9,7 @@ import PWALoader from "@/components/PWALoader";
 import TranslationPreloader from "@/components/TranslationPreloader";
 import ServiceWorkerRegistration from "@/components/ServiceWorkerRegistration";
 import { AuthProvider } from "@/components/AuthProvider";
+import { ToastContainer } from "react-toastify";
 
 export default function ClientLayout({
     children,
@@ -31,6 +32,7 @@ export default function ClientLayout({
             <main className={isDashboardPage ? "pt-20" : ""}>{children}</main>
             {!isDashboardChatPage && <ChatWidget />}
             {isDashboardPage ? null : <Footer />}
+            <ToastContainer position="top-right" autoClose={5000} />
         </AuthProvider>
     );
 }

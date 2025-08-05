@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { toast } from "sonner"
+import { toast } from "react-toastify"
 import { Loader2, Save } from "lucide-react"
 
 interface AboutPageContent {
@@ -55,14 +55,10 @@ export function AboutPageEditor({ initialData, onSave, isLoading }: AboutPageEdi
     
     try {
       await onSave(content);
-      toast.success('Success', {
-        description: 'About page content saved successfully',
-      });
+      toast.success('About page content saved successfully');
     } catch (error) {
       console.error('Error saving about page:', error);
-      toast.error('Error', {
-        description: 'Failed to save about page content',
-      });
+      toast.error('Error saving about page');
     }
   };
 

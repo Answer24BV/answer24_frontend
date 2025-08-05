@@ -79,21 +79,33 @@ export async function getAvatarById(id: string): Promise<Avatar | null> {
   }
 }
 
-export async function createAvatar(avatarData: Omit<Avatar, 'id' | 'created_at' | 'updated_at'>): Promise<Avatar> {
+export async function createAvatar(
+  token: string,
+  avatarData: Omit<Avatar, 'id' | 'created_at' | 'updated_at'>
+): Promise<Avatar> {
   try {
     const response = await fetch(`${API_BASE_URL}/avatar`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
       },
       body: JSON.stringify(avatarData),
     });
 
+    const result = await response.json().catch(() => ({}));
+    
     if (!response.ok) {
-      throw new Error(`Failed to create avatar: ${response.statusText}`);
+      // Handle validation errors (422)
+      if (response.status === 422 && result.errors) {
+        const errorMessages = Object.entries(result.errors)
+          .map(([field, messages]) => `${field}: ${Array.isArray(messages) ? messages.join(', ') : messages}`)
+          .join('\n');
+        throw new Error(`Validation failed:\n${errorMessages}`);
+      }
+      
+      throw new Error(result.message || `Failed to create avatar: ${response.statusText}`);
     }
-
-    const result: ApiResponse<Avatar> = await response.json();
     
     if (!result.success) {
       throw new Error(result.message || 'Failed to create avatar');
@@ -109,22 +121,32 @@ export async function createAvatar(avatarData: Omit<Avatar, 'id' | 'created_at' 
 
 export async function updateAvatar(
   id: string, 
+  token: string,
   avatarData: Partial<Omit<Avatar, 'id' | 'created_at' | 'updated_at'>>
 ): Promise<Avatar> {
   try {
     const response = await fetch(`${API_BASE_URL}/avatar/${id}`, {
-      method: 'PATCH',
+      method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
       },
       body: JSON.stringify(avatarData),
     });
 
+    const result = await response.json().catch(() => ({}));
+    
     if (!response.ok) {
-      throw new Error(`Failed to update avatar: ${response.statusText}`);
+      // Handle validation errors (422)
+      if (response.status === 422 && result.errors) {
+        const errorMessages = Object.entries(result.errors)
+          .map(([field, messages]) => `${field}: ${Array.isArray(messages) ? messages.join(', ') : messages}`)
+          .join('\n');
+        throw new Error(`Validation failed:\n${errorMessages}`);
+      }
+      
+      throw new Error(result.message || `Failed to update avatar: ${response.statusText}`);
     }
-
-    const result: ApiResponse<Avatar> = await response.json();
     
     if (!result.success) {
       throw new Error(result.message || 'Failed to update avatar');

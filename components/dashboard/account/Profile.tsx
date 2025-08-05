@@ -11,7 +11,7 @@ import { Notifications } from "./Notifications";
 import { Billing } from "./Billing";
 import { usePathname } from "next/navigation";
 import { tokenUtils } from "@/utils/auth";
-import { toast } from "sonner";
+import { toast } from "react-toastify";
 
 // API call to update user profile
 const updateUserProfile = async (data: { fullName: string; profilePicture: string }) => {
