@@ -374,5 +374,26 @@
       "wallet": "Top-up",
       "expense": "Expense"
     }
+  },
+  "COOKIES": {
+    "title": "Cookie Preferences",
+    "description": "We use cookies to enhance your experience on our website. You can manage your preferences below.",
+    "manageSettings": "Manage Cookie Settings",
+    "savePreferences": "Save Preferences",
+    "acceptAll": "Accept All",
+    "types": {
+      "functional": {
+        "title": "Functional Cookies",
+        "description": "Essential cookies that enable basic website functionality and cannot be disabled."
+      },
+      "analytics": {
+        "title": "Analytics Cookies",
+        "description": "Help us understand how visitors interact with our website by collecting anonymous information."
+      },
+      "marketing": {
+        "title": "Marketing Cookies",
+        "description": "Used to track visitors across websites to display relevant and engaging advertisements."
+      }
+    }
   }
 }
