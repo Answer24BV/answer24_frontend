@@ -20,6 +20,7 @@ import {
   Plus,
   MessageSquare,
   ChevronDown,
+  CreditCard,
   Mail,
 } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
@@ -42,6 +43,7 @@ import { User } from "@/types/user"
 import { NavItem } from "@/types/sidebar"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
+import NotificationBell from "@/components/common/NotificationBell"
 
 export function DashboardHeader() {
   const [isScrolled, setIsScrolled] = useState(false)
@@ -60,13 +62,33 @@ export function DashboardHeader() {
       setIsScrolled(window.scrollY > 20)
     }
     window.addEventListener("scroll", handleScroll)
+    
+    // Initialize user data
     const userData = tokenUtils.getUser()
     setUser(userData)
-    return () => window.removeEventListener("scroll", handleScroll)
+    
+    // Set up a small delay to ensure user data is loaded
+    const userCheckInterval = setInterval(() => {
+      const currentUserData = tokenUtils.getUser()
+      if (currentUserData && (!user || user.id !== currentUserData.id)) {
+        setUser(currentUserData)
+        clearInterval(userCheckInterval)
+      }
+    }, 100)
+    
+    // Clear interval after 5 seconds to avoid infinite checking
+    setTimeout(() => clearInterval(userCheckInterval), 5000)
+    
+    return () => {
+      window.removeEventListener("scroll", handleScroll)
+      clearInterval(userCheckInterval)
+    }
   }, [])
 
   console.log("the user is", user)
-  const navItems: NavItem[] = [
+  
+  // Create navItems dynamically based on current user state
+  const getNavItems = (): NavItem[] => [
     {
       title: "Dashboard",
       href: "/dashboard",
@@ -87,6 +109,18 @@ export function DashboardHeader() {
       roles: ["client", "partner", "admin"],
     },
     {
+      title: "Notifications",
+      href: `/${user?.role?.name || 'client'}/notifications`,
+      icon: Bell,
+      roles: ["client", "partner", "admin"],
+    },
+    {
+      title: t("plans"),
+      href: "/dashboard/plans",
+      icon: CreditCard,
+      roles: ["client", "partner"],
+    },
+    {
       title: "Email",
       href: "/dashboard/email",
       icon: Mail,
@@ -98,6 +132,16 @@ export function DashboardHeader() {
       href: "#",
       roles: ["admin"],
       subItems: [
+        {
+          title: t("admin.planManagement"),
+          href: "/dashboard/admin/plans",
+          icon: CreditCard,
+        },
+        {
+          title: t("admin.userManagement"),
+          href: "/dashboard/admin/users",
+          icon: UsersIcon,
+        },
         {
           title: "Avatar management",
           href: "/dashboard/admin/avatar",
@@ -135,8 +179,9 @@ export function DashboardHeader() {
         },
       ],
     },
-  ]
+  ];
 
+  const navItems = getNavItems();
   const filteredNavItems = navItems.filter(
     (item) => !item.roles || item.roles.includes(user?.role?.name || "admin")
   )
@@ -240,6 +285,7 @@ export function DashboardHeader() {
           {/* Desktop CTA */}
           <div className="hidden md:flex items-center space-x-4">
             <LanguageSwitcher />
+            <NotificationBell />
             <DropdownMenu>
               <DropdownMenuTrigger asChild className="cursor-pointer">
                 <Button
@@ -331,6 +377,12 @@ export function DashboardHeader() {
                   {item.title}
                 </Link>
               ))}
+              <div className="pt-4 border-t border-gray-200">
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-700 font-medium">Notifications</span>
+                  <NotificationBell />
+                </div>
+              </div>
             </div>
           </motion.div>
         )}

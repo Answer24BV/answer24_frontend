@@ -20,6 +20,9 @@ import { QuickActionsModern } from "./QuickActionModern"
 import { AiTipsModern } from "./AITipsModern"
 import { useTranslations } from "next-intl"
 import { CampaignTabs } from "./CampaignTabs"
+import { usePushNotifications } from "@/hooks/usePushNotifications"
+import { tokenUtils } from "@/utils/auth"
+// import NotificationTest from "@/components/common/NotificationTest"
 
 export function CleanDashboardContainer() {
   const [activeCampaignTab, setActiveCampaignTab] = useState<'all' | 'active' | 'paused' | 'draft'>('active');
@@ -30,6 +33,10 @@ export function CleanDashboardContainer() {
   const [performanceData, setPerformanceData] = useState<PerformanceData[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  
+  // Initialize push notifications
+  const user = tokenUtils.getUser()
+  const { sendTestNotification } = usePushNotifications(user?.id)
 
   useEffect(() => {
     const loadDashboardData = async () => {
@@ -188,8 +195,9 @@ export function CleanDashboardContainer() {
           </div>
           
           {/* Right Column - Quick Actions */}
-          <div className="space-y-">
+          <div className="space-y-4">
             <QuickActionsModern />
+            {/* <NotificationTest /> */}
           </div>
         </div>
       </div>

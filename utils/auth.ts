@@ -148,25 +148,21 @@ export const authAPI = {
     userType?: string;
     referral_token?: string;
   }) => {
-    const formData = new FormData();
-    formData.append('name', data.name);
-    formData.append('email', data.email);
-    formData.append('phone', data.phone);
-    formData.append('password', data.password);
-    formData.append('password_confirmation', data.password_confirmation);
-    formData.append('userType', data.userType || 'client');
-    
-    if (data.referral_token) {
-      formData.append('referral_token', data.referral_token);
-    }
-
     const endpoint = data.referral_token 
       ? `/auth/register/${data.referral_token}`
       : '/auth/register';
 
     return apiRequest(endpoint, {
       method: 'POST',
-      body: formData,
+      body: JSON.stringify({
+        name: data.name,
+        email: data.email,
+        phone: data.phone,
+        password: data.password,
+        password_confirmation: data.password_confirmation,
+        userType: data.userType || 'client',
+        ...(data.referral_token && { referral_token: data.referral_token })
+      }),
     });
   },
 

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useRef, useCallback } from "react";
-import { MessageCircle, Send, X, Paperclip } from "lucide-react";
+import { MessageCircle, Send, X, Paperclip, ChevronDown } from "lucide-react";
 
 interface Message {
   sender: "user" | "bot";
@@ -48,6 +48,9 @@ const ChatWidget: React.FC = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [filePreview, setFilePreview] = useState<string | null>(null); // For image previews
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Ref for welcome modal content scrolling
+  const welcomeContentRef = useRef<HTMLDivElement>(null);
 
   // State for inactivity and exit intent with cooldown
   const activityTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -275,6 +278,15 @@ const ChatWidget: React.FC = () => {
     [input, selectedFile, filePreview, isMuted, currentLang, resetActivityTimer]
   );
 
+  const handleScrollDown = () => {
+    if (welcomeContentRef.current) {
+      welcomeContentRef.current.scrollBy({
+        top: 200,
+        behavior: "smooth",
+      });
+    }
+  };
+
   const handleOptionClick = (option: string) => {
     setActiveTab("chat");
     setMessages((prev) => [...prev, { sender: "user", text: option }]);
@@ -384,10 +396,12 @@ const ChatWidget: React.FC = () => {
           <div className="flex-1 flex flex-col bg-white min-h-0">
             {activeTab === "home" ? (
               <div
+                ref={welcomeContentRef}
                 className="flex-1 flex flex-col items-center justify-start px-6 py-8 gap-4 overflow-y-auto w-full min-h-0 scrollbar-hide"
                 style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
               >
                 <style>{`.scrollbar-hide::-webkit-scrollbar{display:none}`}</style>
+
                 <div className="text-[#2563eb] font-semibold text-lg mb-1">
                   Welcome to answer24!
                 </div>
@@ -597,17 +611,29 @@ const ChatWidget: React.FC = () => {
               </>
             )}
           </div>
-          <div className="text-center text-xs text-gray-400 py-2 border-t bg-gray-50">
+          <div className="relative text-center text-xs text-gray-400 py-2 border-t bg-gray-50">
             {activeTab === "home" && (
-              <button
-                className="w-full flex items-center justify-center px-4 py-3 rounded-xl bg-gray-100 hover:bg-[#e0e7ff] border border-gray-200 text-base font-semibold text-black transition mb-2"
-                onClick={() => setActiveTab("chat")}
-              >
-                Chat with answer24{" "}
-                <span className="ml-2">
-                  <Send className="inline w-5 h-5" />
-                </span>
-              </button>
+              <>
+                {/* answer24 Icon Button with down arrow */}
+                <div className="absolute -top-6 left-1/2 transform -translate-x-1/2">
+                  <button
+                    onClick={handleScrollDown}
+                    className="p-2 cursor-pointer rounded-full bg-gradient-to-br from-[#2563eb] to-[#1e293b] text-white shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 group"
+                    title="Scroll down for more options"
+                  >
+                    <ChevronDown className="w-5 h-5 group-hover:animate-bounce" />
+                  </button>
+                </div>
+                <button
+                  className="w-full flex items-center justify-center px-4 py-3 rounded-xl bg-gray-100 hover:bg-[#e0e7ff] border border-gray-200 text-base font-semibold text-black transition mb-2"
+                  onClick={() => setActiveTab("chat")}
+                >
+                  Chat with answer24{" "}
+                  <span className="ml-2">
+                    <Send className="inline w-5 h-5" />
+                  </span>
+                </button>
+              </>
             )}
             Powered by{" "}
             <span className="font-semibold text-[#2563eb]">answer24</span>
