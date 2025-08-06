@@ -23,7 +23,7 @@ export default function ClientLayout({
 }) {
   const pathname = usePathname();
   const isDashboardPage = pathname.startsWith("/dashboard");
-  const isUserTypePage = pathname.startsWith("/admin") || pathname.startsWith("/partner") || pathname.startsWith("/client");
+  const isUserTypePage = pathname.startsWith("/admin") || (pathname.startsWith("/partner") && !pathname.startsWith("/partner-signup")) || pathname.startsWith("/client");
   const isDashboardChatPage = pathname === "/dashboard/chat";
   const [user, setUser] = useState<User | null>(null);
 
