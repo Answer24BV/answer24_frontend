@@ -81,16 +81,23 @@ export async function getAvatarById(id: string): Promise<Avatar | null> {
 
 export async function createAvatar(
   token: string,
-  avatarData: Omit<Avatar, 'id' | 'created_at' | 'updated_at'>
+  avatarData: FormData | Omit<Avatar, 'id' | 'created_at' | 'updated_at'>
 ): Promise<Avatar> {
   try {
-    const response = await fetch(`${API_BASE_URL}/avatar`, {
+    const isFormData = avatarData instanceof FormData;
+
+    const headers: HeadersInit = {
+      'Authorization': `Bearer ${token}`,
+    };
+
+    if (!isFormData) {
+      headers['Content-Type'] = 'application/json';
+    }
+
+    const response = await fetch(`${API_BASE_URL}/admin/avatars`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
-      body: JSON.stringify(avatarData),
+      headers,
+      body: isFormData ? avatarData : JSON.stringify(avatarData),
     });
 
     const result = await response.json().catch(() => ({}));
@@ -122,16 +129,23 @@ export async function createAvatar(
 export async function updateAvatar(
   id: string, 
   token: string,
-  avatarData: Partial<Omit<Avatar, 'id' | 'created_at' | 'updated_at'>>
+  avatarData: FormData | Partial<Omit<Avatar, 'id' | 'created_at' | 'updated_at'>>
 ): Promise<Avatar> {
   try {
-    const response = await fetch(`${API_BASE_URL}/avatar/${id}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
-      body: JSON.stringify(avatarData),
+    const isFormData = avatarData instanceof FormData;
+
+    const headers: HeadersInit = {
+      'Authorization': `Bearer ${token}`,
+    };
+
+    if (!isFormData) {
+      headers['Content-Type'] = 'application/json';
+    }
+
+    const response = await fetch(`${API_BASE_URL}/admin/avatars/${id}`, {
+      method: 'PATCH',
+      headers,
+      body: isFormData ? avatarData : JSON.stringify(avatarData),
     });
 
     const result = await response.json().catch(() => ({}));
@@ -160,10 +174,13 @@ export async function updateAvatar(
   }
 }
 
-export async function deleteAvatar(id: string): Promise<boolean> {
+export async function deleteAvatar(id: string, token: string): Promise<boolean> {
   try {
-    const response = await fetch(`${API_BASE_URL}/avatar/${id}`, {
+    const response = await fetch(`${API_BASE_URL}/admin/avatars/${id}`, {
       method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
     });
 
     if (response.status === 404) {

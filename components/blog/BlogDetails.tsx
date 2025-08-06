@@ -58,12 +58,12 @@ const BlogDetails = ({
 
       {/* Featured Image */}
       <div className="relative w-full aspect-[16/9] rounded-xl overflow-hidden mb-10">
-        <Image
+        <img
           src={post.blog_image!}
           alt={post.title}
-          fill
+          // fill
           className="object-cover"
-          priority
+          // priority
         />
       </div>
 

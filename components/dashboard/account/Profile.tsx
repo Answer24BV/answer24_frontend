@@ -14,20 +14,20 @@ import { tokenUtils } from "@/utils/auth";
 import { toast } from "react-toastify";
 
 // API call to update user profile
-const updateUserProfile = async (data: { fullName: string; profilePicture: string }) => {
+const updateUserProfile = async (data: { name?: string; profile_picture?: File | null }) => {
   try {
+    const formData = new FormData();
+    if (data.name) formData.append('name', data.name);
+    if (data.profile_picture) formData.append('profile_picture', data.profile_picture);
+
     const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_BASE_URL || "https://staging.answer24.nl/api/v1"}/user/profile`,
+      `${process.env.NEXT_PUBLIC_API_BASE_URL || "https://staging.answer24.nl/api/v1"}/profile`,
       {
-        method: 'PATCH',
+        method: 'PUT', // or 'PUT' depending on backend
         headers: {
-          'Content-Type': 'application/json',
           'Authorization': `Bearer ${tokenUtils.getToken()}`
         },
-        body: JSON.stringify({
-          name: data.fullName,
-          profile_picture: data.profilePicture
-        })
+        body: formData
       }
     );
 
@@ -44,9 +44,9 @@ const updateUserProfile = async (data: { fullName: string; profilePicture: strin
     return { success: true, message: "Profile updated successfully!" };
   } catch (error) {
     console.error('Error updating profile:', error);
-    return { 
-      success: false, 
-      message: error instanceof Error ? error.message : 'Failed to update profile' 
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : 'Failed to update profile'
     };
   }
 };
@@ -167,7 +167,8 @@ export function Profile() {
   const [isLoading, setIsLoading] = useState(true);
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
-  const [profilePicture, setProfilePicture] = useState("");
+  const [profilePictureFile, setProfilePictureFile] = useState<File | null>(null);
+  const [profilePicturePreview, setProfilePicturePreview] = useState<string>("");
   const pathname = usePathname();
 
   // Fetch user data on component mount
@@ -179,7 +180,7 @@ export function Profile() {
           setUser(userData);
           setFullName(userData.name || '');
           setEmail(userData.email || '');
-          setProfilePicture(userData.profile_picture || '');
+          setProfilePicturePreview(userData.profile_picture || '');
         }
       } catch (error) {
         console.error('Error fetching user data:', error);
@@ -194,9 +195,10 @@ export function Profile() {
   const handleProfilePictureChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      setProfilePictureFile(file); // store the File object for upload
       const reader = new FileReader();
       reader.onload = () => {
-        setProfilePicture(reader.result as string);
+        setProfilePicturePreview(reader.result as string); // for preview only
       };
       reader.readAsDataURL(file);
     }
@@ -204,18 +206,27 @@ export function Profile() {
 
   const handleProfileSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!fullName.trim()) {
-      toast.error('Please enter your full name');
+    if (!fullName.trim() && !profilePictureFile) {
+      toast.error('Please enter your full name or select a profile picture');
+      return;
+    }
+
+    const payload: { name?: string; profile_picture?: File | null } = {};
+    if (fullName.trim() && fullName !== user?.name) payload.name = fullName.trim();
+    if (profilePictureFile) payload.profile_picture = profilePictureFile;
+
+    if (!payload.name && !payload.profile_picture) {
+      toast.info('No changes to update');
       return;
     }
 
     try {
-      const response = await updateUserProfile({ fullName, profilePicture });
+      const response = await updateUserProfile(payload);
       if (response.success) {
-        const updatedUser: UserData = { 
-          ...user, 
-          name: fullName, 
-          profile_picture: profilePicture || null 
+        const updatedUser: UserData = {
+          ...user,
+          ...(payload.name ? { name: payload.name } : {}),
+          ...(payload.profile_picture ? { profile_picture: profilePicturePreview } : {})
         };
         setUser(updatedUser);
         tokenUtils.setUser(updatedUser);
@@ -264,7 +275,7 @@ export function Profile() {
         user={user}
         fullName={fullName}
         email={email}
-        profilePicture={profilePicture}
+        profilePicture={profilePicturePreview}
         onProfilePictureChange={handleProfilePictureChange}
         onProfileSubmit={handleProfileSubmit}
         setFullName={setFullName}
@@ -289,7 +300,7 @@ export function Profile() {
   }, [pathname]);
 
   return (
-    <div className="bg-gray-50 min-h-screen p-4 sm:p-6 md:p-10">
+    <div className="bg-gra min-h-screen p-4 sm:p-6 md:p-10">
       <div className="max-w-7xl mx-auto">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">Account Settings</h1>

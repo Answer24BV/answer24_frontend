@@ -6,30 +6,24 @@ import withPWA from 'next-pwa';
 // next.config.ts
 const nextConfig = {
   images: {
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: '**', // This should allow all domains, but let's be explicit
-      },
-      {
-        protocol: 'https',
-        hostname: '*.placeholder.com',
-      },
-      {
-        protocol: 'https',
-        hostname: 'via.placeholder.com',
-      },
-      {
-        protocol: 'https',
-        hostname: 'staging.answer24.nl',
-      },
-    ],
-    // Add domains array for backward compatibility
-    domains: [
-      'via.placeholder.com',
-      'staging.answer24.nl'
-    ],
+    // remotePatterns: [
+    //   {
+    //     protocol: 'https',
+    //     hostname: 'avatar.iran.liara.run',
+    //     pathname: '/public/**',
+    //   },
+    //   {
+    //     protocol: 'https',
+    //     hostname: 'images.tech.co',
+    //   },
+    //   {
+    //     protocol: 'https',
+    //     hostname: 'res.cloudinary.com',
+    //   },
+    // ],
+    remotePatterns: [new URL('https://res.cloudinary.com/dt5lofhwv/image/upload/v1754478315/answer24_blogs/**')],
   },
+  
   output: "export",
 };
 

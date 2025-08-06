@@ -17,7 +17,7 @@ export async function deleteBlog(id: string, token: string) {
       };
     }
 
-    const response = await fetch(`${BASE_URL}/blog/${id}`, {
+    const response = await fetch(`${BASE_URL}/admin/blogs/${id}`, {
       method: "DELETE",
       headers: {
         "Authorization": `Bearer ${token}`,
@@ -57,12 +57,9 @@ export async function getAllBlogs(): Promise<BlogData> {
     }
 
     const result: BlogsResponse = await response.json();
+    console.log("result", result)
     return {
       ...result.data,
-      data: result.data.data.map((blog) => ({
-        ...blog,
-        blog_image: blog.blog_image || BLOGIMAGEPLACEHOLDER.src,
-      })),
     };
   } catch (error) {
     console.error('Get all blogs error:', error);
@@ -84,26 +81,29 @@ export async function getAllBlogs(): Promise<BlogData> {
 }
 
 // Client-side function to get a single blog post by slug
-export async function getBlogBySlug(slug: string): Promise<Blog | null> {
+export async function getBlogBySlug(slug: string): Promise<BlogResponse> {
   try {
     const response = await fetch(`${BASE_URL}/blog/${slug}`, {
       cache: 'no-store',
     });
 
     if (!response.ok) {
-      if (response.status === 404) {
-        return null;
-      }
-      throw new Error("Failed to fetch blog post");
+      const errorData = await response.json().catch(() => ({}));
+      return { 
+        success: false, 
+        message: errorData.message || "Failed to fetch blog post",
+        data: {} as Blog
+      };
     }
 
     const result: BlogResponse = await response.json();
-    return {
-      ...result.data,
-      blog_image: result.data.blog_image || BLOGIMAGEPLACEHOLDER.src,
-    };
+    return result;
   } catch (error) {
     console.error(`Error fetching blog post ${slug}:`, error);
-    return null;
+    return { 
+      success: false, 
+      message: "An unexpected error occurred.",
+      data: {} as Blog
+    };
   }
 }

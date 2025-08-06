@@ -16,7 +16,7 @@ export default function BlogPostPage() {
       setIsLoading(true);
       try {
         const blogPost = await getBlogBySlug(blogId);
-        setPost(blogPost);
+        setPost(blogPost.data);
       } catch (err) {
         setError('Failed to fetch blog post.');
       } finally {

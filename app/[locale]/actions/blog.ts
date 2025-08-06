@@ -108,7 +108,7 @@ export async function createBlog(
 
     console.log('Sending blog creation request with FormData');
     
-    const response = await fetch(`${BASE_URL}/blog`, {
+    const response = await fetch(`${BASE_URL}/admin/blogs`, {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${token}`,
@@ -206,6 +206,7 @@ export async function updateBlog(
     apiFormData.append('excerpt', excerpt?.trim() || '');
     apiFormData.append('status', status);
     apiFormData.append('slug', slug);
+    apiFormData.append('_method', 'PUT');
 
     // Add the file if it exists (for updates, this is optional)
     const blogImage = formData.get('blog_image') as File;
@@ -239,8 +240,8 @@ export async function updateBlog(
 
     console.log('Updating blog with FormData for ID:', id);
     
-    const response = await fetch(`${BASE_URL}/blog/${id}`, {
-      method: "PUT",
+    const response = await fetch(`${BASE_URL}/admin/blogs/${id}`, {
+      method: "POST",
       headers: {
         "Authorization": `Bearer ${token}`,
         // Don't set Content-Type header - let the browser set it with boundary for multipart/form-data
@@ -305,10 +306,6 @@ export async function getAllBlogs(): Promise<BlogData> {
     const result: BlogsResponse = await response.json();
     return {
       ...result.data,
-      data: result.data.data.map((blog) => ({
-        ...blog,
-        blog_image: BLOGIMAGEPLACEHOLDER.src, // Fallback image
-      })),
     };
     // console.log("blogs",result.data)
     // return result.data

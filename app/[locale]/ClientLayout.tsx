@@ -17,7 +17,7 @@ export default function ClientLayout({
     children: React.ReactNode;
 }) {
     const pathname = usePathname();
-    const isDashboardPage = pathname.startsWith("/dashboard");
+    const isDashboardPage = pathname.startsWith("/dashboard") || pathname.startsWith("/webshop");
     const isDashboardChatPage = pathname === "/dashboard/chat";
 
     // hook to hide something on route

@@ -47,11 +47,11 @@ export default async function ClientHomepage({ params }: ClientHomepageProps) {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-50">
+    <div className="min-h-screen -mt-20 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-50">
       {/* Header Section */}
       <header className="bg-white dark:bg-gray-800 shadow-sm py-4">
         <div className="container mx-auto flex justify-between items-center px-4">
-          <Image
+          <img
             src={clientData.logoUrl || "/placeholder.svg"}
             alt={`${clientData.name} Logo`}
             width={50}

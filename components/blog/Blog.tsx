@@ -69,10 +69,10 @@ const BlogComponent = () => {
               <Link href={`/blog/${featuredPost.slug}`} className='cursor-pointer'>
                 <div className="h-full flex flex-col bg-card rounded-2xl overflow-hidden border border-border hover:shadow-lg transition-shadow duration-300">
                   <div className="relative aspect-video overflow-hidden">
-                    <Image
+                    <img
                       src={featuredPost.blog_image || BLOGIMAGEPLACEHOLDER.src}
                       alt={featuredPost.title}
-                      fill
+                      // fill
                       className="object-cover transition-transform duration-500 group-hover:scale-105"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />

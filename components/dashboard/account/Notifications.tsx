@@ -36,7 +36,7 @@ export function Notifications() {
 
   return (
     <form onSubmit={handleNotificationsSubmit}>
-      <div className="bg-white rounded-lg shadow-md p-6">
+      <div className="p-2">
         <h2 className="text-xl font-semibold text-gray-800 mb-6">Notification Settings</h2>
         <div className="space-y-8">
           {/* Email Notifications */}

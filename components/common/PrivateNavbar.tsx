@@ -88,7 +88,7 @@ export function PrivateNavbar() {
               <DropdownMenuTrigger asChild className="cursor-pointer">
                 <Button variant="ghost" className="relative h-10 w-10 rounded-full">
                   <Avatar className="h-10 w-10">
-                    <AvatarImage src={user?.avatar || "https://github.com/shadcn.png"} alt="@shadcn" />
+                    <AvatarImage src={user?.profile_picture || "https://github.com/shadcn.png"} alt="@shadcn" />
                     <AvatarFallback>{user?.name?.[0] || 'U'}</AvatarFallback>
                   </Avatar>
                 </Button>

@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils"
 const cardVariants = [
   {
     // Blue
-    bg: 'from-blue-50 to-blue-50',
+    bg: 'from-blue-50 to-blue-300',
     iconBg: 'bg-blue-100',
     iconColor: 'text-blue-600',
     border: 'border-blue-100',
@@ -15,7 +15,7 @@ const cardVariants = [
   },
   {
     // Green
-    bg: 'from-emerald-50 to-emerald-50',
+    bg: 'from-emerald-50 to-emerald-300',
     iconBg: 'bg-emerald-100',
     iconColor: 'text-emerald-600',
     border: 'border-emerald-100',
@@ -23,7 +23,7 @@ const cardVariants = [
   },
   {
     // Purple
-    bg: 'from-violet-50 to-violet-50',
+    bg: 'from-violet-50 to-violet-300',
     iconBg: 'bg-violet-100',
     iconColor: 'text-violet-600',
     border: 'border-violet-100',
@@ -31,7 +31,7 @@ const cardVariants = [
   },
   {
     // Amber
-    bg: 'from-amber-50 to-amber-50',
+    bg: 'from-amber-50 to-amber-300',
     iconBg: 'bg-amber-100',
     iconColor: 'text-amber-600',
     border: 'border-amber-100',
@@ -47,7 +47,7 @@ const cardVariants = [
   },
   {
     // Indigo
-    bg: 'from-indigo-50 to-indigo-50',
+    bg: 'from-indigo-50 to-indigo-400',
     iconBg: 'bg-indigo-100',
     iconColor: 'text-indigo-600',
     border: 'border-indigo-100',

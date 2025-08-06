@@ -20,6 +20,7 @@ import {
   Plus,
   MessageSquare,
   ChevronDown,
+  Mail,
 } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import LanguageSwitcher from "@/components/common/LanguageSwitcher"
@@ -49,6 +50,7 @@ export function DashboardHeader() {
   const t = useTranslations("Navigation")
   const currentPath = usePathname()
 
+  console.log("the user is", user)
   const handleLogout = () => {
     tokenUtils.logout()
     setUser(null)
@@ -82,6 +84,12 @@ export function DashboardHeader() {
       title: "Finance",
       href: "/dashboard/wallet",
       icon: Wallet,
+      roles: ["client", "partner", "admin"],
+    },
+    {
+      title: "Email",
+      href: "/dashboard/email",
+      icon: Mail,
       roles: ["client", "partner", "admin"],
     },
     {
@@ -240,7 +248,7 @@ export function DashboardHeader() {
                 >
                   <Avatar className="h-10 w-10">
                     <AvatarImage
-                      src={user?.avatar || "https://github.com/shadcn.png"}
+                      src={user?.profile_picture || "https://github.com/shadcn.png"}
                       alt="@shadcn"
                     />
                     <AvatarFallback>{user?.name?.[0] || "U"}</AvatarFallback>

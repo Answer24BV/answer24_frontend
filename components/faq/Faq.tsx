@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { Search, ChevronDown, ChevronUp, MessageCircle, HelpCircle, Settings, User, Lock } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Input } from "@/components/ui/input"
-import { FaqChatModal } from "./FaqChatModal"
+import { getFAQs, FAQCategory as APIFAQCategory } from "@/app/[locale]/actions/faq";
 
 // Types
 type FAQItem = {
@@ -30,244 +30,38 @@ type FAQCategory = {
   subcategories: FAQSubcategory[]
 }
 
-// Mock data
-const mockCategories: FAQCategory[] = [
-  {
-    id: "general",
-    name: "General",
-    icon: HelpCircle,
-    color: "text-blue-600",
-    bgColor: "bg-blue-50 hover:bg-blue-100",
-    subcategories: [
-      {
-        id: "getting-started",
-        name: "Getting Started",
-        items: [
-          {
-            id: "about-profile",
-            question: "About our profile?",
-            answer: "You can view and edit your profile information in the 'My Account' section.",
-            viewCount: 0,
-            tags: ["profile", "account"]
-          },
-          {
-            id: "how-to-use",
-            question: "How to use the platform?",
-            answer: "Our platform is designed to be intuitive. Navigate through the dashboard to access all features.",
-            viewCount: 0,
-            tags: ["getting started", "tutorial"]
-          }
-        ]
-      },
-      {
-        id: "troubleshooting",
-        name: "Troubleshooting",
-        items: [
-          {
-            id: "forgot-password",
-            question: "I forgot my password",
-            answer: "Click on 'Forgot Password' on the login page to reset your password.",
-            viewCount: 0,
-            tags: ["login", "password", "security"]
-          }
-        ]
-      }
-    ]
-  },
-  {
-    id: "account",
-    name: "Account",
-    icon: User,
-    color: "text-purple-600",
-    bgColor: "bg-purple-50 hover:bg-purple-100",
-    subcategories: [
-      {
-        id: "settings",
-        name: "Account Settings",
-        items: [
-          {
-            id: "update-email",
-            question: "How to update my email?",
-            answer: "Go to Account Settings > Email to update your email address.",
-            viewCount: 0,
-            tags: ["email", "settings"]
-          },
-          {
-            id: "delete-account",
-            question: "How to delete my account?",
-            answer: "You can delete your account by going to Account Settings > Delete Account. Please note this action is irreversible.",
-            viewCount: 0,
-            tags: ["account", "deletion"]
-          }
-        ]
-      }
-    ]
-  },
-  {
-    id: "security",
-    name: "Security",
-    icon: Lock,
-    color: "text-green-600",
-    bgColor: "bg-green-50 hover:bg-green-100",
-    subcategories: [
-      {
-        id: "privacy",
-        name: "Privacy",
-        items: [
-          {
-            id: "data-protection",
-            question: "How is my data protected?",
-            answer: "We use industry-standard encryption and security measures to protect your data. All data is encrypted both in transit and at rest.",
-            viewCount: 0,
-            tags: ["security", "privacy", "data"]
-          },
-          {
-            id: "two-factor",
-            question: "How to enable two-factor authentication?",
-            answer: "You can enable two-factor authentication in your Security Settings. We recommend using an authenticator app for better security.",
-            viewCount: 0,
-            tags: ["2fa", "security", "authentication"]
-          }
-        ]
-      }
-    ]
-  },
-  {
-    id: "billing",
-    name: "Billing",
-    icon: MessageCircle,
-    color: "text-amber-600",
-    bgColor: "bg-amber-50 hover:bg-amber-100",
-    subcategories: [
-      {
-        id: "payments",
-        name: "Payments",
-        items: [
-          {
-            id: "payment-methods",
-            question: "What payment methods do you accept?",
-            answer: "We accept all major credit cards, PayPal, and bank transfers.",
-            viewCount: 0,
-            tags: ["payments", "billing", "credit cards"]
-          },
-          {
-            id: "refund-policy",
-            question: "What is your refund policy?",
-            answer: "We offer a 30-day money-back guarantee on all our plans. Contact our support team to request a refund.",
-            viewCount: 0,
-            tags: ["refunds", "billing", "policy"]
-          }
-        ]
-      }
-    ]
-  }
-]
-
 export default function Faq() {
   // State
-  const [categories, setCategories] = useState<FAQCategory[]>(mockCategories)
+  const [categories, setCategories] = useState<FAQCategory[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("")
   const [expandedItems, setExpandedItems] = useState<Record<string, boolean>>({})
   const [filteredCategories, setFilteredCategories] = useState<FAQCategory[]>([])
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
   const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({})
-  
-  // Chat modal state
-  const [isChatModalOpen, setIsChatModalOpen] = useState(false)
-  const [currentQuestion, setCurrentQuestion] = useState('')
-  const [currentAnswer, setCurrentAnswer] = useState('')
-  const [isLoadingAnswer, setIsLoadingAnswer] = useState(false)
-  const [currentFaqId, setCurrentFaqId] = useState('')
 
-  // Handle FAQ item click
-  const handleFaqClick = (item: FAQItem) => {
-    // Increment view count
-    const updatedCategories = categories.map(category => ({
-      ...category,
-      subcategories: category.subcategories.map(subcategory => ({
-        ...subcategory,
-        items: subcategory.items.map(i => 
-          i.id === item.id ? { ...i, viewCount: (i.viewCount || 0) + 1 } : i
-        )
-      }))
-    }))
-    
-    setCategories(updatedCategories)
-    setCurrentQuestion(item.question)
-    setCurrentAnswer(item.answer || '')
-    setCurrentFaqId(item.id)
-    
-    // If no answer, fetch from AI
-    if (!item.answer) {
-      setIsLoadingAnswer(true)
-      fetch('/api/faq', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ question: item.question, faqId: item.id })
-      })
-      .then(res => res.json())
-      .then(data => {
-        setCurrentAnswer(data.answer)
-        // Update local state with the AI answer
-        const updatedWithAnswer = categories.map(category => ({
+  useEffect(() => {
+    const fetchFAQs = async () => {
+      try {
+        const data = await getFAQs();
+        const transformedData: FAQCategory[] = data.map(category => ({
           ...category,
-          subcategories: category.subcategories.map(subcategory => ({
-            ...subcategory,
-            items: subcategory.items.map(i => 
-              i.id === item.id ? { ...i, answer: data.answer } : i
-            )
-          }))
-        }))
-        setCategories(updatedWithAnswer)
-      })
-      .catch(console.error)
-      .finally(() => setIsLoadingAnswer(false))
-    }
-    
-    setIsChatModalOpen(true)
-  }
+          icon: HelpCircle, // You can map icons based on category name or add it to the API
+          color: "text-blue-600",
+          bgColor: "bg-blue-50 hover:bg-blue-100",
+        }));
+        setCategories(transformedData);
+      } catch (err) {
+        setError("Failed to load FAQs. Please try again later.");
+        console.error(err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-  // Handle new question submission to AI
-  const handleNewQuestion = async (question: string) => {
-    setIsLoadingAnswer(true)
-    try {
-      const response = await fetch('/api/faq/ask', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ question })
-      })
-      
-      if (!response.ok) throw new Error('Failed to get answer')
-      
-      const data = await response.json()
-      setCurrentAnswer(data.answer)
-      setCurrentQuestion(question)
-      setCurrentFaqId(`temp-${Date.now()}`)
-      
-      // Add to recent questions if needed
-      return data.answer
-    } catch (error) {
-      console.error('Error asking question:', error)
-      setCurrentAnswer('Sorry, I encountered an error while processing your question. Please try again.')
-      throw error
-    } finally {
-      setIsLoadingAnswer(false)
-    }
-  }
-
-  // Handle feedback submission
-  const handleFeedback = (isHelpful: boolean) => {
-    fetch('/api/faq', {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        faqId: currentFaqId,
-        question: currentQuestion,
-        answer: currentAnswer,
-        isHelpful
-      })
-    }).catch(console.error)
-  }
+    fetchFAQs();
+  }, []);
 
   // Filter FAQs based on search query and selected category
   useEffect(() => {
@@ -335,6 +129,23 @@ export default function Faq() {
     }))
   }
 
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-12">
+        <h3 className="text-lg font-medium text-red-700 mb-2">Error</h3>
+        <p className="text-gray-500">{error}</p>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-6xl mx-auto p-4 md:p-6">
       <div className="text-center mb-8">
@@ -382,7 +193,7 @@ export default function Faq() {
 
       {/* FAQ Categories */}
       <div className="space-y-6">
-        {filteredCategories.length === 0 ? (
+        {filteredCategories.length === 0 && !isLoading ? (
           <div className="text-center py-12">
             <h3 className="text-lg font-medium text-gray-700 mb-2">No results found</h3>
             <p className="text-gray-500">Try adjusting your search or filter criteria</p>
@@ -437,7 +248,7 @@ export default function Faq() {
                             {expandedItems[item.id] && (
                               <div className="p-4 pt-0">
                                 <div className="text-gray-600 mb-4 prose max-w-none">
-                                  {item.answer || "No answer available. Click 'Ask AI' to generate one."}
+                                  {item.answer || "No answer available."}
                                 </div>
                                 <div className="flex flex-wrap items-center justify-between gap-3 text-sm">
                                   <div className="flex flex-wrap gap-2">
@@ -450,16 +261,6 @@ export default function Faq() {
                                       </span>
                                     ))}
                                   </div>
-                                  <button
-                                    onClick={(e) => {
-                                      e.stopPropagation()
-                                      handleFaqClick(item)
-                                    }}
-                                    className={`text-sm font-medium ${category.color} hover:underline flex items-center gap-1`}
-                                  >
-                                    <MessageCircle className="w-4 h-4" />
-                                    {item.answer ? 'Ask AI for more details' : 'Ask AI'}
-                                  </button>
                                 </div>
                               </div>
                             )}
@@ -474,17 +275,6 @@ export default function Faq() {
           ))
         )}
       </div>
-
-      {/* Chat Modal */}
-      <FaqChatModal
-        isOpen={isChatModalOpen}
-        onClose={() => setIsChatModalOpen(false)}
-        question={currentQuestion}
-        answer={currentAnswer}
-        isLoading={isLoadingAnswer}
-        onFeedback={handleFeedback}
-        onNewQuestion={handleNewQuestion}
-      />
     </div>
   )
 }

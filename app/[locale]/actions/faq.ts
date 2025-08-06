@@ -1,18 +1,32 @@
-// Types
-export interface FAQ {
+import { FAQ } from "@/types/faq.d";
+
+export interface FAQItem {
   id: string;
   question: string;
   answer: string;
-  is_active: boolean;
-  sort_order: number;
-  created_at: string;
-  updated_at: string;
-  // Placeholder fields for future implementation
-  category?: string;
-  subcategory?: string;
+  viewCount: number;
+  tags: string[];
+}
+
+export interface Subcategory {
+  id: string;
+  name: string;
+  items: FAQItem[];
+}
+
+export interface FAQCategory {
+  id: string;
+  name: string;
+  subcategories: Subcategory[];
 }
 
 export interface FAQResponse {
+  success: boolean;
+  message: string;
+  data: FAQCategory[];
+}
+
+export interface AdminFAQResponse {
   success: boolean;
   message: string;
   data: FAQ | FAQ[];
@@ -29,20 +43,11 @@ async function handleResponse<T>(response: Response): Promise<T> {
   return response.json();
 }
 
-// Get all FAQs
-export async function getFAQs(): Promise<FAQ[]> {
+export async function getFAQs(): Promise<FAQCategory[]> {
   try {
     const response = await fetch(`${BASE_URL}/faq`);
     const result: FAQResponse = await handleResponse<FAQResponse>(response);
-    
-    // Add placeholder category and subcategory for now
-    const faqsWithPlaceholders = (result.data as FAQ[]).map(faq => ({
-      ...faq,
-      category: 'General', // Placeholder
-      subcategory: 'General' // Placeholder
-    }));
-    
-    return faqsWithPlaceholders;
+    return result.data;
   } catch (error) {
     console.error('Error fetching FAQs:', error);
     throw error;
@@ -53,14 +58,10 @@ export async function getFAQs(): Promise<FAQ[]> {
 export async function getFAQById(id: string): Promise<FAQ> {
   try {
     const response = await fetch(`${BASE_URL}/faqs/${id}`);
-    const result: FAQResponse = await handleResponse<FAQResponse>(response);
+    const result: AdminFAQResponse = await handleResponse<AdminFAQResponse>(response);
     
-    // Add placeholder category and subcategory
-    return {
-      ...(result.data as FAQ),
-      category: 'General', // Placeholder
-      subcategory: 'General' // Placeholder
-    };
+    return result.data as FAQ;
+
   } catch (error) {
     console.error(`Error fetching FAQ with ID ${id}:`, error);
     throw error;
@@ -68,17 +69,18 @@ export async function getFAQById(id: string): Promise<FAQ> {
 }
 
 // Create new FAQ
-export async function createFAQ(faqData: Omit<FAQ, 'id' | 'created_at' | 'updated_at'>): Promise<FAQ> {
+export async function createFAQ(token:string,faqData: Omit<FAQ, 'id' | 'created_at' | 'updated_at'>): Promise<FAQ> {
   try {
-    const response = await fetch(`${BASE_URL}/faqs`, {
+    const response = await fetch(`${BASE_URL}/admin/faqs`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        "Authorization": `Bearer ${token}`,
       },
       body: JSON.stringify(faqData)
     });
     
-    const result: FAQResponse = await handleResponse<FAQResponse>(response);
+    const result: AdminFAQResponse = await handleResponse<AdminFAQResponse>(response);
     return result.data as FAQ;
   } catch (error) {
     console.error('Error creating FAQ:', error);
@@ -87,17 +89,19 @@ export async function createFAQ(faqData: Omit<FAQ, 'id' | 'created_at' | 'update
 }
 
 // Update existing FAQ
-export async function updateFAQ(id: string, faqData: Partial<Omit<FAQ, 'id' | 'created_at' | 'updated_at'>>): Promise<FAQ> {
+export async function updateFAQ(id: string, token:string, faqData: Partial<Omit<FAQ, 'id' | 'created_at' | 'updated_at'>>): Promise<FAQ> {
   try {
-    const response = await fetch(`${BASE_URL}/faqs/${id}`, {
+   
+    const response = await fetch(`${BASE_URL}/admin/faqs/${id}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
+        "Authorization": `Bearer ${token}`,
       },
       body: JSON.stringify(faqData)
     });
     
-    const result: FAQResponse = await handleResponse<FAQResponse>(response);
+    const result: AdminFAQResponse = await handleResponse<AdminFAQResponse>(response);
     return result.data as FAQ;
   } catch (error) {
     console.error(`Error updating FAQ with ID ${id}:`, error);
@@ -131,7 +135,7 @@ export async function toggleFAQStatus(id: string, isActive: boolean): Promise<FA
       body: JSON.stringify({ is_active: isActive })
     });
     
-    const result: FAQResponse = await handleResponse<FAQResponse>(response);
+    const result: AdminFAQResponse = await handleResponse<AdminFAQResponse>(response);
     return result.data as FAQ;
   } catch (error) {
     console.error(`Error toggling status for FAQ with ID ${id}:`, error);
