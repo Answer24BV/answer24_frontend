@@ -161,6 +161,7 @@
       "account": "Account",
       "chat": "Chat",
       "wallet": "Portemonnee",
+      "plans": "Abonnementen",
       "blog": "Blog",
       "faq": "Veelgestelde Vragen",
       "pricing": "Prijzen",
@@ -171,6 +172,10 @@
       "userMenu": {
         "profile": "Profiel",
         "logOut": "Uitloggen"
+      },
+      "admin": {
+        "planManagement": "Abonnementenbeheer",
+        "userManagement": "Gebruikersbeheer"
       }
     },
     "WalletPage": {

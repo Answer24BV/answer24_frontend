@@ -321,6 +321,7 @@
     "account": "Account",
     "chat": "Chat",
     "wallet": "Wallet",
+    "plans": "Plans",
     "blog": "Blog",
     "faq": "FAQ",
     "pricing": "Pricing",
@@ -331,6 +332,10 @@
     "userMenu": {
       "profile": "Profile",
       "logOut": "Log out"
+    },
+    "admin": {
+      "planManagement": "Plan Management",
+      "userManagement": "User Management"
     }
   },
   "WalletPage": {
