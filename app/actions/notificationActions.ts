@@ -30,8 +30,6 @@ export const getNotifications = async (
   // Mock API call - simulate network delay
   await new Promise(resolve => setTimeout(resolve, 300 + Math.random() * 500));
   
-  console.log(`[MOCK] Fetching notifications for user type: ${userType}, page: ${page}, pageSize: ${pageSize}`);
-  
   // Return mock data based on user type with pagination
   return getMockNotifications(userType, page, pageSize);
 };
@@ -46,7 +44,6 @@ export const markAsRead = async (
   // Mock API call - simulate network delay
   await new Promise(resolve => setTimeout(resolve, 200));
   
-  console.log(`[MOCK] Notification ${notificationId} marked as read.`);
   return { success: true };
 };
 
@@ -58,7 +55,6 @@ export const markAllAsRead = async (): Promise<{ success: boolean }> => {
   // Mock API call - simulate network delay
   await new Promise(resolve => setTimeout(resolve, 400));
   
-  console.log("[MOCK] All notifications marked as read.");
   return { success: true };
 };
 

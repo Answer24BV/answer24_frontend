@@ -18,7 +18,7 @@ export const notificationService = {
     // Mock API call - simulate network delay
     await new Promise((resolve) => setTimeout(resolve, 500));
 
-    console.log("[MOCK] Push notification sent:", payload);
+
 
     // Simulate browser notification for demo
     if (notificationService.isPermitted()) {
@@ -43,9 +43,6 @@ export const notificationService = {
         ...options,
       });
     } else {
-      console.warn(
-        "Browser notifications not available or permission not granted"
-      );
       return null;
     }
   },
@@ -73,7 +70,7 @@ export const notificationService = {
     // Mock API call - simulate network delay
     await new Promise((resolve) => setTimeout(resolve, 300));
 
-    console.log("[MOCK] Subscribed to interests:", interests);
+
     return {
       success: true,
       interests,
@@ -87,7 +84,7 @@ export const notificationService = {
     // Mock API call - simulate network delay
     await new Promise((resolve) => setTimeout(resolve, 300));
 
-    console.log("[MOCK] Unsubscribed from interests:", interests);
+
     return {
       success: true,
       interests,

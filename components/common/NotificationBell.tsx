@@ -34,7 +34,7 @@ const NotificationBell: React.FC = () => {
       setNotifications(data);
       setUnreadCount(data.filter(n => !n.read).length);
     } catch (error: any) {
-      console.error('Error fetching notifications:', error);
+      // Error fetching notifications, continue silently
     } finally {
       setIsLoading(false);
     }
@@ -80,7 +80,7 @@ const NotificationBell: React.FC = () => {
           </div>
         </div>
         
-        <div className="max-h-96 overflow-y-auto">
+        <div className="max-h-96 overflow-y-auto scrollbar-hide scroll-smooth">
           {isLoading ? (
             <div className="p-4 text-center text-gray-500">
               <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto mb-2"></div>

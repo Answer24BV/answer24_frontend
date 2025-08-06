@@ -18,7 +18,6 @@ const loadPusherBeams = async () => {
     const PushNotifications = await import('@pusher/push-notifications-web');
     return PushNotifications.Client;
   } catch (error) {
-    console.warn('Pusher Beams not available, using fallback:', error);
     return null;
   }
 };
@@ -38,27 +37,21 @@ export function usePushNotifications(userId?: string) {
         // Register service worker for push notifications
         if ('serviceWorker' in navigator) {
           try {
-            const registration = await navigator.serviceWorker.register('/sw.js');
-            console.log('Service Worker registered:', registration);
+            await navigator.serviceWorker.register('/sw.js');
           } catch (error) {
-            console.error('Service Worker registration failed:', error);
+            // Service worker registration failed, continue without it
           }
         }
 
-        // Request browser notification permission first
+        // Check notification permission (don't auto-request here, let banner handle it)
         if ('Notification' in window && Notification.permission !== 'granted') {
-          const permission = await Notification.requestPermission();
-          if (permission !== 'granted') {
-            console.log('Notification permission denied');
-            return;
-          }
+          // Don't return here, still initialize Pusher Beams for when permission is granted
         }
 
         // Load Pusher Beams dynamically
         const PusherBeamsClient = await loadPusherBeams();
         
         if (!PusherBeamsClient) {
-          console.log('Pusher Beams not available, using browser notifications only');
           return;
         }
 
@@ -71,7 +64,6 @@ export function usePushNotifications(userId?: string) {
         if (client) {
           // Start Beams registration
           await client.start();
-          console.log('Pusher Beams started successfully');
 
           // Add device interests
           await client.addDeviceInterest('global'); // Global notifications
@@ -82,13 +74,11 @@ export function usePushNotifications(userId?: string) {
           const userType = user?.role?.name || 'client';
           await client.addDeviceInterest(`${userType}-notifications`);
           
-          console.log(`Successfully subscribed to notifications for user ${userId} (${userType})`);
           toast.success('Push notifications enabled');
           
           isInitialized.current = true;
         }
       } catch (error) {
-        console.error('Push notification initialization error:', error);
         toast.error('Failed to enable push notifications');
       }
     };
@@ -104,7 +94,7 @@ export function usePushNotifications(userId?: string) {
           const userType = user?.role?.name || 'client';
           beamsClient.current.removeDeviceInterest(`${userType}-notifications`);
         } catch (error) {
-          console.error('Error cleaning up push notifications:', error);
+          // Error cleaning up, continue silently
         }
       }
     };

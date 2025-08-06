@@ -14,6 +14,7 @@ import { usePushNotifications } from "@/hooks/usePushNotifications";
 import { tokenUtils } from "@/utils/auth";
 import { useEffect, useState } from "react";
 import { User } from "@/types/user";
+import { NotificationBanner } from "@/components/common/NotificationBanner";
 import CookiePopup from "@/components/CookiePopup";
 
 export default function ClientLayout({
@@ -43,6 +44,7 @@ export default function ClientLayout({
     <AuthProvider>
       <ServiceWorkerRegistration />
       <TranslationPreloader />
+      <NotificationBanner />
       {isDashboardPage || isUserTypePage ? null : <Header />}
       <PWALoader />
       <main className={isDashboardPage || isUserTypePage ? "pt-20" : ""}>{children}</main>

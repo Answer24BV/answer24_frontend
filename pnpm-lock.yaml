@@ -14,6 +14,9 @@ importers:
       '@heroicons/react':
         specifier: ^2.2.0
         version: 2.2.0(react@19.1.0)
+      '@pusher/push-notifications-web':
+        specifier: ^1.1.0
+        version: 1.1.0
       '@radix-ui/react-alert-dialog':
         specifier: ^1.1.14
         version: 1.1.14(@types/react-dom@19.1.6(@types/react@19.1.8))(@types/react@19.1.8)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
@@ -966,6 +969,9 @@ packages:
   '@nodelib/fs.walk@1.2.8':
     resolution: {integrity: sha512-oGB+UxlgWcgQkgwo8GcEGwemoTFt3FIO9ababBmaGwXIoBKZ+GTy0pP185beGg7Llih/NSHSV2XAs1lnznocSg==}
     engines: {node: '>= 8'}
+
+  '@pusher/push-notifications-web@1.1.0':
+    resolution: {integrity: sha512-qR9RZNpH9E54GEpn9uqag9VbLG3kk13DPtf0v4ScsbIZhLFrc1vVWoylzh9zPKiJx3LLwnSxZQA/DkF13OBYXw==}
 
   '@radix-ui/number@1.1.1':
     resolution: {integrity: sha512-MkKCwxlXTgz6CFoJx3pCwn07GKp36+aZyu/u2Ln2VrA5DcdyCZkASEDBTd8x5whTQQL5CiYf4prXKLcgQdv29g==}
@@ -4612,6 +4618,8 @@ snapshots:
     dependencies:
       '@nodelib/fs.scandir': 2.1.5
       fastq: 1.19.1
+
+  '@pusher/push-notifications-web@1.1.0': {}
 
   '@radix-ui/number@1.1.1': {}
 
