@@ -14,22 +14,20 @@ import React, { useEffect, useState } from "react";
 import { toast } from "react-hot-toast";
 import { Bell, Clock, Shield, Users, Briefcase } from "lucide-react";
 import { useParams } from "next/navigation";
+import { useUser } from "@/hooks/useUser";
 
 interface AllNotificationsProps {
   userType?: "admin" | "partner" | "client";
 }
 
-const AllNotifications: React.FC<AllNotificationsProps> = ({ userType }) => {
+const AllNotifications: React.FC<AllNotificationsProps> = ({ userType: propUserType }) => {
   const { locale } = useParams();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [notificationsLoader, setNotificationsLoader] = useState(false);
+  const { user, userType: hookUserType, isLoading: userLoading } = useUser();
 
-  // Get user type from logged-in user data
-  const user = tokenUtils.getUser();
-  const currentUserType =
-    userType ||
-    (user?.role?.name as "admin" | "partner" | "client") ||
-    "client";
+  // Get user type from prop or hook
+  const currentUserType = propUserType || hookUserType;
 
   const fetchNotifications = async (page: number) => {
     try {
@@ -44,8 +42,11 @@ const AllNotifications: React.FC<AllNotificationsProps> = ({ userType }) => {
   };
 
   useEffect(() => {
-    fetchNotifications(1);
-  }, []);
+    // Only fetch notifications when user data is loaded and available, or userType prop is provided
+    if (!userLoading && (user || propUserType)) {
+      fetchNotifications(1);
+    }
+  }, [user, userLoading, propUserType, currentUserType]); // Re-run when user data or userType changes
 
   const handleNotificationClick = async (notificationId: string) => {
     try {

@@ -15,24 +15,21 @@ import Link from 'next/link';
 import { toast } from 'react-hot-toast';
 import { tokenUtils } from '@/utils/auth';
 import { useParams } from 'next/navigation';
+import { useUser } from '@/hooks/useUser';
 
 const NotificationBell: React.FC = () => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const { locale } = useParams();
+  const { user, userType, isLoading: userLoading } = useUser();
   
-  // Get user type for proper routing from logged-in user data
-  const user = tokenUtils.getUser();
-  const userType = user?.role?.name || 'client';
+  // Get notifications path based on user type
   const notificationsPath = `/${locale}/${userType}/notifications`;
 
   const fetchNotifications = async () => {
     try {
       setIsLoading(true);
-      // Get user type from logged-in user data
-      const user = tokenUtils.getUser();
-      const userType = user?.role?.name as 'admin' | 'partner' | 'client';
       const data = await getNotifications(1, 5, userType); // Get first 5 notifications
       setNotifications(data);
       setUnreadCount(data.filter(n => !n.read).length);
@@ -44,13 +41,16 @@ const NotificationBell: React.FC = () => {
   };
 
   useEffect(() => {
-    fetchNotifications();
-    
-    // Set up polling for new notifications every 30 seconds
-    const interval = setInterval(fetchNotifications, 30000);
-    
-    return () => clearInterval(interval);
-  }, []);
+    // Only fetch notifications when user data is loaded and available
+    if (!userLoading && user) {
+      fetchNotifications();
+      
+      // Set up polling for new notifications every 30 seconds
+      const interval = setInterval(fetchNotifications, 30000);
+      
+      return () => clearInterval(interval);
+    }
+  }, [user, userLoading, userType]); // Re-run when user data changes
 
   return (
     <DropdownMenu>
