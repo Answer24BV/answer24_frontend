@@ -14,6 +14,7 @@ import { usePushNotifications } from "@/hooks/usePushNotifications";
 import { tokenUtils } from "@/utils/auth";
 import { useEffect, useState } from "react";
 import { User } from "@/types/user";
+import CookiePopup from "@/components/CookiePopup";
 
 export default function ClientLayout({
   children,
@@ -47,6 +48,7 @@ export default function ClientLayout({
       <main className={isDashboardPage || isUserTypePage ? "pt-20" : ""}>{children}</main>
       {!isDashboardChatPage && <ChatWidget />}
       {isDashboardPage || isUserTypePage ? null : <Footer />}
+      <CookiePopup />
       <ToastContainer position="top-right" autoClose={5000} />
     </AuthProvider>
   );

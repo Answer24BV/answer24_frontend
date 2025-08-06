@@ -389,5 +389,26 @@
                 "Toegewijde klantenondersteuning"
             ]
         }
+    },
+    "COOKIES": {
+        "title": "Cookie Voorkeuren",
+        "description": "We gebruiken cookies om uw ervaring op onze website te verbeteren. U kunt uw voorkeuren hieronder beheren.",
+        "manageSettings": "Cookie Instellingen Beheren",
+        "savePreferences": "Voorkeuren Opslaan",
+        "acceptAll": "Alles Accepteren",
+        "types": {
+            "functional": {
+                "title": "Functionele Cookies",
+                "description": "Essentiële cookies die basisfunctionaliteit van de website mogelijk maken en niet kunnen worden uitgeschakeld."
+            },
+            "analytics": {
+                "title": "Analytische Cookies",
+                "description": "Helpen ons begrijpen hoe bezoekers omgaan met onze website door anonieme informatie te verzamelen."
+            },
+            "marketing": {
+                "title": "Marketing Cookies",
+                "description": "Gebruikt om bezoekers te volgen op websites om relevante en boeiende advertenties weer te geven."
+            }
+        }
     }
 }
