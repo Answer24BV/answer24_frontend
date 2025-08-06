@@ -22,6 +22,7 @@ export default function ClientLayout({
 }) {
   const pathname = usePathname();
   const isDashboardPage = pathname.startsWith("/dashboard");
+  const isUserTypePage = pathname.startsWith("/admin") || pathname.startsWith("/partner") || pathname.startsWith("/client");
   const isDashboardChatPage = pathname === "/dashboard/chat";
   const [user, setUser] = useState<User | null>(null);
 
@@ -41,11 +42,11 @@ export default function ClientLayout({
     <AuthProvider>
       <ServiceWorkerRegistration />
       <TranslationPreloader />
-      {isDashboardPage ? null : <Header />}
+      {isDashboardPage || isUserTypePage ? null : <Header />}
       <PWALoader />
-      <main className={isDashboardPage ? "pt-20" : ""}>{children}</main>
+      <main className={isDashboardPage || isUserTypePage ? "pt-20" : ""}>{children}</main>
       {!isDashboardChatPage && <ChatWidget />}
-      {isDashboardPage ? null : <Footer />}
+      {isDashboardPage || isUserTypePage ? null : <Footer />}
       <ToastContainer position="top-right" autoClose={5000} />
     </AuthProvider>
   );
