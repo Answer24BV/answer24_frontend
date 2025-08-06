@@ -20,101 +20,55 @@ const API_BASE_URL =
 
 /**
  * Fetches notifications for the current user.
+ * MOCK IMPLEMENTATION - Replace with real API when available
  */
 export const getNotifications = async (
   page: number = 1,
   pageSize: number = 10,
   userType?: "admin" | "partner" | "client"
 ): Promise<Notification[]> => {
-  try {
-    const url = userType
-      ? `${API_BASE_URL}/notifications?page=${page}&limit=${pageSize}&userType=${userType}`
-      : `${API_BASE_URL}/notifications?page=${page}&limit=${pageSize}`;
-
-    const response = await fetch(url, {
-      headers: await getAuthHeadersAsync(),
-      cache: "no-store",
-    });
-
-    if (!response.ok) {
-      throw new Error("Failed to fetch notifications.");
-    }
-
-    const result = await response.json();
-
-    // Assuming the API returns a structure like { success: boolean, data: [...] }
-    if (result.success && Array.isArray(result.data)) {
-      return result.data;
-    } else {
-      // Handle cases where the API call is successful but there's no data
-      return [];
-    }
-  } catch (error) {
-    console.error("Error fetching notifications:", error);
-    // Return user-type specific mock data
-    return getMockNotifications(userType);
-  }
+  // Mock API call - simulate network delay
+  await new Promise(resolve => setTimeout(resolve, 300 + Math.random() * 500));
+  
+  console.log(`[MOCK] Fetching notifications for user type: ${userType}, page: ${page}, pageSize: ${pageSize}`);
+  
+  // Return mock data based on user type with pagination
+  return getMockNotifications(userType, page, pageSize);
 };
 
 /**
  * Marks a specific notification as read.
+ * MOCK IMPLEMENTATION - Replace with real API when available
  */
 export const markAsRead = async (
   notificationId: string
 ): Promise<{ success: boolean }> => {
-  try {
-    const response = await fetch(
-      `${API_BASE_URL}/notifications/${notificationId}/mark-as-read`,
-      {
-        method: "PATCH",
-        headers: await getAuthHeadersAsync(),
-      }
-    );
-
-    if (!response.ok) {
-      throw new Error("Failed to mark notification as read.");
-    }
-
-    console.log(`Notification ${notificationId} marked as read.`);
-    return { success: true };
-  } catch (error) {
-    console.error("Error marking notification as read:", error);
-    // Return success for demo purposes
-    return { success: true };
-  }
+  // Mock API call - simulate network delay
+  await new Promise(resolve => setTimeout(resolve, 200));
+  
+  console.log(`[MOCK] Notification ${notificationId} marked as read.`);
+  return { success: true };
 };
 
 /**
  * Marks all unread notifications for the user as read.
+ * MOCK IMPLEMENTATION - Replace with real API when available
  */
 export const markAllAsRead = async (): Promise<{ success: boolean }> => {
-  try {
-    const response = await fetch(
-      `${API_BASE_URL}/notifications/mark-all-read`,
-      {
-        method: "POST",
-        headers: await getAuthHeadersAsync(),
-      }
-    );
-
-    if (!response.ok) {
-      throw new Error("Failed to mark all notifications as read.");
-    }
-
-    console.log("All notifications marked as read.");
-    return { success: true };
-  } catch (error) {
-    console.error("Error marking all notifications as read:", error);
-    // Return success for demo purposes
-    return { success: true };
-  }
+  // Mock API call - simulate network delay
+  await new Promise(resolve => setTimeout(resolve, 400));
+  
+  console.log("[MOCK] All notifications marked as read.");
+  return { success: true };
 };
 
 /**
- * Get mock notifications based on user type
+ * Get mock notifications based on user type with pagination support
  */
 const getMockNotifications = (
-  userType?: "admin" | "partner" | "client"
+  userType?: "admin" | "partner" | "client",
+  page: number = 1,
+  pageSize: number = 10
 ): Notification[] => {
   const baseNotifications = {
     admin: [
@@ -166,12 +120,12 @@ const getMockNotifications = (
       },
       {
         id: "partner-2",
-        message: "Property listing has been approved and is now live.",
+        message: "Service package has been approved and is now active.",
         read: true,
         createdAt: new Date(Date.now() - 86400000).toISOString(),
-        link: "/partner/properties",
+        link: "/partner/services",
         sender: {
-          name: "Property Manager",
+          name: "Service Manager",
           avatar: "/answerLogobgRemover-removebg-preview.png",
         },
       },
@@ -225,5 +179,26 @@ const getMockNotifications = (
     ],
   };
 
-  return baseNotifications[userType || "client"];
+  const notifications = baseNotifications[userType || "client"];
+  
+  // Add more mock notifications for pagination testing
+  const extendedNotifications = [...notifications];
+  
+  // Generate additional mock notifications if needed
+  for (let i = notifications.length; i < pageSize * 3; i++) {
+    const baseNotification = notifications[i % notifications.length];
+    extendedNotifications.push({
+      ...baseNotification,
+      id: `${baseNotification.id}-${i}`,
+      message: `${baseNotification.message} (${i + 1})`,
+      createdAt: new Date(Date.now() - (i * 3600000)).toISOString(), // Spread over hours
+      read: Math.random() > 0.3, // 70% chance of being read
+    });
+  }
+  
+  // Implement pagination
+  const startIndex = (page - 1) * pageSize;
+  const endIndex = startIndex + pageSize;
+  
+  return extendedNotifications.slice(startIndex, endIndex);
 };

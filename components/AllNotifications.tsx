@@ -81,7 +81,7 @@ const AllNotifications: React.FC<AllNotificationsProps> = ({ userType: propUserT
           iconBg: "bg-green-100",
           title: "Partner Notifications",
           subtitle:
-            "Client updates, property alerts, and business notifications",
+            "Client updates, service alerts, and business notifications",
           primaryColor: "green",
         };
       case "client":

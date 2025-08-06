@@ -4,86 +4,108 @@
 import { useEffect, useRef } from 'react';
 import { toast } from 'react-hot-toast';
 
-// Mock push notifications interface for now
-interface MockPushClient {
+// Pusher Beams interface
+interface PusherBeamsClient {
   start: () => Promise<void>;
   addDeviceInterest: (interest: string) => Promise<void>;
   removeDeviceInterest: (interest: string) => Promise<void>;
+  setUserId: (userId: string, beamsAuthProvider: any) => Promise<void>;
 }
 
-class MockPushNotifications {
-  static Client = class {
-    constructor(config: { instanceId: string }) {
-      console.log('Mock Push Notifications initialized with:', config);
-    }
-
-    async start(): Promise<void> {
-      console.log('Mock push notifications started');
-      return Promise.resolve();
-    }
-
-    async addDeviceInterest(interest: string): Promise<void> {
-      console.log('Added device interest:', interest);
-      return Promise.resolve();
-    }
-
-    async removeDeviceInterest(interest: string): Promise<void> {
-      console.log('Removed device interest:', interest);
-      return Promise.resolve();
-    }
-  };
-}
+// Dynamic import for Pusher Beams to avoid SSR issues
+const loadPusherBeams = async () => {
+  try {
+    const PushNotifications = await import('@pusher/push-notifications-web');
+    return PushNotifications.Client;
+  } catch (error) {
+    console.warn('Pusher Beams not available, using fallback:', error);
+    return null;
+  }
+};
 
 export function usePushNotifications(userId?: string) {
-  const beamsClient = useRef<MockPushClient | null>(null);
+  const beamsClient = useRef<PusherBeamsClient | null>(null);
+  const isInitialized = useRef(false);
 
   useEffect(() => {
-    if (!userId) return;
+    if (!userId || isInitialized.current) return;
 
     // Only run in browser
     if (typeof window === 'undefined') return;
 
-    try {
-      // Initialize Mock Beams (replace with real implementation when @pusher/push-notifications-web is installed)
-      beamsClient.current = new MockPushNotifications.Client({
-        instanceId: "1f5da00c-61ac-4bef-8067-08f5ca994e0c",
-      });
-
-      // Start registration
-      const client = beamsClient.current;
-      if (client) {
-        client
-          .start()
-          .then(() => {
-            beamsClient.current?.addDeviceInterest('hello');
-            console.log('Successfully registered and subscribed!');
-            return client.addDeviceInterest(String(userId));
-          })
-          .then(() => {
-            toast.success('Push notifications enabled');
-          })
-          .catch((error) => {
-            console.error('Push notification error:', error);
-            toast.error('Failed to enable push notifications');
-          });
-      }
-
-      // Request browser notification permission
-      if ('Notification' in window && Notification.permission !== 'granted') {
-        Notification.requestPermission().then((permission) => {
-          if (permission === 'granted') {
-            console.log('Notification permission granted');
+    const initializePusherBeams = async () => {
+      try {
+        // Register service worker for push notifications
+        if ('serviceWorker' in navigator) {
+          try {
+            const registration = await navigator.serviceWorker.register('/sw.js');
+            console.log('Service Worker registered:', registration);
+          } catch (error) {
+            console.error('Service Worker registration failed:', error);
           }
+        }
+
+        // Request browser notification permission first
+        if ('Notification' in window && Notification.permission !== 'granted') {
+          const permission = await Notification.requestPermission();
+          if (permission !== 'granted') {
+            console.log('Notification permission denied');
+            return;
+          }
+        }
+
+        // Load Pusher Beams dynamically
+        const PusherBeamsClient = await loadPusherBeams();
+        
+        if (!PusherBeamsClient) {
+          console.log('Pusher Beams not available, using browser notifications only');
+          return;
+        }
+
+        // Initialize Pusher Beams client
+        beamsClient.current = new PusherBeamsClient({
+          instanceId: "1f5da00c-61ac-4bef-8067-08f5ca994e0c",
         });
+
+        const client = beamsClient.current;
+        if (client) {
+          // Start Beams registration
+          await client.start();
+          console.log('Pusher Beams started successfully');
+
+          // Add device interests
+          await client.addDeviceInterest('global'); // Global notifications
+          await client.addDeviceInterest(`user-${userId}`); // User-specific notifications
+          
+          // Add user type specific interests
+          const user = JSON.parse(localStorage.getItem('user_data') || '{}');
+          const userType = user?.role?.name || 'client';
+          await client.addDeviceInterest(`${userType}-notifications`);
+          
+          console.log(`Successfully subscribed to notifications for user ${userId} (${userType})`);
+          toast.success('Push notifications enabled');
+          
+          isInitialized.current = true;
+        }
+      } catch (error) {
+        console.error('Push notification initialization error:', error);
+        toast.error('Failed to enable push notifications');
       }
-    } catch (error) {
-      console.error('Push notifications initialization error:', error);
-    }
+    };
+
+    initializePusherBeams();
 
     return () => {
-      // Optionally, remove interest on unmount
-      if (beamsClient.current) {
-        beamsClient.current.removeDeviceInterest(String(userId));
+      // Cleanup on unmount
+      if (beamsClient.current && isInitialized.current) {
+        try {
+          beamsClient.current.removeDeviceInterest(`user-${userId}`);
+          const user = JSON.parse(localStorage.getItem('user_data') || '{}');
+          const userType = user?.role?.name || 'client';
+          beamsClient.current.removeDeviceInterest(`${userType}-notifications`);
+        } catch (error) {
+          console.error('Error cleaning up push notifications:', error);
+        }
       }
     };
   }, [userId]);

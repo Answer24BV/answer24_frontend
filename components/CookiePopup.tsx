@@ -111,7 +111,6 @@ export default function CookiePopup() {
                     desc: t("types.analytics.description"),
                     required: false,
                   },
-                  
                 ].map(({ key, label, desc, required }) => (
                   <motion.div
                     key={key}
