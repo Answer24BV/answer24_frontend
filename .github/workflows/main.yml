@@ -3,10 +3,10 @@ name: 🚀 Deploy Answer24
 on:
   push:
     branches:
-      - main
+      - new
   pull_request:
     branches:
-      - main
+      - new
 
 jobs:
   deploy:
