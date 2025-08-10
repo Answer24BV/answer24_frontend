@@ -5,7 +5,24 @@
     "footer_copyright": "© {year} Answer24. All rights reserved.",
     "footer_about": "About",
     "footer_contact": "Contact",
-    "footer_privacy_policy": "Privacy Policy"
+    "footer_privacy_policy": "Privacy Policy",
+    "footer": {
+      "tagline": "Your trusted partner for innovative solutions and exceptional service.",
+      "quick_links": "Quick Links",
+      "about": "About Us",
+      "pricing": "Pricing",
+      "faq": "FAQ",
+      "contact": "Contact Us",
+      "legal": "Legal",
+      "no_pages": "No legal pages available",
+      "all_rights": "All rights reserved."
+    }
+  },
+  "NotificationBanner": {
+    "title": "Stay updated with Answer24 notifications",
+    "subtitle": "Get instant alerts for important updates and messages",
+    "enable": "Enable",
+    "requesting": "Requesting..."
   },
   "HeroSection": {
     "hero_badge": "AI-Powered Google Ads Optimization",
@@ -16,6 +33,23 @@
     "hero_image_alt": "Hero Image",
     "hero_floating_text": "Hi, I'm Ans and I answer 24/7 for your best marketing strategy!"
   },
+ 
+  "DownloadApp": {
+    "section_title": "Answer24 Mobile Apps",
+    "section_subtitle": "Download our mobile apps to stay connected with your favorite services.",
+    "appstore_alt": "Download on App Store",
+    "googleplay_alt": "Get it on Google Play",
+    "modal_title": "Install This App",
+    "modal_subtitle": "For faster access, install this app on your device.",
+    "already_installed": "App is already installed.",
+    "uninstall_first": "To install again, please uninstall the app first.",
+    "manual_add": "You can also add this app to your home screen manually from your browser menu.",
+    "install_button": "Install",
+    "later_button": "Later",
+    "not_available_localhost": "Install prompt not available on localhost. Please test on a real device or deploy the app.",
+    "not_available_other": "Install prompt not available. Try refreshing or use your browser's Add to Home Screen option. (DEBUG: deferredPrompt was null)"
+  },
+
   "FeatureSection": {
     "section_title": "Powerful Features",
     "heading": {

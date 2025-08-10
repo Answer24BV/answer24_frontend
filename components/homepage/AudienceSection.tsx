@@ -129,7 +129,7 @@ export function AudienceSection() {
             {t('section_title')}
           </div>
           <h2 className="text-4xl lg:text-6xl font-bold text-gray-900 mb-6">
-            {t('heading.line1')}
+            {t('heading.line1')}  {" "}
             <span className="bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">
               {t('heading.line2')}
             </span>

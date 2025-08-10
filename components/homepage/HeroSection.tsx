@@ -29,7 +29,7 @@ export function HeroSection() {
             className="inline-flex items-center gap-2 bg-blue-50 text-blue-700 px-4 py-2 rounded-full text-sm font-medium mb-6 border border-blue-200"
           >
             <Sparkles className="w-4 h-4" />
-            AI-Powered Google Ads Optimization
+            {t('hero_badge')}
           </motion.div>
 
           <motion.h1
@@ -38,9 +38,9 @@ export function HeroSection() {
             transition={{ duration: 0.6, delay: 0.1 }}
             className="text-3xl lg:text-5xl font-bold text-gray-900 mb-6 leading-tight"
           >
-            Maak kennis met ANS jouw slimme
+            {t('hero_title_1')}
             <span className="bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent block">
-              AI Google Ads manager
+              {t('hero_title_2')}
             </span>
           </motion.h1>
           <motion.div
@@ -54,7 +54,7 @@ export function HeroSection() {
                 size="lg"
                 className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 text-lg rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
               >
-                Start Free Trial
+                {t('hero_button_1')}
                 <ArrowRight className="ml-2 w-5 h-5" />
               </Button>
             </motion.div>
@@ -65,7 +65,7 @@ export function HeroSection() {
                 className="px-8 py-4 text-lg rounded-xl border-gray-300 hover:border-blue-300 hover:bg-blue-50 transition-all duration-200 bg-transparent"
               >
                 <Play className="mr-2 w-5 h-5" />
-                Watch Demo
+                {t('hero_button_2')}
               </Button>
             </motion.div>
           </motion.div>

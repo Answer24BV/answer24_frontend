@@ -5,7 +5,24 @@
         "footer_copyright": "© {year} Answer24. Alle rechten voorbehouden.",
         "footer_about": "Over ons",
         "footer_contact": "Contact",
-        "footer_privacy_policy": "Privacybeleid"
+                "footer_privacy_policy": "Privacybeleid",
+                "footer": {
+                    "tagline": "Jouw betrouwbare partner voor innovatieve oplossingen en uitstekende service.",
+                    "quick_links": "Snelle links",
+                    "about": "Over ons",
+                    "pricing": "Prijzen",
+                    "faq": "Veelgestelde Vragen",
+                    "contact": "Contact",
+                    "legal": "Juridisch",
+                    "no_pages": "Geen juridische pagina's beschikbaar",
+                    "all_rights": "Alle rechten voorbehouden."
+                }
+    },
+    "NotificationBanner": {
+        "title": "Blijf op de hoogte met Answer24-meldingen",
+        "subtitle": "Ontvang direct meldingen voor belangrijke updates en berichten",
+        "enable": "Inschakelen",
+        "requesting": "Bezig met aanvragen..."
     },
     "HeroSection": {
         "hero_badge": "AI-aangedreven Google Ads-optimalisatie",
@@ -16,7 +33,24 @@
         "hero_image_alt": "Hero-afbeelding",
         "hero_floating_text": "Hoi, ik ben Ans en ik beantwoord 24/7 voor jouw beste marketingstrategie!"
     },
-    "FeatureSection": {
+       
+        "DownloadApp": {
+            "section_title": "Answer24 Mobiele Apps",
+            "section_subtitle": "Download onze mobiele apps om verbonden te blijven met je favoriete diensten.",
+            "appstore_alt": "Download in de App Store",
+            "googleplay_alt": "Download op Google Play",
+            "modal_title": "Installeer deze app",
+            "modal_subtitle": "Voor snellere toegang, installeer deze app op je apparaat.",
+            "already_installed": "App is al geïnstalleerd.",
+            "uninstall_first": "Om opnieuw te installeren, verwijder eerst de app.",
+            "manual_add": "Je kunt deze app ook handmatig aan je startscherm toevoegen via het browsermenu.",
+            "install_button": "Installeren",
+            "later_button": "Later",
+            "not_available_localhost": "Installatieprompt niet beschikbaar op localhost. Test op een echt apparaat of publiceer de app.",
+            "not_available_other": "Installatieprompt niet beschikbaar. Probeer te verversen of gebruik de optie 'Toevoegen aan startscherm' van je browser. (DEBUG: deferredPrompt was null)"
+    
+        },
+        "FeatureSection": {
         "section_title": "Krachtige functies",
         "heading": {
             "line1": "Alles wat je nodig hebt om",
@@ -162,7 +196,7 @@
       "chat": "Chat",
       "wallet": "Portemonnee",
       "plans": "Abonnementen",
-      "blog": "Blog",
+      "blog": "Bloggen",
       "faq": "Veelgestelde Vragen",
       "pricing": "Prijzen",
       "about": "Over Ons",

@@ -9,11 +9,13 @@ import { Blog } from '@/types/blog.d';
 import BlogSkeleton from './BlogSkeleton';
 import BLOGIMAGEPLACEHOLDER from "@/public/image.png"
 import { getAllBlogs } from '@/app/[locale]/actions/blog';
+import { useTranslations as useDynamicTranslations } from '@/hooks/useTranslations';
 
 const BlogComponent = () => {
   const [blogs, setBlogs] = useState<Blog[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { t } = useDynamicTranslations();
 
   useEffect(() => {
     const fetchBlogs = async () => {
@@ -42,17 +44,17 @@ const BlogComponent = () => {
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto text-center mt-10">
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-6 bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/70">
-              The Blog
+              {t('blog.title', 'The Blog')}
             </h1>
             <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-              Insights, stories, and updates from our team
+              {t('blog.subtitle', 'Insights, stories, and updates from our team')}
             </p>
             
             <div className="relative max-w-xl mx-auto">
               <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
               <Input
                 type="text"
-                placeholder="Search articles..."
+                placeholder={t('blog.search_placeholder', 'Search articles...')}
                 className="pl-12 pr-6 py-5 text-base rounded-full border-0 shadow-sm focus-visible:ring-2 focus-visible:ring-primary/50"
               />
             </div>
@@ -96,7 +98,7 @@ const BlogComponent = () => {
                     </p>
                     <div className="mt-auto pt-4 flex items-center">
                       <Button variant="ghost" size="sm" className="ml-auto text-primary">
-                        Read more
+                        {t('blog.read_more', 'Read more')}
                         <ArrowRight className="ml-1 h-4 w-4" />
                       </Button>
                     </div>
@@ -138,7 +140,7 @@ const BlogComponent = () => {
         {/* More Articles */}
         {otherPosts.length > 2 && (
           <div className="mb-16">
-            <h2 className="text-2xl font-bold mb-6">More Articles</h2>
+            <h2 className="text-2xl font-bold mb-6">{t('blog.more_articles', 'More Articles')}</h2>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
               {otherPosts.slice(2).map((post) => (
                 <div key={post.id} className="group">
@@ -170,17 +172,17 @@ const BlogComponent = () => {
         {/* Newsletter */}
         <div className="bg-gradient-to-r from-primary/5 to-primary/10 rounded-2xl p-8 text-center">
           <BookOpen className="h-10 w-10 mx-auto mb-4 text-primary" />
-          <h2 className="text-2xl font-bold mb-2">Stay in the loop</h2>
+          <h2 className="text-2xl font-bold mb-2">{t('blog.newsletter_title', 'Stay in the loop')}</h2>
           <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-            Get the latest articles and resources sent straight to your inbox.
+            {t('blog.newsletter_subtitle', 'Get the latest articles and resources sent straight to your inbox.')}
           </p>
           <div className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
             <Input
               type="email"
-              placeholder="Your email address"
+              placeholder={t('blog.email_placeholder', 'Your email address')}
               className="bg-background"
             />
-            <Button>Subscribe</Button>
+            <Button>{t('blog.subscribe', 'Subscribe')}</Button>
           </div>
         </div>
       </div>

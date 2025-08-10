@@ -1,17 +1,21 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
+// import { useTranslations } from '@/hooks/useTranslations';
 import { Button } from '@/components/ui/button';
 import { Bell, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-hot-toast';
+import { useTranslations } from "next-intl"
+
 
 export const NotificationBanner: React.FC = () => {
+  const  t  = useTranslations();
   const [showBanner, setShowBanner] = useState(false);
   const [isRequesting, setIsRequesting] = useState(false);
   
   // Temporary: Force show for testing (remove this later)
-  const FORCE_SHOW_FOR_TESTING = true;
+  // const FORCE_SHOW_FOR_TESTING = true;
 
   useEffect(() => {
     const shouldShow = () => {
@@ -36,7 +40,7 @@ export const NotificationBanner: React.FC = () => {
       return true;
     };
 
-    if (shouldShow() || FORCE_SHOW_FOR_TESTING) {
+    if (shouldShow() ) {
       console.log('⏰ Setting timer to show banner in 2 seconds');
       const timer = setTimeout(() => {
         console.log('🔔 Showing notification banner');
@@ -90,10 +94,10 @@ export const NotificationBanner: React.FC = () => {
                 <Bell className="w-5 h-5 flex-shrink-0" />
                 <div className="flex-1">
                   <p className="text-sm font-medium">
-                    Stay updated with Answer24 notifications
+                    {t('NotificationBanner.title')}
                   </p>
                   <p className="text-xs text-blue-100">
-                    Get instant alerts for important updates and messages
+                    {t('NotificationBanner.subtitle')}
                   </p>
                 </div>
               </div>
@@ -106,7 +110,7 @@ export const NotificationBanner: React.FC = () => {
                   disabled={isRequesting}
                   className="text-white cursor-pointer hover:bg-white/20 text-sm px-4 py-1.5 h-auto"
                 >
-                  {isRequesting ? 'Requesting...' : 'Enable'}
+                  {isRequesting ? t('NotificationBanner.requesting') : t('NotificationBanner.enable')}
                 </Button>
                 <Button
                   variant="ghost"
