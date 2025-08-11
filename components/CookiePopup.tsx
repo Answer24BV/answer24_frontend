@@ -14,8 +14,9 @@ export default function CookiePopup() {
   });
 
   useEffect(() => {
-    const stored = localStorage.getItem("cookie-consent");
-    if (!stored) setShow(true);
+    // Check for cookie_consent cookie
+    const consent = document.cookie.split('; ').find(row => row.startsWith('cookie_consent='));
+    if (!consent) setShow(true);
   }, []);
 
   useEffect(() => {
@@ -26,13 +27,14 @@ export default function CookiePopup() {
   }, [show]);
 
   const savePreferences = () => {
-    localStorage.setItem("cookie-consent", JSON.stringify(settings));
+    // Only set cookie if analytics is enabled (or you can always set it if you want to remember preferences)
+    document.cookie = `cookie_consent=${encodeURIComponent(JSON.stringify(settings))}; path=/; max-age=31536000`;
     setShow(false);
   };
 
   const acceptAll = () => {
     const all = { functional: true, analytics: true };
-    localStorage.setItem("cookie-consent", JSON.stringify(all));
+    document.cookie = `cookie_consent=${encodeURIComponent(JSON.stringify(all))}; path=/; max-age=31536000`;
     setShow(false);
   };
 

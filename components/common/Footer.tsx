@@ -3,7 +3,6 @@
 
 import Image from "next/image";
 import { useTranslations } from "next-intl";
-import { useTranslations as useDynamicTranslations } from "@/hooks/useTranslations";
 import { useState, useEffect } from "react";
 import { useLocale } from "next-intl";
 import { legalPagesService, LegalPage } from "@/lib/legalPages";
@@ -13,7 +12,6 @@ import { Link } from "@/i18n/navigation";
 
 const Footer = () => {
   const t = useTranslations("common");
-  const { t: dynamicT } = useDynamicTranslations();
   const locale = useLocale();
   const [legalPages, setLegalPages] = useState<LegalPage[]>([]);
 
@@ -48,7 +46,7 @@ const Footer = () => {
               />
             </Link>
             <p className="text-gray-600 text-sm leading-relaxed">
-              {dynamicT('footer.tagline', 'Your trusted partner for innovative solutions and exceptional service.')}
+              {t('footer.tagline')}
             </p>
             <div className="flex space-x-4">
               <a href="#" className="text-gray-400 hover:text-blue-600 transition-colors">
@@ -69,12 +67,12 @@ const Footer = () => {
           {/* Quick Links */}
           <div>
             <h3 className="text-gray-800 font-semibold mb-6 text-lg">
-              {dynamicT('footer.quick_links', 'Quick Links')}
+              {t('footer.quick_links')}
             </h3>
             <ul className="space-y-3">
               <li>
                 <Link href="/about" className="text-gray-600 hover:text-blue-600 transition-colors text-sm">
-                  {dynamicT('footer.about', 'About Us')}
+                  {t('footer.about')}
                 </Link>
               </li>
               {/* <li>
@@ -84,17 +82,17 @@ const Footer = () => {
               </li> */}
               <li>
                 <Link href="/pricing" className="text-gray-600 hover:text-blue-600 transition-colors text-sm">
-                  {dynamicT('footer.pricing', 'Pricing')}
+                  {t('footer.pricing')}
                 </Link>
               </li>
               <li>
                 <Link href="/faq" className="text-gray-600 hover:text-blue-600 transition-colors text-sm">
-                  {dynamicT('footer.faq', 'FAQ')}
+                  {t('footer.faq')}
                 </Link>
               </li>
               <li>
                 <Link href="/contact" className="text-gray-600 hover:text-blue-600 transition-colors text-sm">
-                  {t('footer_contact') || 'Contact Us'}
+                  {t('footer.contact')}
                 </Link>
               </li>
             </ul>
@@ -103,7 +101,7 @@ const Footer = () => {
           {/* Legal Pages */}
           <div>
             <h3 className="text-gray-800 font-semibold mb-6 text-lg">
-              {dynamicT('footer.legal', 'Legal')}
+              {t('footer.legal')}
             </h3>
             <ul className="space-y-3">
               {legalPages.length > 0 ? (
@@ -119,7 +117,7 @@ const Footer = () => {
                 ))
               ) : (
                 <li className="text-gray-400 text-sm">
-                  {dynamicT('footer.no_pages', 'No legal pages available')}
+                  {t('footer.no_pages')}
                 </li>
               )}
             </ul>
@@ -128,7 +126,7 @@ const Footer = () => {
           {/* Contact Info */}
           <div>
             <h3 className="text-gray-800 font-semibold mb-6 text-lg">
-              {dynamicT('footer.contact', 'Contact Us')}
+              {t('footer.contact')}
             </h3>
             <address className="not-italic space-y-3">
               <p className="text-gray-600 text-sm">
@@ -154,7 +152,7 @@ const Footer = () => {
         {/* Copyright and Bottom Bar */}
         <div className="border-t border-gray-100 mt-12 pt-6 flex flex-col md:flex-row justify-between items-center">
           <p className="text-gray-500 text-sm">
-            &copy; {currentYear} Answer24. {dynamicT('footer.all_rights', 'All rights reserved.')}
+            &copy; {currentYear} Answer24. {t('footer.all_rights')}
           </p>
         </div>
       </div>

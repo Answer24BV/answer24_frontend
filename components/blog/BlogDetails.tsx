@@ -76,25 +76,7 @@ const BlogDetails = ({
         <div dangerouslySetInnerHTML={{ __html: post.content }} />
       </div>
 
-      {/* Comments Section */}
-      <div className="mb-12">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold">Comments</h2>
-          <Button variant="outline" size="sm">
-            <MessageSquare className="h-4 w-4 mr-2" />
-            Leave a comment
-          </Button>
-        </div>
-        
-        <div className="space-y-6">
-          {/* Comment form would go here */}
-          <div className="p-6 border rounded-lg">
-            <p className="text-muted-foreground text-center py-8">
-              Comments will be displayed here once the API is integrated.
-            </p>
-          </div>
-        </div>
-      </div>
+ 
 
       {/* Related Posts */}
       {relatedPosts.length > 0 && (
