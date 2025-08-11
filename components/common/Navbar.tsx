@@ -26,6 +26,7 @@ export function Navbar() {
   const navItems = [
     { name: t("blog"), href: "/blog" },
     { name: t("faq"), href: "/faq" },
+    { name: t("webshop"), href: "/webshop" },
     { name: t("pricing"), href: "/pricing" },
     { name: t("about"), href: "/about" },
     { name: t("contact"), href: "/contact" },

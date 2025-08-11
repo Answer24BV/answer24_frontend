@@ -1,5 +1,6 @@
 'use client';
 import React, { useState } from 'react';
+import { Navbar } from '@/components/common/Navbar';
 import { Search, Star, TrendingUp, Gift, Users, Shield, ChevronRight, Filter } from 'lucide-react';
 import { Link } from '@/i18n/navigation';
 import { useRouter } from 'next/navigation';
@@ -91,34 +92,10 @@ const CashbackHomepage = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 -mt-20">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center space-x-8">
-              <div className="flex items-center space-x-2">
-                <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-                  <Gift className="w-5 h-5 text-white" />
-                </div>
-                <span className="text-xl font-bold text-gray-900">CashFlow</span>
-              </div>
-              <nav className="hidden md:flex space-x-8">
-                <a href="#" className="text-gray-700 hover:text-blue-600 font-medium">Home</a>
-                <a href="#all-stores" className="text-gray-700 hover:text-blue-600 font-medium">Webshops</a>
-              </nav>
-            </div>
-            <div className="flex items-center space-x-4">
-              <button onClick={() => router.push('/nl/login')} className="text-gray-700 hover:text-blue-600 font-medium">Login</button>
-              <button onClick={() => router.push('/nl/signup')} className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-2 rounded-lg font-medium hover:from-blue-600 hover:to-purple-700 transition-all">
-                Sign Up
-              </button>
-            </div>
-          </div>
-        </div>
-      </header>
+  <Navbar />
 
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-blue-50 via-white to-purple-50 pt-16 pb-20">
+      <section className="bg-gradient-to-br from-blue-50 via-white to-purple-50 pt-26 pb-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-4xl mx-auto">
             <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6 leading-tight">
