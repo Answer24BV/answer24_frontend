@@ -86,6 +86,30 @@
       }
     ]
   },
+"DashboardNavigation": {
+    "dashboard": "Dashboard",
+    "messages": "Messages",
+    "email": "Email",
+    "chat": "Chat",
+    "wallet": "Wallet",
+    "plans": "Plans",
+    "admin": {
+      "title": "Admin",
+      "planManagement": "Plan Management",
+      "userManagement": "User Management",
+      "avatarManagement": "Avatar Management",
+      "blogManagement": "Blog Management",
+      "faqManagement": "FAQ Management",
+      "settings": "Settings",
+      "translationManagement": "Translation Management",
+      "legalPageManagement": "Legal Page Management",
+      "aboutPage": "About Page"
+    },
+    "userMenu": {
+      "profile": "Profile",
+      "logOut": "Log Out"
+    }
+  },
   "AudienceSection": {
     "section_title": "Who We Serve",
     "heading": {
@@ -352,6 +376,10 @@
     }
   },
   "Navigation": {
+    "dashboard": "Dashboard",
+    "messages": "Messages",
+    "email": "Email",
+    "notifications": "Notifications",
     "account": "Account",
     "chat": "Chat",
     "wallet": "Wallet",
@@ -369,8 +397,16 @@
       "logOut": "Log out"
     },
     "admin": {
+      "title": "Admin",
       "planManagement": "Plan Management",
-      "userManagement": "User Management"
+      "userManagement": "User Management",
+      "avatarManagement": "Avatar Management",
+      "blogManagement": "Blog Management", 
+      "faqManagement": "FAQ Management",
+      "settings": "Settings",
+      "translationManagement": "Translation Management",
+      "legalPageManagement": "Legal Page Management",
+      "aboutPage": "About Page"
     }
   },
   "WalletPage": {

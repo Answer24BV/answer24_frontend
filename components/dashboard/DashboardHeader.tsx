@@ -49,7 +49,7 @@ export function DashboardHeader() {
   const [isScrolled, setIsScrolled] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [user, setUser] = useState<User | null>(null)
-  const t = useTranslations("Navigation")
+  const t = useTranslations("DashboardNavigation")
   const currentPath = usePathname()
 
   console.log("the user is", user)
@@ -90,44 +90,26 @@ export function DashboardHeader() {
   // Create navItems dynamically based on current user state
   const getNavItems = (): NavItem[] => [
     {
-      title: "Dashboard",
+      title: t("dashboard"),
       href: "/dashboard",
       icon: LayoutDashboard,
       roles: ["client", "partner", "admin"],
     },
     {
-      title: "Messages",
+      title: t("messages"),
       href: "/dashboard/chat",
       icon: MessageSquare,
       roles: ["client", "partner", "admin"],
       badge: 3,
     },
     {
-      title: "Finance",
-      href: "/dashboard/wallet",
-      icon: Wallet,
-      roles: ["client", "partner", "admin"],
-    },
-    {
-      title: "Notifications",
-      href: `/${user?.role?.name || 'client'}/notifications`,
-      icon: Bell,
-      roles: ["client", "partner", "admin"],
-    },
-    {
-      title: t("plans"),
-      href: "/dashboard/plans",
-      icon: CreditCard,
-      roles: ["client", "partner"],
-    },
-    {
-      title: "Email",
+      title: t("email"),
       href: "/dashboard/email",
       icon: Mail,
       roles: ["client", "partner", "admin"],
     },
     {
-      title: "Admin",
+      title: t("admin.title"),
       icon: UserCog,
       href: "#",
       roles: ["admin"],
@@ -143,37 +125,37 @@ export function DashboardHeader() {
           icon: UsersIcon,
         },
         {
-          title: "Avatar management",
+          title: t("admin.avatarManagement"),
           href: "/dashboard/admin/avatar",
           icon: UsersIcon,
         },
         {
-          title: "Blog Management",
+          title: t("admin.blogManagement"),
           href: "/dashboard/admin/blog",
           icon: Newspaper,
         },
         {
-          title: "FAQ Management",
+          title: t("admin.faqManagement"),
           href: "/dashboard/admin/faq",
           icon: HelpCircle,
         },
         {
-          title: "Settings",
+          title: t("admin.settings"),
           href: "/dashboard/account",
           icon: Settings,
         },
         {
-          title: "Translation Management",
+          title: t("admin.translationManagement"),
           href: "/dashboard/admin/translations",
           icon: Languages,
         },
         {
-          title: "Legal Page Management",
+          title: t("admin.legalPageManagement"),
           href: "/dashboard/admin/legal-pages",
           icon: FileText,
         },
         {
-          title: "About Page",
+          title: t("admin.aboutPage"),
           href: "/dashboard/admin/about-page",
           icon: FileText,
         },
@@ -314,26 +296,38 @@ export function DashboardHeader() {
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem>
-                  <Link href="/dashboard/account" className="flex  items-center">
+                  <Link href="/dashboard/account" className="flex items-center">
                     <UserIcon className="mr-2 h-4 w-4" />
                     <span>{t("userMenu.profile")}</span>
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem>
-                  <Link href="/dashboard/chat" className="flex  items-center">
+                  <Link href="/dashboard/chat" className="flex items-center">
                     <MessageCircle className="mr-2 h-4 w-4" />
                     <span>{t("chat")}</span>
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem>
-                  <Link
-                    href="/dashboard/wallet"
-                    className="flex  items-center"
-                  >
+                  <Link href="/dashboard/wallet" className="flex items-center">
                     <Wallet className="mr-2 h-4 w-4" />
                     <span>{t("wallet")}</span>
                   </Link>
                 </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <Link href="/dashboard/finance" className="flex items-center">
+                    <Wallet className="mr-2 h-4 w-4" />
+                    <span>Finance</span>
+                  </Link>
+                </DropdownMenuItem>
+                {/* Show Plans for non-admin users */}
+                {user?.role?.name !== "admin" && (
+                  <DropdownMenuItem>
+                    <Link href="/dashboard/plans" className="flex items-center">
+                      <CreditCard className="mr-2 h-4 w-4" />
+                      <span>{t("plans")}</span>
+                    </Link>
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleLogout}>
                   <LogOut className="mr-2 h-4 w-4" />
