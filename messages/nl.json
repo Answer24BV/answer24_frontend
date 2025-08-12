@@ -191,6 +191,32 @@
         "noTips": "Geen optimalisatietips beschikbaar"
       }
     },
+
+    "DashboardNavigation": {
+    "dashboard": "Dashboard",
+    "messages": "Berichten",
+    "email": "E-mail",
+    "chat": "Chat",
+    "wallet": "Portemonnee",
+    "plans": "Abonnementen",
+    "admin": {
+      "title": "Beheer",
+      "planManagement": "Abonnementenbeheer",
+      "userManagement": "Gebruikersbeheer",
+      "avatarManagement": "Avatar Beheer",
+      "blogManagement": "Blog Beheer",
+      "faqManagement": "FAQ Beheer",
+      "settings": "Instellingen",
+      "translationManagement": "Vertaalmanagement",
+      "legalPageManagement": "Juridische Pagina Beheer",
+      "aboutPage": "Over Ons Pagina"
+    },
+    "userMenu": {
+      "profile": "Profiel",
+      "logOut": "Uitloggen"
+    }
+  },    
+
     "Navigation": {
       "account": "Account",
       "chat": "Chat",
