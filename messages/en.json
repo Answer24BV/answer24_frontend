@@ -26,8 +26,10 @@
   },
   "HeroSection": {
     "hero_badge": "AI-Powered Google Ads Optimization",
-    "hero_title_1": "Meet ANS, your smart",
-    "hero_title_2": "AI Google Ads manager",
+    "hero_title_1": "24/7 AI-marketing & Klantloyaliteit",
+    "hero_title_2": "No Cure, No Pay",
+    "hero_cta_1": "Sign up",
+    "hero_cta_2": "Partners",
     "hero_button_1": "Start Free Trial",
     "hero_button_2": "Watch Demo",
     "hero_image_alt": "Hero Image",
@@ -53,11 +55,11 @@
   "FeatureSection": {
     "section_title": "Powerful Features",
     "heading": {
-      "line1": "Everything you need to",
-      "line2": "dominate Google Ads"
+      "line1": "More Revenue",
+      "line2": "Stronger Customer Loyalty!"
     },
-    "subheading": "Powerful AI-driven features designed to optimize every aspect of your Google Ads campaigns",
-    "learn_more": "Learn more",
+    "subheading": "Ans from Answer24 optimizes Google & Meta Ads 24/7, wins back customers with A Points and answers all questions via AI chat. You only pay 10% on results.",
+    "learn_more": "More information",
     "show_less": "Show less",
     "features": [
       {
@@ -66,19 +68,19 @@
       },
       {
         "title": "Campaign Auditor",
-        "description": "Comprehensive audits that identify budget waste, low-quality keywords, and missed opportunities."
+        "description": "Comprehensive audits that identify budget waste, poor keywords, and missed opportunities."
       },
       {
         "title": "Competitor Tracking",
-        "description": "Monitor competitor ads, track changes, and gain insights into their performance strategies."
+        "description": "Track competitor ads, monitor changes, and gain insights into their performance strategies."
       },
       {
-        "title": "White-Label Reporting",
-        "description": "Custom-branded reports and downloadable PDFs perfect for agencies and client presentations."
+        "title": "White-Label Reports",
+        "description": "Custom-made reports and downloadable PDFs, perfect for agencies and client presentations."
       },
       {
         "title": "AI Optimization Tips",
-        "description": "Daily AI-generated recommendations for bid changes, keyword pausing, and performance improvements."
+        "description": "Daily AI-generated recommendations for bid adjustments, keyword pausing, and performance improvements."
       },
       {
         "title": "Smart Alerts",
@@ -96,30 +98,30 @@
     "learn_more": "Learn more",
     "audiences": [
       {
-        "title": "Small & Medium Businesses",
-        "description": "Perfect for SMBs running their own Google Ads campaigns who want to maximize ROI without hiring expensive agencies.",
+        "title": "Savers",
+        "description": "For everyone who wants more benefits with every purchase. With Answer24, you automatically earn A Points at thousands of webshops and redeem them for discounts or free products.",
         "benefits": [
-          "Reduce ad spend waste",
-          "Improve campaign performance",
-          "Save time on optimization"
+          "Earn points with every order",
+          "Receive extra A Points through smart triggers",
+          "Always insight into balance and promotions"
         ]
       },
       {
-        "title": "Marketing Agencies",
-        "description": "Ideal for agencies managing multiple client accounts with white-label reporting and advanced automation features.",
+        "title": "Webshops",
+        "description": "For entrepreneurs who want more revenue and customer retention, without extra risk. Ans optimizes your ads, uses A Points to win back customers and answers questions via AI chat.",
         "benefits": [
-          "Scale client management",
-          "Professional reporting",
-          "Increase profit margins"
+          "Win back abandoned shopping carts",
+          "Optimize Google & Meta Ads 24/7",
+          "No Cure – No Pay: only 10% on results"
         ]
       },
       {
-        "title": "Freelance Marketers",
-        "description": "Built for independent marketers who need powerful automation tools to compete with larger agencies.",
+        "title": "Partners",
+        "description": "For organizations that want to earn by offering Answer24 to their network. Benefit from attractive commissions and support.",
         "benefits": [
-          "Automate routine tasks",
-          "Deliver better results",
-          "Handle more clients"
+          "Earn with every customer transaction",
+          "White-label possibilities",
+          "Full marketing and sales support"
         ]
       }
     ]
@@ -363,6 +365,7 @@
     "about": "About",
     "contact": "Contact",
     "signIn": "Sign In",
+    "signUp": "Sign Up",
     "startFreeTrial": "Start Free Trial",
     "userMenu": {
       "profile": "Profile",

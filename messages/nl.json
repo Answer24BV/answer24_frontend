@@ -26,8 +26,10 @@
     },
     "HeroSection": {
         "hero_badge": "AI-aangedreven Google Ads-optimalisatie",
-        "hero_title_1": "Maak kennis met ANS, jouw slimme",
-        "hero_title_2": "AI Google Ads-manager",
+        "hero_title_1": "24/7 AI-marketing & Klantloyaliteit",
+        "hero_title_2": "No Cure, No Pay",
+        "hero_cta_1": "Aanmelden",
+        "hero_cta_2": "Deelnemers",
         "hero_button_1": "Start gratis proefperiode",
         "hero_button_2": "Bekijk demo",
         "hero_image_alt": "Hero-afbeelding",
@@ -53,10 +55,10 @@
         "FeatureSection": {
         "section_title": "Krachtige functies",
         "heading": {
-            "line1": "Alles wat je nodig hebt om",
-            "line2": "te domineren in Google Ads"
+            "line1": "Meer omzet",
+            "line2": "Sterkere klantbinding!"
         },
-        "subheading": "Krachtige AI-gestuurde functies ontworpen om elk aspect van je Google Ads-campagnes te optimaliseren",
+        "subheading": "Ans van Answer24 optimaliseert 24/7 Google & Meta Ads, wint klanten terug met A Points en beantwoordt alle vragen via AI-chat. Je betaalt alleen 10% bij resultaat.",
         "learn_more": "Meer informatie",
         "show_less": "Toon minder",
         "features": [
@@ -97,30 +99,30 @@
         "learn_more": "Meer informatie",
         "audiences": [
             {
-                "title": "Kleine en middelgrote bedrijven",
-                "description": "Perfect voor MKB'ers die hun eigen Google Ads-campagnes beheren en hun ROI willen maximaliseren zonder dure bureaus in te huren.",
+                "title": "Spaarders",
+                "description": "Voor iedereen die meer voordeel wil bij elke aankoop. Met Answer24 spaar je automatisch A Points bij duizenden webshops en ruil je ze in voor kortingen of gratis producten.",
                 "benefits": [
-                    "Verminder verspilling van advertentiebudget",
-                    "Verbeter de prestaties van campagnes",
-                    "Bespaar tijd op optimalisatie"
+                    "Verdien punten bij elke bestelling",
+                    "Ontvang extra A Points via slimme triggers",
+                    "Altijd inzicht in saldo en acties"
                 ]
             },
             {
-                "title": "Marketingbureaus",
-                "description": "Ideaal voor bureaus die meerdere klantaccounts beheren met white-label rapportage en geavanceerde automatiseringsfuncties.",
+                "title": "Webshops",
+                "description": "Voor ondernemers die meer omzet en klantbinding willen, zonder extra risico. Ans optimaliseert je advertenties, zet A Points in om klanten terug te halen en beantwoordt vragen via AI-chat.",
                 "benefits": [
-                    "Schaal klantbeheer",
-                    "Professionele rapportage",
-                    "Verhoog de winstmarges"
+                    "Win verlaten winkelwagens terug",
+                    "Optimaliseer Google & Meta Ads 24/7",
+                    "No Cure – No Pay: alleen 10% bij resultaat"
                 ]
             },
             {
-                "title": "Zelfstandige marketeers",
-                "description": "Ontworpen voor zelfstandige marketeers die krachtige automatiseringshulpmiddelen nodig hebben om te concurreren met grotere bureaus.",
+                "title": "Partners",
+                "description": "Voor organisaties die mee willen verdienen door Answer24 aan hun netwerk aan te bieden. Profiteer van aantrekkelijke commissies en ondersteuning.",
                 "benefits": [
-                    "Automatiseer routinetaken",
-                    "Lever betere resultaten",
-                    "Beheer meer klanten"
+                    "Verdien mee met elke klanttransactie",
+                    "White-label mogelijkheden",
+                    "Volledige marketing- en salesondersteuning"
                 ]
             }
         ]
@@ -203,6 +205,7 @@
       "about": "Over Ons",
       "contact": "Contact",
       "signIn": "Inloggen",
+      "signUp": "Registreren",
       "startFreeTrial": "Start Gratis Proefperiode",
       "userMenu": {
         "profile": "Profiel",

@@ -1,7 +1,7 @@
 "use client"
 
 import { Card, CardContent } from "@/components/ui/card"
-import { Building2, Users, Briefcase, ArrowRight } from "lucide-react"
+import { Wallet, ShoppingCart, Handshake, ArrowRight, Target } from "lucide-react"
 import { motion } from "framer-motion"
 import { useTranslations } from "next-intl"
 
@@ -33,11 +33,11 @@ const AudienceCard = ({ icon: Icon, title, description, benefits, color, index }
               } rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300`}
           >
             <Icon
-              className={`w-8 h-8 ${color === "blue" ? "text-blue-600" : "text-gray-600"}`}
+              className={`w-8 h-8 ${color === "blue" ? "text-primary-teal" : "text-gray-600"}`}
             />
           </div>
 
-          <h3 className="text-2xl font-bold text-gray-900 mb-4 group-hover:text-blue-600 transition-colors duration-300">
+          <h3 className="text-2xl font-bold text-gray-900 mb-4 group-hover:text-primary-teal transition-colors duration-300">
             {title}
           </h3>
 
@@ -54,7 +54,7 @@ const AudienceCard = ({ icon: Icon, title, description, benefits, color, index }
                 className="flex items-center gap-3 text-gray-700"
               >
                 <div
-                  className={`w-2 h-2 ${color === "blue" ? "bg-blue-600" : "bg-gray-600"
+                  className={`w-2 h-2 ${color === "blue" ? "bg-primary-teal" : "bg-gray-600"
                     } rounded-full`}
                 />
                 {benefit}
@@ -62,7 +62,7 @@ const AudienceCard = ({ icon: Icon, title, description, benefits, color, index }
             ))}
           </ul>
 
-          <div className="flex items-center text-blue-600 font-medium text-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+          <div className="flex items-center text-primary-teal font-medium text-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300">
             {t('learn_more')}
             <ArrowRight className="ml-1 w-4 h-4" />
           </div>
@@ -80,7 +80,7 @@ export function AudienceSection() {
 
   const audiences = [
     {
-      icon: Building2,
+      icon: Wallet,
       title: t('audiences.0.title'),
       description: t('audiences.0.description'),
       benefits: [
@@ -91,7 +91,7 @@ export function AudienceSection() {
       color: "blue",
     },
     {
-      icon: Users,
+      icon: ShoppingCart,
       title: t('audiences.1.title'),
       description: t('audiences.1.description'),
       benefits: [
@@ -99,10 +99,10 @@ export function AudienceSection() {
         t('audiences.1.benefits.1'),
         t('audiences.1.benefits.2')
       ],
-      color: "gray",
+      color: "blue",
     },
     {
-      icon: Briefcase,
+      icon: Handshake,
       title: t('audiences.2.title'),
       description: t('audiences.2.description'),
       benefits: [
@@ -124,13 +124,13 @@ export function AudienceSection() {
           viewport={{ once: true }}
           className="text-center mb-16"
         >
-          <div className="inline-flex items-center gap-2 bg-blue-50 text-blue-700 px-4 py-2 rounded-full text-sm font-medium mb-6 border border-blue-200">
-            <Users className="w-4 h-4" />
+          <div className="inline-flex items-center gap-2 bg-blue-50 text-primary-teal px-4 py-2 rounded-full text-sm font-medium mb-6 border border-blue-200">
+            <Target className="w-4 h-4" />
             {t('section_title')}
           </div>
           <h2 className="text-4xl lg:text-6xl font-bold text-gray-900 mb-6">
             {t('heading.line1')}  {" "}
-            <span className="bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">
+            <span className="text-primary-teal">
               {t('heading.line2')}
             </span>
           </h2>

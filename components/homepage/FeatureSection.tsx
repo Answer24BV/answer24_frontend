@@ -2,7 +2,7 @@
 
 import { useState, useRef } from "react"
 import { Card, CardContent } from "@/components/ui/card"
-import { Search, BarChart3, Users, FileText, Lightbulb, Bell, ArrowRight, ChevronLeft, ChevronRight, ChevronDown } from "lucide-react"
+import { Key, BarChart3, Eye, FileText, Lightbulb, Bell, ArrowRight, ChevronLeft, ChevronRight, ChevronDown } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import { useTranslations } from "next-intl"
 
@@ -37,17 +37,17 @@ const FeatureCard = ({ icon: Icon, title, description, color, index, isActive, h
               } rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300`}
             >
               <Icon
-                className={`w-7 h-7 ${color === "blue" ? "text-blue-600" : "text-gray-600"}`}
+                className={`w-7 h-7 ${color === "blue" ? "text-primary-teal" : "text-gray-600"}`}
               />
             </div>
-            <h3 className="text-xl font-bold text-gray-900 ml-4 group-hover:text-blue-600 transition-colors duration-300">
+            <h3 className="text-xl font-bold text-gray-900 ml-4 group-hover:text-primary-teal transition-colors duration-300">
               {title}
             </h3>
           </motion.div>
           <motion.p layout="position" className="text-gray-600 leading-relaxed mb-6">{description}</motion.p>
           <button 
             onClick={() => handleClick(index)}
-            className="flex items-center text-blue-600 font-medium text-sm hover:text-blue-700"
+            className="flex items-center text-primary-teal font-medium text-sm hover:text-primary-teal"
           >
             {isActive ? t('show_less') : t('learn_more')}
             <ChevronDown className={`ml-1 w-4 h-4 transition-transform duration-300 ${isActive ? 'rotate-180' : ''}`} />
@@ -62,7 +62,7 @@ const CarouselButton = ({ onClick, children, disabled = false }: { onClick: () =
   <button
     onClick={onClick}
     disabled={disabled}
-    className="p-2 rounded-full bg-white/80 backdrop-blur-sm shadow-lg border border-gray-200 text-gray-700 hover:bg-white hover:text-blue-600 transition-all disabled:opacity-30"
+    className="p-2 rounded-full bg-white/80 backdrop-blur-sm shadow-lg border border-gray-200 text-gray-700 hover:bg-white hover:text-primary-teal transition-all disabled:opacity-30"
     aria-label="Carousel navigation"
   >
     {children}
@@ -101,7 +101,7 @@ export function FeaturesSection() {
   
   const features = [
     {
-      icon: Search,
+      icon: Key,
       title: t('features.0.title'),
       description: t('features.0.description'),
       content: t('features.0.content'),
@@ -112,10 +112,10 @@ export function FeaturesSection() {
       title: t('features.1.title'),
       description: t('features.1.description'),
       content: t('features.1.content'),
-      color: "gray",
+      color: "blue",
     },
     {
-      icon: Users,
+      icon: Eye,
       title: t('features.2.title'),
       description: t('features.2.description'),
       content: t('features.2.content'),
@@ -126,7 +126,7 @@ export function FeaturesSection() {
       title: t('features.3.title'),
       description: t('features.3.description'),
       content: t('features.3.content'),
-      color: "gray",
+      color: "blue",
     },
     {
       icon: Lightbulb,
@@ -164,13 +164,13 @@ export function FeaturesSection() {
           viewport={{ once: true }}
           className="text-center mb-16"
         >
-          <div className="inline-flex items-center gap-2 bg-blue-50 text-blue-700 px-4 py-2 rounded-full text-sm font-medium mb-6 border border-blue-200">
+          <div className="inline-flex items-center gap-2 bg-blue-50 text-primary-teal px-4 py-2 rounded-full text-sm font-medium mb-6 border border-blue-200">
             <Lightbulb className="w-4 h-4" />
             {t('section_title')}
           </div>
           <h2 className="text-4xl lg:text-6xl font-bold text-gray-900 mb-6">
             {t('heading.line1')}
-            <span className="bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent block">
+            <span className="text-primary-teal block">
               {t('heading.line2')}
             </span>
           </h2>
@@ -210,7 +210,7 @@ export function FeaturesSection() {
               <button
                 key={index}
                 onClick={() => scrollToIndex(index)}
-                className={`w-2.5 h-2.5 rounded-full transition-all ${currentIndex === index ? 'bg-blue-600 w-6' : 'bg-gray-300'}`}
+                className={`w-2.5 h-2.5 rounded-full transition-all ${currentIndex === index ? 'bg-primary-teal w-6' : 'bg-gray-300'}`}
                 aria-label={`Go to slide ${index + 1}`}
               />
             ))}
