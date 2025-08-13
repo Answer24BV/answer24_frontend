@@ -72,7 +72,7 @@ export function HeroSection() {
               </Link>
             </motion.div>
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-              <Link href={`/${common_t('locale')}/webshops`}>
+              <Link href={`/${common_t('locale')}/webshop`}>
                 <Button
                   variant="outline"
                   size="lg"
