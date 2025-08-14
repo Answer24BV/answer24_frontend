@@ -13,10 +13,25 @@ export default function CookiePopup() {
     analytics: false,
   });
 
+  // useEffect(() => {
+  //   // Check for cookie_consent cookie
+  //   const consent = document.cookie.split('; ').find(row => row.startsWith('cookie_consent='));
+  //   if (!consent) setShow(true);
+  // }, []);
+
   useEffect(() => {
-    // Check for cookie_consent cookie
-    const consent = document.cookie.split('; ').find(row => row.startsWith('cookie_consent='));
-    if (!consent) setShow(true);
+    const match = document.cookie.match(/(?:^|; )cookie_consent=([^;]*)/);
+    if (match) {
+      try {
+        const saved = JSON.parse(decodeURIComponent(match[1]));
+        setSettings(saved);
+        setShow(false);
+      } catch {
+        setShow(true);
+      }
+    } else {
+      setShow(true);
+    }
   }, []);
 
   useEffect(() => {
@@ -28,13 +43,18 @@ export default function CookiePopup() {
 
   const savePreferences = () => {
     // Only set cookie if analytics is enabled (or you can always set it if you want to remember preferences)
-    document.cookie = `cookie_consent=${encodeURIComponent(JSON.stringify(settings))}; path=/; max-age=31536000`;
+    document.cookie = `cookie_consent=${encodeURIComponent(
+      JSON.stringify(settings)
+    )}; path=/; max-age=31536000`;
     setShow(false);
   };
 
   const acceptAll = () => {
     const all = { functional: true, analytics: true };
-    document.cookie = `cookie_consent=${encodeURIComponent(JSON.stringify(all))}; path=/; max-age=31536000`;
+    document.cookie = `cookie_consent=${encodeURIComponent(
+      JSON.stringify(all)
+    )}; path=/; max-age=31536000`;
+    setSettings(all);
     setShow(false);
   };
 

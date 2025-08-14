@@ -1,5 +1,5 @@
-import Link from "next/link"
-import { Mountain } from 'lucide-react'
+import Link from "next/link";
+import { Mountain } from "lucide-react";
 
 export default function Footer() {
   return (
@@ -26,5 +26,5 @@ export default function Footer() {
         </Link>
       </nav>
     </footer>
-  )
+  );
 }

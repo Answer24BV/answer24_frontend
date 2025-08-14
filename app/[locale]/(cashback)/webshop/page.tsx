@@ -1,85 +1,158 @@
-'use client';
-import React, { useState } from 'react';
-import { Navbar } from '@/components/common/Navbar';
-import { Search, Star, TrendingUp, Gift, Users, Shield, ChevronRight, Filter } from 'lucide-react';
-import { Link } from '@/i18n/navigation';
-import { useRouter } from 'next/navigation';
+"use client";
+import React, { useEffect, useState } from "react";
+import { Navbar } from "@/components/common/Navbar";
+import {
+  Search,
+  Star,
+  TrendingUp,
+  Gift,
+  Users,
+  Shield,
+  ChevronRight,
+  Filter,
+} from "lucide-react";
+import { Link } from "@/i18n/navigation";
+import { useRouter } from "next/navigation";
+import Footer from "@/components/(webshop)/Footer";
+
+type Webshop = {
+  id: number;
+  name: string;
+  logo: string;
+  cashback: string;
+  description: string;
+  category: string;
+  rating: number;
+  featured: boolean;
+};
+
+type Category = "All" | string;
 
 const CashbackHomepage = () => {
-  const [activeCategory, setActiveCategory] = useState('All');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [activeCategory, setActiveCategory] = useState("All");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [webshops, setWebshops] = useState<Webshop[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const router = useRouter();
 
+  /*
   const categories = [
-    'All', 'Electronics', 'Fashion', 'Travel', 'Food & Drinks', 'Home & Garden', 'Sports', 'Beauty'
+    "All",
+    "Electronics",
+    "Fashion",
+    "Travel",
+    "Food & Drinks",
+    "Home & Garden",
+    "Sports",
+    "Beauty",
   ];
+  */
 
+  /*
   const webshops = [
     {
       id: 1,
-      name: 'Samsung',
-      logo: 'https://avatar.iran.liara.run/public/45',
-      cashback: 'Up to 8%',
-      description: 'Latest smartphones, tablets, and electronics',
-      category: 'Electronics',
+      name: "Samsung",
+      logo: "https://avatar.iran.liara.run/public/45",
+      cashback: "Up to 8%",
+      description: "Latest smartphones, tablets, and electronics",
+      category: "Electronics",
       rating: 4.8,
-      featured: true
+      featured: true,
     },
     {
       id: 2,
-      name: 'Nike',
-      logo: 'https://avatar.iran.liara.run/public/46',
-      cashback: '€12.50',
-      description: 'Premium sportswear and athletic gear',
-      category: 'Fashion',
+      name: "Nike",
+      logo: "https://avatar.iran.liara.run/public/46",
+      cashback: "€12.50",
+      description: "Premium sportswear and athletic gear",
+      category: "Fashion",
       rating: 4.7,
-      featured: true
+      featured: true,
     },
     {
       id: 3,
-      name: 'Booking.com',
-      logo: 'https://avatar.iran.liara.run/public/47',
-      cashback: 'Up to 6%',
-      description: 'Hotels, flights, and travel deals worldwide',
-      category: 'Travel',
+      name: "Booking.com",
+      logo: "https://avatar.iran.liara.run/public/47",
+      cashback: "Up to 6%",
+      description: "Hotels, flights, and travel deals worldwide",
+      category: "Travel",
       rating: 4.6,
-      featured: false
+      featured: false,
     },
     {
       id: 4,
-      name: 'H&M',
-      logo: 'https://avatar.iran.liara.run/public/48',
-      cashback: 'Up to 5%',
-      description: 'Trendy fashion for men, women & kids',
-      category: 'Fashion',
+      name: "H&M",
+      logo: "https://avatar.iran.liara.run/public/48",
+      cashback: "Up to 5%",
+      description: "Trendy fashion for men, women & kids",
+      category: "Fashion",
       rating: 4.5,
-      featured: false
+      featured: false,
     },
     {
       id: 5,
-      name: 'Apple',
-      logo: 'https://avatar.iran.liara.run/public/49',
-      cashback: 'Up to 3%',
-      description: 'iPhone, iPad, Mac, and accessories',
-      category: 'Electronics',
+      name: "Apple",
+      logo: "https://avatar.iran.liara.run/public/49",
+      cashback: "Up to 3%",
+      description: "iPhone, iPad, Mac, and accessories",
+      category: "Electronics",
       rating: 4.9,
-      featured: true
+      featured: true,
     },
     {
       id: 6,
-      name: 'IKEA',
-      logo: 'https://avatar.iran.liara.run/public/50',
-      cashback: '€8.00',
-      description: 'Furniture and home decoration',
-      category: 'Home & Garden',
+      name: "IKEA",
+      logo: "https://avatar.iran.liara.run/public/50",
+      cashback: "€8.00",
+      description: "Furniture and home decoration",
+      category: "Home & Garden",
       rating: 4.4,
-      featured: false
-    }
+      featured: false,
+    },
   ];
+  */
 
-  const filteredWebshops = webshops.filter(shop => {
-    const matchesCategory = activeCategory === 'All' || shop.category === activeCategory;
-    const matchesSearch = shop.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    console.log(token);
+    // Fetch categories
+    fetch("https://staging.answer24.nl/api/v1/daisycon/category", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then((res) => res.json())
+      .then((data: { data?: { name: string }[] }) => {
+        console.log("Categories API response:", data); // ✅ log the raw data
+        const cats = data.data?.map((cat) => cat.name) || [];
+        setCategories(["All", ...cats]); // always include "All"
+      })
+      .catch((err) => {
+        console.error("Error fetching categories:", err);
+        setCategories(["All"]); // fallback
+      });
+
+    // Fetch webshops / media
+    fetch("https://staging.answer24.nl/api/v1/daisycon/media")
+      .then((res) => res.json())
+      .then((data: { data?: Webshop[] }) => {
+        console.log("Webshops API response:", data); // ✅ log the raw data
+        setWebshops(data.data || []); // default to empty array
+      })
+      .catch((err) => {
+        console.error("Error fetching webshops:", err);
+        setWebshops([]); // fallback
+      });
+  }, []);
+
+  const filteredWebshops = webshops.filter((shop) => {
+    const matchesCategory =
+      activeCategory === "All" || shop.category === activeCategory;
+    const matchesSearch =
+      shop.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       shop.description.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesCategory && matchesSearch;
   });
@@ -92,7 +165,7 @@ const CashbackHomepage = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 -mt-20">
-  <Navbar />
+      <Navbar />
 
       {/* Hero Section */}
       <section className="bg-gradient-to-br from-blue-50 via-white to-purple-50 pt-26 pb-20">
@@ -100,11 +173,14 @@ const CashbackHomepage = () => {
           <div className="text-center max-w-4xl mx-auto">
             <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6 leading-tight">
               Earn Money While You
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-purple-600"> Shop</span>
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-purple-600">
+                {" "}
+                Shop
+              </span>
             </h1>
             <p className="text-xl text-gray-600 mb-8 leading-relaxed">
-              Get cashback from thousands of your favorite stores. Shop normally, earn automatically.
-              It's that simple.
+              Get cashback from thousands of your favorite stores. Shop
+              normally, earn automatically. It's that simple.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
               <button className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-8 py-4 rounded-xl font-semibold text-lg hover:from-blue-600 hover:to-purple-700 transition-all transform hover:scale-105">
@@ -115,15 +191,21 @@ const CashbackHomepage = () => {
             {/* Stats */}
             <div className="grid grid-cols-3 gap-8 max-w-2xl mx-auto">
               <div className="text-center">
-                <div className="text-3xl font-bold text-blue-600 mb-2">500+</div>
+                <div className="text-3xl font-bold text-blue-600 mb-2">
+                  500+
+                </div>
                 <div className="text-gray-600">Partner Stores</div>
               </div>
               <div className="text-center">
-                <div className="text-3xl font-bold text-purple-600 mb-2">€2M+</div>
+                <div className="text-3xl font-bold text-purple-600 mb-2">
+                  €2M+
+                </div>
                 <div className="text-gray-600">Cashback Paid</div>
               </div>
               <div className="text-center">
-                <div className="text-3xl font-bold text-green-600 mb-2">50K+</div>
+                <div className="text-3xl font-bold text-green-600 mb-2">
+                  50K+
+                </div>
                 <div className="text-gray-600">Happy Users</div>
               </div>
             </div>
@@ -150,16 +232,30 @@ const CashbackHomepage = () => {
             {/* Category Filter */}
             <div className="flex items-center space-x-2 overflow-x-auto">
               <Filter className="w-5 h-5 text-gray-500 flex-shrink-0" />
-              {categories.map((category) => (
+              {/* {categories.map((category) => (
                 <button
                   key={category}
                   onClick={() => setActiveCategory(category)}
-                  className={`px-4 py-2 rounded-lg font-medium whitespace-nowrap transition-all ${activeCategory === category
-                      ? 'bg-blue-500 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                    }`}
+                  className={`px-4 py-2 rounded-lg font-medium whitespace-nowrap transition-all ${
+                    activeCategory === category
+                      ? "bg-blue-500 text-white"
+                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  }`}
                 >
                   {category}
+                </button>
+              ))} */}
+              {categories.map((cat: Category) => (
+                <button
+                  key={cat}
+                  onClick={() => setActiveCategory(cat)}
+                  className={`px-4 py-2 rounded-lg font-medium whitespace-nowrap transition-all ${
+                    activeCategory === cat
+                      ? "bg-blue-500 text-white"
+                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  }`}
+                >
+                  {cat}
                 </button>
               ))}
             </div>
@@ -180,37 +276,42 @@ const CashbackHomepage = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredWebshops.filter(shop => shop.featured).map((shop) => (
-              <Link key={shop.id} href={`/webshop/${shop.name}`}>
-                <div
-
-                  className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 hover:shadow-xl transition-all transform hover:-translate-y-1 cursor-pointer"
-                  onClick={() => handleShopClick(shop.name)}
-                >
-                  <div className="flex items-start justify-between mb-4">
-                    <img
-                      src={shop.logo}
-                      alt={shop.name}
-                      className="w-16 h-8 object-contain"
-                    />
-                    <div className="bg-gradient-to-r from-green-500 to-emerald-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
-                      {shop.cashback} Cashback
+            {filteredWebshops
+              .filter((shop) => shop.featured)
+              .map((shop) => (
+                <Link key={shop.id} href={`/webshop/${shop.name}`}>
+                  <div
+                    className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 hover:shadow-xl transition-all transform hover:-translate-y-1 cursor-pointer"
+                    onClick={() => handleShopClick(shop.name)}
+                  >
+                    <div className="flex items-start justify-between mb-4">
+                      <img
+                        src={shop.logo}
+                        alt={shop.name}
+                        className="w-16 h-8 object-contain"
+                      />
+                      <div className="bg-gradient-to-r from-green-500 to-emerald-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
+                        {shop.cashback} Cashback
+                      </div>
+                    </div>
+                    <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                      {shop.name}
+                    </h3>
+                    <p className="text-gray-600 mb-4">{shop.description}</p>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-1">
+                        <Star className="w-4 h-4 text-yellow-400 fill-current" />
+                        <span className="text-sm font-medium text-gray-700">
+                          {shop.rating}
+                        </span>
+                      </div>
+                      <button className="bg-blue-50 text-blue-600 px-4 py-2 rounded-lg font-medium hover:bg-blue-100 transition-colors">
+                        View Details
+                      </button>
                     </div>
                   </div>
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2">{shop.name}</h3>
-                  <p className="text-gray-600 mb-4">{shop.description}</p>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-1">
-                      <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                      <span className="text-sm font-medium text-gray-700">{shop.rating}</span>
-                    </div>
-                    <button className="bg-blue-50 text-blue-600 px-4 py-2 rounded-lg font-medium hover:bg-blue-100 transition-colors">
-                      View Details
-                    </button>
-                  </div>
-                </div>
-              </Link>
-            ))}
+                </Link>
+              ))}
           </div>
         </div>
       </section>
@@ -220,7 +321,10 @@ const CashbackHomepage = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-3xl font-bold text-gray-900 mb-8">All Stores</h2>
 
-          <div id="all-stores" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div
+            id="all-stores"
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+          >
             {filteredWebshops.map((shop) => (
               <div
                 key={shop.id}
@@ -235,7 +339,9 @@ const CashbackHomepage = () => {
                   />
                   <div>
                     <h3 className="font-semibold text-gray-900">{shop.name}</h3>
-                    <div className="text-green-600 font-medium text-sm">{shop.cashback}</div>
+                    <div className="text-green-600 font-medium text-sm">
+                      {shop.cashback}
+                    </div>
                   </div>
                 </div>
                 <p className="text-gray-600 text-sm mb-3">{shop.description}</p>
@@ -254,7 +360,9 @@ const CashbackHomepage = () => {
 
           {filteredWebshops.length === 0 && (
             <div className="text-center py-12">
-              <p className="text-gray-500 text-lg">No stores found matching your criteria.</p>
+              <p className="text-gray-500 text-lg">
+                No stores found matching your criteria.
+              </p>
             </div>
           )}
         </div>
@@ -267,8 +375,8 @@ const CashbackHomepage = () => {
             Ready to Start Earning Cashback?
           </h2>
           <p className="text-blue-100 text-lg mb-8 max-w-2xl mx-auto">
-            Join thousands of smart shoppers who earn money back on every purchase.
-            Sign up today and start saving immediately.
+            Join thousands of smart shoppers who earn money back on every
+            purchase. Sign up today and start saving immediately.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <button className="bg-white text-blue-600 px-8 py-4 rounded-xl font-semibold text-lg hover:bg-gray-50 transition-all">
@@ -282,57 +390,9 @@ const CashbackHomepage = () => {
       </section>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-gray-300 py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-8">
-            <div>
-              <h3 className="text-white font-semibold mb-4">Company</h3>
-              <ul className="space-y-2">
-                <li><a href="#" className="hover:text-white transition-colors">About Us</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">How it Works</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Careers</a></li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="text-white font-semibold mb-4">Support</h3>
-              <ul className="space-y-2">
-                <li><a href="#" className="hover:text-white transition-colors">Help Center</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Contact Us</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">FAQ</a></li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="text-white font-semibold mb-4">Legal</h3>
-              <ul className="space-y-2">
-                <li><a href="#" className="hover:text-white transition-colors">Privacy Policy</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Terms of Service</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Cookie Policy</a></li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="text-white font-semibold mb-4">Connect</h3>
-              <ul className="space-y-2">
-                <li><a href="#" className="hover:text-white transition-colors">Twitter</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Facebook</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Instagram</a></li>
-              </ul>
-            </div>
-          </div>
-          <div className="border-t border-gray-800 pt-8 flex flex-col md:flex-row justify-between items-center">
-            <div className="flex items-center space-x-2 mb-4 md:mb-0">
-              <div className="w-6 h-6 bg-gradient-to-br from-blue-500 to-purple-600 rounded flex items-center justify-center">
-                <Gift className="w-4 h-4 text-white" />
-              </div>
-              <span className="text-white font-semibold">CashFlow</span>
-            </div>
-            <p className="text-sm">&copy; 2025 CashFlow. All rights reserved.</p>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 };
 
 export default CashbackHomepage;
-
-
