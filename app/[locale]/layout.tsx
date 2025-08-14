@@ -1,12 +1,12 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Poppins } from "next/font/google";
 import "./globals.css";
-import { NextIntlClientProvider, hasLocale } from 'next-intl';
-import { notFound } from 'next/navigation';
-import { routing } from '@/i18n/routing';
+import { NextIntlClientProvider, hasLocale } from "next-intl";
+import { notFound } from "next/navigation";
+import { routing } from "@/i18n/routing";
 import Head from "./head";
-import ClientLayout from './ClientLayout';
-import { Toaster } from "@/components/ui/sonner"
+import ClientLayout from "./ClientLayout";
+import { Toaster } from "@/components/ui/sonner";
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -17,7 +17,11 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-
+const poppins = Poppins({
+  variable: "--font-poppins",
+  subsets: ["latin"],
+  weight: "400",
+});
 
 export const metadata: Metadata = {
   title: "Answer24",
@@ -29,7 +33,6 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   themeColor: "#ffffff",
 };
-
 
 export default async function RootLayout({
   children,
@@ -47,14 +50,13 @@ export default async function RootLayout({
   return (
     <html lang={locale}>
       <Head />
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+      <body className={`${poppins.variable} antialiased`}>
         <NextIntlClientProvider>
           <ClientLayout>
             {children}
             <Toaster />
           </ClientLayout>
         </NextIntlClientProvider>
-
       </body>
     </html>
   );

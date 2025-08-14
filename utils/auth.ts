@@ -1,11 +1,11 @@
 // Token management utilities
-export const TOKEN_KEY = 'auth_token';
-export const USER_KEY = 'user_data';
+export const TOKEN_KEY = "auth_token";
+export const USER_KEY = "user_data";
 
 export const tokenUtils = {
   // Store token in localStorage
   setToken: (token: string) => {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       localStorage.setItem(TOKEN_KEY, token);
     }
   },
@@ -14,9 +14,9 @@ export const tokenUtils = {
   getToken: (token?: string): string | null => {
     // If token is provided, use it (for server actions)
     if (token) return token;
-    
+
     // Otherwise try to get from localStorage (client-side)
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       return localStorage.getItem(TOKEN_KEY);
     }
     return null;
@@ -24,7 +24,7 @@ export const tokenUtils = {
 
   // Remove token from localStorage
   removeToken: () => {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       localStorage.removeItem(TOKEN_KEY);
       localStorage.removeItem(USER_KEY);
     }
@@ -32,14 +32,14 @@ export const tokenUtils = {
 
   // Store user data
   setUser: (user: any) => {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       localStorage.setItem(USER_KEY, JSON.stringify(user));
     }
   },
 
   // Get user data
   getUser: () => {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       const userData = localStorage.getItem(USER_KEY);
       return userData ? JSON.parse(userData) : null;
     }
@@ -57,14 +57,20 @@ export const tokenUtils = {
     if (!token) return false;
 
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || "https://staging.answer24.nl/api/v1"}/auth/validate`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Accept': 'application/json',
-        },
-      });
-      
+      const response = await fetch(
+        `${
+          process.env.NEXT_PUBLIC_API_BASE_URL ||
+          "https://staging.answer24.nl/api/v1"
+        }/auth/validate`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            Accept: "application/json",
+          },
+        }
+      );
+
       if (response.ok) {
         return true;
       } else {
@@ -73,7 +79,7 @@ export const tokenUtils = {
         return false;
       }
     } catch (error) {
-      console.error('Token validation error:', error);
+      console.error("Token validation error:", error);
       return false;
     }
   },
@@ -82,21 +88,26 @@ export const tokenUtils = {
   logout: () => {
     tokenUtils.removeToken();
     // Redirect to signin page
-    if (typeof window !== 'undefined') {
-      window.location.href = '/nl/signin';
+    if (typeof window !== "undefined") {
+      window.location.href = "/nl/signin";
     }
-  }
+  },
 };
 
 // API request helper
-export const apiRequest = async (endpoint: string, options: RequestInit = {}) => {
-  const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "https://staging.answer24.nl/api/v1";
+export const apiRequest = async (
+  endpoint: string,
+  options: RequestInit = {}
+) => {
+  const baseUrl =
+    process.env.NEXT_PUBLIC_API_BASE_URL ||
+    "https://staging.answer24.nl/api/v1";
   const token = tokenUtils.getToken();
 
   const defaultHeaders: HeadersInit = {
-    'Content-Type': 'application/json',
-    'Accept': 'application/json',
-    ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+    "Content-Type": "application/json",
+    Accept: "application/json",
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
   };
 
   const config: RequestInit = {
@@ -112,12 +123,12 @@ export const apiRequest = async (endpoint: string, options: RequestInit = {}) =>
     const data = await response.json();
 
     if (!response.ok) {
-      throw new Error(data.message || 'API request failed');
+      throw new Error(data.message || "API request failed");
     }
 
     return data;
   } catch (error) {
-    console.error('API Request Error:', error);
+    console.error("API Request Error:", error);
     throw error;
   }
 };
@@ -125,16 +136,16 @@ export const apiRequest = async (endpoint: string, options: RequestInit = {}) =>
 // Auth API functions
 export const authAPI = {
   // Login
-  login: async (email: string, password: string, remember: boolean = false) => {
-    return apiRequest('/auth/login', {
-      method: 'POST',
+  login: async (email: string, password: string, remember: boolean) => {
+    return apiRequest("/auth/login", {
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
         email,
         password,
-        remember
+        remember,
       }),
     });
   },
@@ -148,20 +159,20 @@ export const authAPI = {
     userType?: string;
     referral_token?: string;
   }) => {
-    const endpoint = data.referral_token 
+    const endpoint = data.referral_token
       ? `/auth/register/${data.referral_token}`
-      : '/auth/register';
+      : "/auth/register";
 
     return apiRequest(endpoint, {
-      method: 'POST',
+      method: "POST",
       body: JSON.stringify({
         name: data.name,
         email: data.email,
         phone: data.phone,
         password: data.password,
         password_confirmation: data.password_confirmation,
-        userType: data.userType || 'client',
-        ...(data.referral_token && { referral_token: data.referral_token })
+        userType: data.userType || "client",
+        ...(data.referral_token && { referral_token: data.referral_token }),
       }),
     });
   },
@@ -177,7 +188,7 @@ export const authAPI = {
   }) => {
     return authAPI.register({
       ...data,
-      userType: 'partner'
+      userType: "partner",
     });
-  }
+  },
 };

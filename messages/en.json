@@ -26,14 +26,15 @@
   },
   "HeroSection": {
     "hero_badge": "AI-Powered Google Ads Optimization",
-    "hero_title_1": "Meet ANS, your smart",
-    "hero_title_2": "AI Google Ads manager",
+    "hero_title_1": "24/7 AI Marketing & Customer Loyalty",
+    "hero_title_2": "No Cure, No Pay",
     "hero_button_1": "Start Free Trial",
     "hero_button_2": "Watch Demo",
-    "hero_image_alt": "Hero Image",
-    "hero_floating_text": "Hi, I'm Ans and I answer 24/7 for your best marketing strategy!"
+    "hero_imageOne_alt": "image-one",
+    "hero_imageTwo_alt": "image-two",
+    "hero_imageThree_alt": "image-three"
   },
- 
+
   "DownloadApp": {
     "section_title": "Answer24 Mobile Apps",
     "section_subtitle": "Download our mobile apps to stay connected with your favorite services.",
@@ -435,5 +436,16 @@
         "description": "Used to track visitors across websites to display relevant and engaging advertisements."
       }
     }
+  },
+  "BlogPage": {
+    "title": "The Blog",
+    "subtitle": "Insights, stories, and updates from our team",
+    "search_placeholder": "Search articles...",
+    "read_more": "Read more",
+    "more_articles": "More Articles",
+    "newsletter_title": "Stay in the loop",
+    "newsletter_subtitle": "Get the latest articles and resources sent straight to your inbox.",
+    "email_placeholder": "Your email address",
+    "subscribe": "Subscribe"
   }
 }

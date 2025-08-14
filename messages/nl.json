@@ -1,449 +1,459 @@
 {
-    "common": {
-        "locale": "nl",
-        "language": "Nederlands",
-        "footer_copyright": "© {year} Answer24. Alle rechten voorbehouden.",
-        "footer_about": "Over ons",
-        "footer_contact": "Contact",
-                "footer_privacy_policy": "Privacybeleid",
-                "footer": {
-                    "tagline": "Jouw betrouwbare partner voor innovatieve oplossingen en uitstekende service.",
-                    "quick_links": "Snelle links",
-                    "about": "Over ons",
-                    "pricing": "Prijzen",
-                    "faq": "Veelgestelde Vragen",
-                    "contact": "Contact",
-                    "legal": "Juridisch",
-                    "no_pages": "Geen juridische pagina's beschikbaar",
-                    "all_rights": "Alle rechten voorbehouden."
-                }
-    },
-    "NotificationBanner": {
-        "title": "Blijf op de hoogte met Answer24-meldingen",
-        "subtitle": "Ontvang direct meldingen voor belangrijke updates en berichten",
-        "enable": "Inschakelen",
-        "requesting": "Bezig met aanvragen..."
-    },
-    "HeroSection": {
-        "hero_badge": "AI-aangedreven Google Ads-optimalisatie",
-        "hero_title_1": "Maak kennis met ANS, jouw slimme",
-        "hero_title_2": "AI Google Ads-manager",
-        "hero_button_1": "Start gratis proefperiode",
-        "hero_button_2": "Bekijk demo",
-        "hero_image_alt": "Hero-afbeelding",
-        "hero_floating_text": "Hoi, ik ben Ans en ik beantwoord 24/7 voor jouw beste marketingstrategie!"
-    },
-       
-        "DownloadApp": {
-            "section_title": "Answer24 Mobiele Apps",
-            "section_subtitle": "Download onze mobiele apps om verbonden te blijven met je favoriete diensten.",
-            "appstore_alt": "Download in de App Store",
-            "googleplay_alt": "Download op Google Play",
-            "modal_title": "Installeer deze app",
-            "modal_subtitle": "Voor snellere toegang, installeer deze app op je apparaat.",
-            "already_installed": "App is al geïnstalleerd.",
-            "uninstall_first": "Om opnieuw te installeren, verwijder eerst de app.",
-            "manual_add": "Je kunt deze app ook handmatig aan je startscherm toevoegen via het browsermenu.",
-            "install_button": "Installeren",
-            "later_button": "Later",
-            "not_available_localhost": "Installatieprompt niet beschikbaar op localhost. Test op een echt apparaat of publiceer de app.",
-            "not_available_other": "Installatieprompt niet beschikbaar. Probeer te verversen of gebruik de optie 'Toevoegen aan startscherm' van je browser. (DEBUG: deferredPrompt was null)"
-    
-        },
-        "FeatureSection": {
-        "section_title": "Krachtige functies",
-        "heading": {
-            "line1": "Alles wat je nodig hebt om",
-            "line2": "te domineren in Google Ads"
-        },
-        "subheading": "Krachtige AI-gestuurde functies ontworpen om elk aspect van je Google Ads-campagnes te optimaliseren",
-        "learn_more": "Meer informatie",
-        "show_less": "Toon minder",
-        "features": [
-            {
-                "title": "Slimme Trefwoordgenerator",
-                "description": "AI-aangestuurde trefwoordsuggesties met zoekvolume, CPC en concurrentieanalyse voor maximale impact."
-            },
-            {
-                "title": "Campagne-auditor",
-                "description": "Uitgebreide audits die budgetverspilling, slechte trefwoorden en gemiste kansen identificeren."
-            },
-            {
-                "title": "Concurrentievolging",
-                "description": "Volg advertenties van concurrenten, houd wijzigingen bij en krijg inzicht in hun prestatietrategieën."
-            },
-            {
-                "title": "White-Label Rapportages",
-                "description": "Op maat gemaakte rapporten en downloadbare PDF's, perfect voor bureaus en presentaties aan klanten."
-            },
-            {
-                
-                "title": "AI-optimalisatietips",
-                "description": "Dagelijkse AI-gegenereerde aanbevelingen voor biedaanpassingen, het pauzeren van trefwoorden en prestatieverbeteringen."
-            },
-            {
-                "title": "Slimme Meldingen",
-                "description": "Directe meldingen voor prestatieverminderingen en belangrijke wijzigingen om snel te kunnen reageren."
-            }
-        ]
-    },
-    "AudienceSection": {
-        "section_title": "Voor wie is het bedoeld",
-        "heading": {
-            "line1": "Gemaakt voor",
-            "line2": "elke marketeer"
-        },
-        "subheading": "Of je nu een ondernemer, bureau of freelancer bent, Answer24 past zich aan jouw behoeften aan",
-        "learn_more": "Meer informatie",
-        "audiences": [
-            {
-                "title": "Kleine en middelgrote bedrijven",
-                "description": "Perfect voor MKB'ers die hun eigen Google Ads-campagnes beheren en hun ROI willen maximaliseren zonder dure bureaus in te huren.",
-                "benefits": [
-                    "Verminder verspilling van advertentiebudget",
-                    "Verbeter de prestaties van campagnes",
-                    "Bespaar tijd op optimalisatie"
-                ]
-            },
-            {
-                "title": "Marketingbureaus",
-                "description": "Ideaal voor bureaus die meerdere klantaccounts beheren met white-label rapportage en geavanceerde automatiseringsfuncties.",
-                "benefits": [
-                    "Schaal klantbeheer",
-                    "Professionele rapportage",
-                    "Verhoog de winstmarges"
-                ]
-            },
-            {
-                "title": "Zelfstandige marketeers",
-                "description": "Ontworpen voor zelfstandige marketeers die krachtige automatiseringshulpmiddelen nodig hebben om te concurreren met grotere bureaus.",
-                "benefits": [
-                    "Automatiseer routinetaken",
-                    "Lever betere resultaten",
-                    "Beheer meer klanten"
-                ]
-            }
-        ]
-    },
-    "ContactPage": {
-        "contactBadge": "Neem contact op",
-        "title": "Neem contact op",
-        "subtitle": "Klaar om je Google Ads te transformeren? Laten we praten over hoe Answer24 je bedrijf kan helpen groeien.",
-        "form": {
-            "fullName": "Volledige naam",
-            "email": "E-mailadres",
-            "company": "Bedrijfsnaam",
-            "message": "Bericht",
-            "submit": "Verstuur bericht"
-        },
-        "contactInfo": {
-            "title": "Contactgegevens",
-            "emailLabel": "E-mail",
-            "emailValue": "hallo@answer24.com",
-            "phoneLabel": "Telefoon",
-            "phoneValue": "+31 20 123 4567",
-            "locationLabel": "Locatie",
-            "locationValue": "Amsterdam, Nederland"
-        },
-        "quickResponse": {
-            "title": "Snel antwoord",
-            "description": "We reageren doorgaans binnen 24 uur op alle vragen. Voor dringende zaken, bel ons direct."
-        },
-        "downloadApp": {
-            "section": {
-                "title": "Download de App",
-                "description": "Krijg de volledige Answer24-ervaring op je mobiele apparaat."
-            },
-            "modal": {
-                "title": "Installeer Answer24 App",
-                "description": "Voeg Answer24 toe aan je startscherm voor snelle toegang en een betere ervaring.",
-                "install": "Installeren",
-                "later": "Later",
-                "alreadyInstalled": "App is al geïnstalleerd.",
-                "manualInstruction": "Je kunt deze app ook handmatig toevoegen aan je startscherm via het browsermenu."
-            }
-        }
-    },
-    "Dashboard": {
-      "title": "Account Dashboard",
-      "subtitle": "Houd uw Google Ads-prestaties in de gaten en krijg AI-gestuurde inzichten.",
-      "loading": "Dashboard laden...",
-      "stats": {
-        "totalSpend": "Totale Uitgaven",
-        "totalClicks": "Totaal Klikken",
-        "totalImpressions": "Totaal Vertoningen",
-        "ctr": "Doorklikpercentage"
-      },
-      "sections": {
-        "campaigns": "Uw Campagnes",
-        "aiTips": "AI-optimalisatietips",
-        "quickActions": "Snelle Acties",
-        "performance": "Prestatieoverzicht"
-      },
-      "actions": {
-        "viewAll": "Alles Weergeven",
-        "applyTip": "Tip Toepassen",
-        "dismiss": "Negeren",
-        "seeMore": "Meer Weergeven"
-      },
-      "emptyStates": {
-        "noCampaigns": "Geen campagnes gevonden",
-        "noTips": "Geen optimalisatietips beschikbaar"
-      }
-    },
-    "Navigation": {
-      "account": "Account",
-      "chat": "Chat",
-      "wallet": "Portemonnee",
-      "plans": "Abonnementen",
-      "blog": "Bloggen",
-      "webshop": "Webwinkels",
-      "faq": "Veelgestelde Vragen",
+  "common": {
+    "locale": "nl",
+    "language": "Nederlands",
+    "footer_copyright": "© {year} Answer24. Alle rechten voorbehouden.",
+    "footer_about": "Over ons",
+    "footer_contact": "Contact",
+    "footer_privacy_policy": "Privacybeleid",
+    "footer": {
+      "tagline": "Jouw betrouwbare partner voor innovatieve oplossingen en uitstekende service.",
+      "quick_links": "Snelle links",
+      "about": "Over ons",
       "pricing": "Prijzen",
-      "about": "Over Ons",
+      "faq": "Veelgestelde Vragen",
       "contact": "Contact",
-      "signIn": "Inloggen",
-      "startFreeTrial": "Start Gratis Proefperiode",
-      "userMenu": {
-        "profile": "Profiel",
-        "logOut": "Uitloggen"
-      },
-      "admin": {
-        "planManagement": "Abonnementenbeheer",
-        "userManagement": "Gebruikersbeheer"
-      }
-    },
-    "WalletPage": {
-        "title": "Jouw Portemonnee",
-        "subtitle": "Beheer je transacties en saldo",
-        "accountDetails": {
-            "title": "Accountgegevens",
-            "memberSince": "Lid sinds"
-        },
-        "balance": {
-            "title": "Huidig Saldo",
-            "available": "Beschikbaar Saldo",
-            "currency": "Valuta",
-            "walletType": "Digitale Portemonnee"
-        },
-        "addMoney": {
-            "title": "Geld Toevoegen",
-            "button": "Geld Toevoegen"
-        },
-        "transactions": {
-            "title": "Jouw Transacties",
-            "subtitle": "Recente activiteit",
-            "headers": {
-                "transaction": "Transactie",
-                "dateTime": "Datum & Tijd",
-                "amount": "Bedrag",
-                "status": "Status",
-                "actions": "Acties"
-            },
-            "view": "Bekijken",
-            "downloadPdf": "Download PDF",
-            "noTransactions": "Geen transacties gevonden.",
-            "error": "Fout bij het ophalen van transactiegeschiedenis"
-        },
-        "status": {
-            "active": "Actief",
-            "pending": "In behandeling",
-            "paid": "Betaald"
-        },
-        "transactionTypes": {
-            "wallet": "Opwaardering",
-            "expense": "Uitgave"
-        }
-    },
-    "SignInPage": {
-      "hero": {
-        "weeklyOptimization": "Wekelijkse Optimalisatie",
-        "withNoHassle": "Geen Gedoe!",
-        "includeSearchTerms": "Voeg de door AI aanbevolen zoektermen toe",
-        "withinCampaignScope": "binnen het bereik van uw campagne"
-      },
-      "title": "Inloggen op uw account",
-      "email": "E-mail",
-      "enterEmail": "Voer uw e-mailadres in",
-      "password": "Wachtwoord",
-      "forgotPassword": "Wachtwoord vergeten?",
-      "signIn": "Inloggen",
-      "noAccount": "Nog geen account?",
-      "signUpWithEmailFreeTrial": "Start Uw 7-Dagen Gratis Proefperiode",
-      "or": "OF",
-      "signInWithGoogle": "Inloggen met Google",
-      "signUpWithGoogle": "Aanmelden met Google",
-      "welcomeBack": "Welkom terug!",
-      "continueWithEmail": "Doorgaan met e-mail",
-      "termsText": "Door verder te gaan gaat u akkoord met de",
-      "termsOfService": "Algemene Voorwaarden",
-      "privacyPolicy": "Privacybeleid",
-      "alreadyCustomer": "Al klant?",
-      "login": "Inloggen",
-      "signupPartner": "Partner aanmelden?",
-      "signUp": {
-        "title": "Start nu uw 7-dagen gratis proefperiode",
-        "signUpWithEmail": "Aanmelden met e-mail",
-        "accountDetails": "Accountgegevens",
-        "welcomeMessage": "Welkom, laten we beginnen...",
-        "profilePicture": "Profielfoto",
-        "fullName": "Volledige naam",
-        "passwordAgain": "Wachtwoord (opnieuw)",
-        "strongPassword": "Voor een sterk wachtwoord:",
-        "passwordRequirements": [
-          "Minstens 1 hoofdletter",
-          "Minstens 1 kleine letter",
-          "Minstens 1 cijfer",
-          "Minstens 6 tekens"
-        ],
-        "removePicture": "Verwijder afbeelding",
-        "continueButton": "Doorgaan",
-        "subscriptionPlans": "Abonnementspakketten",
-        "selectPlan": "Kies het pakket dat bij u past. Answer24 biedt eerlijke prijzen, met betaalbare opties op basis van uw land. De uiteindelijke prijs ziet u op de betaalpagina.",
-        "plans": {
-          "launch": {
-            "name": "Starter",
-            "description": "Start en optimaliseer uw Google Ads-campagnes met AI-ondersteuning.",
-            "credits": "AI-credits/maand",
-            "trial": "7 Dagen Gratis Uitproberen",
-            "startTrial": "Start 7-Dagen Gratis",
-            "featuresLabel": "Functies",
-            "features": [
-              "1 Advertentie-account",
-              "1 Teamlid",
-              "Wekelijkse optimalisaties",
-              "Advertentietracking (1 concurrent)"
-            ]
-          },
-          "growth": {
-            "name": "Groei",
-            "description": "Perfect voor het beheren van meerdere advertentie-accounts, met de tools die u nodig hebt om tijd en moeite te besparen.",
-            "credits": "AI-credits/maand",
-            "trial": "7 Dagen Gratis Uitproberen",
-            "startTrial": "Start 7-Dagen Gratis",
-            "featuresLabel": "Functies",
-            "features": [
-              "Alles uit Starterspakket",
-              "5 Advertentie-accounts",
-              "5 Teamleden",
-              "Dagelijkse optimalisaties"
-            ]
-          },
-          "enterprise": {
-            "name": "Onderneming",
-            "description": "Ontworpen voor bedrijven die behoefte hebben aan persoonlijke ondersteuning en geavanceerde strategie.",
-            "credits": "AI-credits/maand",
-            "trial": "7 Dagen Gratis Uitproberen",
-            "startTrial": "Start 7-Dagen Gratis",
-            "featuresLabel": "Functies",
-            "features": [
-              "Alles uit Groeipakket",
-              "20 Advertentie-accounts",
-              "20 Teamleden",
-              "Dagelijkse optimalisaties"
-            ]
-          }
-        }
-      },
-      "errors": {
-        "fullNameRequired": "Vul alstublieft uw volledige naam in.",
-        "passwordRequired": "Vul alstublieft uw wachtwoord in.",
-        "passwordAgainRequired": "Vul alstublieft uw wachtwoord opnieuw in.",
-        "passwordsDontMatch": "Wachtwoorden komen niet overeen.",
-        "invalidFileType": "Selecteer alstublieft een afbeeldingsbestand",
-        "fileTooLarge": "Bestandsgrootte mag niet groter zijn dan 5MB"
-      }
-    },
-    "AboutPage": {
-        "title": "Over Answer24",
-        "subtitle": "Onze missie is om Google Ads beter te laten werken voor iedereen. Geen giswerk meer, geen verspilde budgetten, geen onnodige complexiteit.",
-        "ctaButton": "Start Jouw Reis",
-        "story": {
-            "title": "Ons Verhaal",
-            "content": "<p>In de digitale wereld van vandaag is het uitvoeren van succesvolle online advertenties steeds complexer en duurder geworden. Kleine bedrijven hadden moeite om te concurreren met grote ondernemingen met volledige marketingteams en onbeperkte budgetten.</p><p>Toen realiseerden we ons dat er iets moest veranderen. We hebben Answer24 opgericht met een eenvoudig geloof: <strong>elk bedrijf verdient toegang tot eersteklas advertentietechnologie</strong>, ongeacht hun omvang of budget.</p><p>We zijn niet zomaar een bureau dat beloftes doet. We zijn een technologieplatform dat de kracht van AI-gestuurde optimalisatie direct in jouw handen legt, 24/7 werkend om je advertenties slimmer, efficiënter en winstgevender te maken.</p>"
-        },
-        "mission": {
-            "title": "Onze Missie",
-            "description": "Het democratiseren van digitale advertenties door geavanceerde AI-optimalisatie toegankelijk te maken voor bedrijven van elke omvang. Wij geloven dat elke ondernemer recht heeft op dezelfde krachtige tools die grote bedrijven gebruiken om hun markten te domineren."
-        },
-        "vision": {
-            "title": "Onze Visie",
-            "description": "Een wereld waarin digitale advertenties slimmer, eerlijker en efficiënter zijn voor iedereen. Waar kleine bedrijven op gelijke voet kunnen concurreren, en waar succes wordt bepaald door de kwaliteit van je product, niet door de omvang van je marketingbudget."
-        },
-        "values": {
-            "title": "Waar Wij Voor Staan",
-            "subtitle": "Onze waarden bepalen alles wat we doen, van de functies die we bouwen tot de manier waarop we onze klanten ondersteunen.",
-            "values": [
-                {
-                    "icon": "Target",
-                    "title": "Eenvoud Eerst",
-                    "description": "Wij geloven dat adverteren eenvoudig zou moeten zijn, niet ingewikkeld. Onze technologie neemt de complexiteit voor haar rekening, zodat jij dat niet hoeft te doen."
-                },
-                {
-                    "icon": "TrendingUp",
-                    "title": "Resultaatgericht",
-                    "description": "Elke functie die we bouwen is ontworpen om je ROI te verbeteren. We meten ons succes aan dat van jou."
-                },
-                {
-                    "icon": "Users",
-                    "title": "Klantgericht",
-                    "description": "We hebben Answer24 gebouwd voor echte bedrijven met echte uitdagingen. Jouw feedback vormt ons product."
-                }
-            ]
-        },
-        "journey": {
-            "title": "Onze Reis",
-            "subtitle": "Van een eenvoudig idee tot het bedienen van duizenden bedrijven wereldwijd.",
-            "milestones": [
-                {
-                    "year": "2023",
-                    "title": "Het Begin",
-                    "description": "Opgericht met de missie om Google Ads toegankelijk te maken voor elk bedrijf"
-                },
-                {
-                    "year": "2024",
-                    "title": "AI Revolutie",
-                    "description": "Lancering van onze geavanceerde AI-optimalisatiemotor die leert en zich aanpast"
-                },
-                {
-                    "year": "Vandaag",
-                    "title": "Sterke Groei",
-                    "description": "We bedienen wereldwijd meer dan 10.000 bedrijven met geautomatiseerde advertentie-optimalisatie"
-                }
-            ]
-        },
-        "whyUs": {
-            "title": "Waarom Kiezen voor Answer24?",
-            "subtitle": "We zijn niet zomaar een advertentieplatform. Dit is wat ons onderscheidt.",
-            "features": [
-                "Geen langlopende contracten of verborgen kosten",
-                "AI die leert en zich in de loop der tijd verbetert",
-                "White-label klaar voor bureaus",
-                "24/7 geautomatiseerde optimalisatie",
-                "Prestaties in realtime volgen",
-                "Toegewijde klantenondersteuning"
-            ]
-        }
-    },
-    "COOKIES": {
-        "title": "Cookie Voorkeuren",
-        "description": "We gebruiken cookies om uw ervaring op onze website te verbeteren. U kunt uw voorkeuren hieronder beheren.",
-        "manageSettings": "Cookie Instellingen Beheren",
-        "savePreferences": "Voorkeuren Opslaan",
-        "acceptAll": "Alles Accepteren",
-        "types": {
-            "functional": {
-                "title": "Functionele Cookies",
-                "description": "Essentiële cookies die basisfunctionaliteit van de website mogelijk maken en niet kunnen worden uitgeschakeld."
-            },
-            "analytics": {
-                "title": "Analytische Cookies",
-                "description": "Helpen ons begrijpen hoe bezoekers omgaan met onze website door anonieme informatie te verzamelen."
-            },
-            "marketing": {
-                "title": "Marketing Cookies",
-                "description": "Gebruikt om bezoekers te volgen op websites om relevante en boeiende advertenties weer te geven."
-            }
-        }
+      "legal": "Juridisch",
+      "no_pages": "Geen juridische pagina's beschikbaar",
+      "all_rights": "Alle rechten voorbehouden."
     }
+  },
+  "NotificationBanner": {
+    "title": "Blijf op de hoogte met Answer24-meldingen",
+    "subtitle": "Ontvang direct meldingen voor belangrijke updates en berichten",
+    "enable": "Inschakelen",
+    "requesting": "Bezig met aanvragen..."
+  },
+  "HeroSection": {
+    "hero_badge": "AI-aangedreven Google Ads-optimalisatie",
+    "hero_title_1": "24/7 AI-marketing & Klantloyaliteit",
+    "hero_title_2": "Geen genezing, geen betaling",
+    "hero_button_1": "Aanmelden",
+    "hero_button_2": "Deelnemers",
+    "hero_imageOne_alt": "afbeelding-één",
+    "hero_imageTwo_alt": "afbeelding twee",
+    "hero_imageThree_alt": "afbeelding-drie"
+  },
+
+  "DownloadApp": {
+    "section_title": "Answer24 Mobiele Apps",
+    "section_subtitle": "Download onze mobiele apps om verbonden te blijven met je favoriete diensten.",
+    "appstore_alt": "Download in de App Store",
+    "googleplay_alt": "Download op Google Play",
+    "modal_title": "Installeer deze app",
+    "modal_subtitle": "Voor snellere toegang, installeer deze app op je apparaat.",
+    "already_installed": "App is al geïnstalleerd.",
+    "uninstall_first": "Om opnieuw te installeren, verwijder eerst de app.",
+    "manual_add": "Je kunt deze app ook handmatig aan je startscherm toevoegen via het browsermenu.",
+    "install_button": "Installeren",
+    "later_button": "Later",
+    "not_available_localhost": "Installatieprompt niet beschikbaar op localhost. Test op een echt apparaat of publiceer de app.",
+    "not_available_other": "Installatieprompt niet beschikbaar. Probeer te verversen of gebruik de optie 'Toevoegen aan startscherm' van je browser. (DEBUG: deferredPrompt was null)"
+  },
+  "FeatureSection": {
+    "section_title": "Krachtige functies",
+    "heading": {
+      "line1": "Alles wat je nodig hebt om",
+      "line2": "te domineren in Google Ads"
+    },
+    "subheading": "Krachtige AI-gestuurde functies ontworpen om elk aspect van je Google Ads-campagnes te optimaliseren",
+    "learn_more": "Meer informatie",
+    "show_less": "Toon minder",
+    "features": [
+      {
+        "title": "Slimme Trefwoordgenerator",
+        "description": "AI-aangestuurde trefwoordsuggesties met zoekvolume, CPC en concurrentieanalyse voor maximale impact."
+      },
+      {
+        "title": "Campagne-auditor",
+        "description": "Uitgebreide audits die budgetverspilling, slechte trefwoorden en gemiste kansen identificeren."
+      },
+      {
+        "title": "Concurrentievolging",
+        "description": "Volg advertenties van concurrenten, houd wijzigingen bij en krijg inzicht in hun prestatietrategieën."
+      },
+      {
+        "title": "White-Label Rapportages",
+        "description": "Op maat gemaakte rapporten en downloadbare PDF's, perfect voor bureaus en presentaties aan klanten."
+      },
+      {
+        "title": "AI-optimalisatietips",
+        "description": "Dagelijkse AI-gegenereerde aanbevelingen voor biedaanpassingen, het pauzeren van trefwoorden en prestatieverbeteringen."
+      },
+      {
+        "title": "Slimme Meldingen",
+        "description": "Directe meldingen voor prestatieverminderingen en belangrijke wijzigingen om snel te kunnen reageren."
+      }
+    ]
+  },
+  "AudienceSection": {
+    "section_title": "Voor wie is het bedoeld",
+    "heading": {
+      "line1": "Gemaakt voor",
+      "line2": "elke marketeer"
+    },
+    "subheading": "Of je nu een ondernemer, bureau of freelancer bent, Answer24 past zich aan jouw behoeften aan",
+    "learn_more": "Meer informatie",
+    "audiences": [
+      {
+        "title": "Kleine en middelgrote bedrijven",
+        "description": "Perfect voor MKB'ers die hun eigen Google Ads-campagnes beheren en hun ROI willen maximaliseren zonder dure bureaus in te huren.",
+        "benefits": [
+          "Verminder verspilling van advertentiebudget",
+          "Verbeter de prestaties van campagnes",
+          "Bespaar tijd op optimalisatie"
+        ]
+      },
+      {
+        "title": "Marketingbureaus",
+        "description": "Ideaal voor bureaus die meerdere klantaccounts beheren met white-label rapportage en geavanceerde automatiseringsfuncties.",
+        "benefits": [
+          "Schaal klantbeheer",
+          "Professionele rapportage",
+          "Verhoog de winstmarges"
+        ]
+      },
+      {
+        "title": "Zelfstandige marketeers",
+        "description": "Ontworpen voor zelfstandige marketeers die krachtige automatiseringshulpmiddelen nodig hebben om te concurreren met grotere bureaus.",
+        "benefits": [
+          "Automatiseer routinetaken",
+          "Lever betere resultaten",
+          "Beheer meer klanten"
+        ]
+      }
+    ]
+  },
+  "ContactPage": {
+    "contactBadge": "Neem contact op",
+    "title": "Neem contact op",
+    "subtitle": "Klaar om je Google Ads te transformeren? Laten we praten over hoe Answer24 je bedrijf kan helpen groeien.",
+    "form": {
+      "fullName": "Volledige naam",
+      "email": "E-mailadres",
+      "company": "Bedrijfsnaam",
+      "message": "Bericht",
+      "submit": "Verstuur bericht"
+    },
+    "contactInfo": {
+      "title": "Contactgegevens",
+      "emailLabel": "E-mail",
+      "emailValue": "hallo@answer24.com",
+      "phoneLabel": "Telefoon",
+      "phoneValue": "+31 20 123 4567",
+      "locationLabel": "Locatie",
+      "locationValue": "Amsterdam, Nederland"
+    },
+    "quickResponse": {
+      "title": "Snel antwoord",
+      "description": "We reageren doorgaans binnen 24 uur op alle vragen. Voor dringende zaken, bel ons direct."
+    },
+    "downloadApp": {
+      "section": {
+        "title": "Download de App",
+        "description": "Krijg de volledige Answer24-ervaring op je mobiele apparaat."
+      },
+      "modal": {
+        "title": "Installeer Answer24 App",
+        "description": "Voeg Answer24 toe aan je startscherm voor snelle toegang en een betere ervaring.",
+        "install": "Installeren",
+        "later": "Later",
+        "alreadyInstalled": "App is al geïnstalleerd.",
+        "manualInstruction": "Je kunt deze app ook handmatig toevoegen aan je startscherm via het browsermenu."
+      }
+    }
+  },
+  "Dashboard": {
+    "title": "Account Dashboard",
+    "subtitle": "Houd uw Google Ads-prestaties in de gaten en krijg AI-gestuurde inzichten.",
+    "loading": "Dashboard laden...",
+    "stats": {
+      "totalSpend": "Totale Uitgaven",
+      "totalClicks": "Totaal Klikken",
+      "totalImpressions": "Totaal Vertoningen",
+      "ctr": "Doorklikpercentage"
+    },
+    "sections": {
+      "campaigns": "Uw Campagnes",
+      "aiTips": "AI-optimalisatietips",
+      "quickActions": "Snelle Acties",
+      "performance": "Prestatieoverzicht"
+    },
+    "actions": {
+      "viewAll": "Alles Weergeven",
+      "applyTip": "Tip Toepassen",
+      "dismiss": "Negeren",
+      "seeMore": "Meer Weergeven"
+    },
+    "emptyStates": {
+      "noCampaigns": "Geen campagnes gevonden",
+      "noTips": "Geen optimalisatietips beschikbaar"
+    }
+  },
+  "Navigation": {
+    "account": "Account",
+    "chat": "Chat",
+    "wallet": "Portemonnee",
+    "plans": "Abonnementen",
+    "blog": "Bloggen",
+    "webshop": "Webwinkels",
+    "faq": "Veelgestelde Vragen",
+    "pricing": "Prijzen",
+    "about": "Over Ons",
+    "contact": "Contact",
+    "signIn": "Inloggen",
+    "startFreeTrial": "Start Gratis Proefperiode",
+    "userMenu": {
+      "profile": "Profiel",
+      "logOut": "Uitloggen"
+    },
+    "admin": {
+      "planManagement": "Abonnementenbeheer",
+      "userManagement": "Gebruikersbeheer"
+    }
+  },
+  "WalletPage": {
+    "title": "Jouw Portemonnee",
+    "subtitle": "Beheer je transacties en saldo",
+    "accountDetails": {
+      "title": "Accountgegevens",
+      "memberSince": "Lid sinds"
+    },
+    "balance": {
+      "title": "Huidig Saldo",
+      "available": "Beschikbaar Saldo",
+      "currency": "Valuta",
+      "walletType": "Digitale Portemonnee"
+    },
+    "addMoney": {
+      "title": "Geld Toevoegen",
+      "button": "Geld Toevoegen"
+    },
+    "transactions": {
+      "title": "Jouw Transacties",
+      "subtitle": "Recente activiteit",
+      "headers": {
+        "transaction": "Transactie",
+        "dateTime": "Datum & Tijd",
+        "amount": "Bedrag",
+        "status": "Status",
+        "actions": "Acties"
+      },
+      "view": "Bekijken",
+      "downloadPdf": "Download PDF",
+      "noTransactions": "Geen transacties gevonden.",
+      "error": "Fout bij het ophalen van transactiegeschiedenis"
+    },
+    "status": {
+      "active": "Actief",
+      "pending": "In behandeling",
+      "paid": "Betaald"
+    },
+    "transactionTypes": {
+      "wallet": "Opwaardering",
+      "expense": "Uitgave"
+    }
+  },
+  "SignInPage": {
+    "hero": {
+      "weeklyOptimization": "Wekelijkse Optimalisatie",
+      "withNoHassle": "Geen Gedoe!",
+      "includeSearchTerms": "Voeg de door AI aanbevolen zoektermen toe",
+      "withinCampaignScope": "binnen het bereik van uw campagne"
+    },
+    "title": "Inloggen op uw account",
+    "email": "E-mail",
+    "enterEmail": "Voer uw e-mailadres in",
+    "password": "Wachtwoord",
+    "forgotPassword": "Wachtwoord vergeten?",
+    "signIn": "Inloggen",
+    "noAccount": "Nog geen account?",
+    "signUpWithEmailFreeTrial": "Start Uw 7-Dagen Gratis Proefperiode",
+    "or": "OF",
+    "signInWithGoogle": "Inloggen met Google",
+    "signUpWithGoogle": "Aanmelden met Google",
+    "welcomeBack": "Welkom terug!",
+    "continueWithEmail": "Doorgaan met e-mail",
+    "termsText": "Door verder te gaan gaat u akkoord met de",
+    "termsOfService": "Algemene Voorwaarden",
+    "privacyPolicy": "Privacybeleid",
+    "alreadyCustomer": "Al klant?",
+    "login": "Inloggen",
+    "signupPartner": "Partner aanmelden?",
+    "signUp": {
+      "title": "Start nu uw 7-dagen gratis proefperiode",
+      "signUpWithEmail": "Aanmelden met e-mail",
+      "accountDetails": "Accountgegevens",
+      "welcomeMessage": "Welkom, laten we beginnen...",
+      "profilePicture": "Profielfoto",
+      "fullName": "Volledige naam",
+      "passwordAgain": "Wachtwoord (opnieuw)",
+      "strongPassword": "Voor een sterk wachtwoord:",
+      "passwordRequirements": [
+        "Minstens 1 hoofdletter",
+        "Minstens 1 kleine letter",
+        "Minstens 1 cijfer",
+        "Minstens 6 tekens"
+      ],
+      "removePicture": "Verwijder afbeelding",
+      "continueButton": "Doorgaan",
+      "subscriptionPlans": "Abonnementspakketten",
+      "selectPlan": "Kies het pakket dat bij u past. Answer24 biedt eerlijke prijzen, met betaalbare opties op basis van uw land. De uiteindelijke prijs ziet u op de betaalpagina.",
+      "plans": {
+        "launch": {
+          "name": "Starter",
+          "description": "Start en optimaliseer uw Google Ads-campagnes met AI-ondersteuning.",
+          "credits": "AI-credits/maand",
+          "trial": "7 Dagen Gratis Uitproberen",
+          "startTrial": "Start 7-Dagen Gratis",
+          "featuresLabel": "Functies",
+          "features": [
+            "1 Advertentie-account",
+            "1 Teamlid",
+            "Wekelijkse optimalisaties",
+            "Advertentietracking (1 concurrent)"
+          ]
+        },
+        "growth": {
+          "name": "Groei",
+          "description": "Perfect voor het beheren van meerdere advertentie-accounts, met de tools die u nodig hebt om tijd en moeite te besparen.",
+          "credits": "AI-credits/maand",
+          "trial": "7 Dagen Gratis Uitproberen",
+          "startTrial": "Start 7-Dagen Gratis",
+          "featuresLabel": "Functies",
+          "features": [
+            "Alles uit Starterspakket",
+            "5 Advertentie-accounts",
+            "5 Teamleden",
+            "Dagelijkse optimalisaties"
+          ]
+        },
+        "enterprise": {
+          "name": "Onderneming",
+          "description": "Ontworpen voor bedrijven die behoefte hebben aan persoonlijke ondersteuning en geavanceerde strategie.",
+          "credits": "AI-credits/maand",
+          "trial": "7 Dagen Gratis Uitproberen",
+          "startTrial": "Start 7-Dagen Gratis",
+          "featuresLabel": "Functies",
+          "features": [
+            "Alles uit Groeipakket",
+            "20 Advertentie-accounts",
+            "20 Teamleden",
+            "Dagelijkse optimalisaties"
+          ]
+        }
+      }
+    },
+    "errors": {
+      "fullNameRequired": "Vul alstublieft uw volledige naam in.",
+      "passwordRequired": "Vul alstublieft uw wachtwoord in.",
+      "passwordAgainRequired": "Vul alstublieft uw wachtwoord opnieuw in.",
+      "passwordsDontMatch": "Wachtwoorden komen niet overeen.",
+      "invalidFileType": "Selecteer alstublieft een afbeeldingsbestand",
+      "fileTooLarge": "Bestandsgrootte mag niet groter zijn dan 5MB"
+    }
+  },
+  "AboutPage": {
+    "title": "Over Answer24",
+    "subtitle": "Onze missie is om Google Ads beter te laten werken voor iedereen. Geen giswerk meer, geen verspilde budgetten, geen onnodige complexiteit.",
+    "ctaButton": "Start Jouw Reis",
+    "story": {
+      "title": "Ons Verhaal",
+      "content": "<p>In de digitale wereld van vandaag is het uitvoeren van succesvolle online advertenties steeds complexer en duurder geworden. Kleine bedrijven hadden moeite om te concurreren met grote ondernemingen met volledige marketingteams en onbeperkte budgetten.</p><p>Toen realiseerden we ons dat er iets moest veranderen. We hebben Answer24 opgericht met een eenvoudig geloof: <strong>elk bedrijf verdient toegang tot eersteklas advertentietechnologie</strong>, ongeacht hun omvang of budget.</p><p>We zijn niet zomaar een bureau dat beloftes doet. We zijn een technologieplatform dat de kracht van AI-gestuurde optimalisatie direct in jouw handen legt, 24/7 werkend om je advertenties slimmer, efficiënter en winstgevender te maken.</p>"
+    },
+    "mission": {
+      "title": "Onze Missie",
+      "description": "Het democratiseren van digitale advertenties door geavanceerde AI-optimalisatie toegankelijk te maken voor bedrijven van elke omvang. Wij geloven dat elke ondernemer recht heeft op dezelfde krachtige tools die grote bedrijven gebruiken om hun markten te domineren."
+    },
+    "vision": {
+      "title": "Onze Visie",
+      "description": "Een wereld waarin digitale advertenties slimmer, eerlijker en efficiënter zijn voor iedereen. Waar kleine bedrijven op gelijke voet kunnen concurreren, en waar succes wordt bepaald door de kwaliteit van je product, niet door de omvang van je marketingbudget."
+    },
+    "values": {
+      "title": "Waar Wij Voor Staan",
+      "subtitle": "Onze waarden bepalen alles wat we doen, van de functies die we bouwen tot de manier waarop we onze klanten ondersteunen.",
+      "values": [
+        {
+          "icon": "Target",
+          "title": "Eenvoud Eerst",
+          "description": "Wij geloven dat adverteren eenvoudig zou moeten zijn, niet ingewikkeld. Onze technologie neemt de complexiteit voor haar rekening, zodat jij dat niet hoeft te doen."
+        },
+        {
+          "icon": "TrendingUp",
+          "title": "Resultaatgericht",
+          "description": "Elke functie die we bouwen is ontworpen om je ROI te verbeteren. We meten ons succes aan dat van jou."
+        },
+        {
+          "icon": "Users",
+          "title": "Klantgericht",
+          "description": "We hebben Answer24 gebouwd voor echte bedrijven met echte uitdagingen. Jouw feedback vormt ons product."
+        }
+      ]
+    },
+    "journey": {
+      "title": "Onze Reis",
+      "subtitle": "Van een eenvoudig idee tot het bedienen van duizenden bedrijven wereldwijd.",
+      "milestones": [
+        {
+          "year": "2023",
+          "title": "Het Begin",
+          "description": "Opgericht met de missie om Google Ads toegankelijk te maken voor elk bedrijf"
+        },
+        {
+          "year": "2024",
+          "title": "AI Revolutie",
+          "description": "Lancering van onze geavanceerde AI-optimalisatiemotor die leert en zich aanpast"
+        },
+        {
+          "year": "Vandaag",
+          "title": "Sterke Groei",
+          "description": "We bedienen wereldwijd meer dan 10.000 bedrijven met geautomatiseerde advertentie-optimalisatie"
+        }
+      ]
+    },
+    "whyUs": {
+      "title": "Waarom Kiezen voor Answer24?",
+      "subtitle": "We zijn niet zomaar een advertentieplatform. Dit is wat ons onderscheidt.",
+      "features": [
+        "Geen langlopende contracten of verborgen kosten",
+        "AI die leert en zich in de loop der tijd verbetert",
+        "White-label klaar voor bureaus",
+        "24/7 geautomatiseerde optimalisatie",
+        "Prestaties in realtime volgen",
+        "Toegewijde klantenondersteuning"
+      ]
+    }
+  },
+  "COOKIES": {
+    "title": "Cookie Voorkeuren",
+    "description": "We gebruiken cookies om uw ervaring op onze website te verbeteren. U kunt uw voorkeuren hieronder beheren.",
+    "manageSettings": "Cookie Instellingen Beheren",
+    "savePreferences": "Voorkeuren Opslaan",
+    "acceptAll": "Alles Accepteren",
+    "types": {
+      "functional": {
+        "title": "Functionele Cookies",
+        "description": "Essentiële cookies die basisfunctionaliteit van de website mogelijk maken en niet kunnen worden uitgeschakeld."
+      },
+      "analytics": {
+        "title": "Analytische Cookies",
+        "description": "Helpen ons begrijpen hoe bezoekers omgaan met onze website door anonieme informatie te verzamelen."
+      },
+      "marketing": {
+        "title": "Marketing Cookies",
+        "description": "Gebruikt om bezoekers te volgen op websites om relevante en boeiende advertenties weer te geven."
+      }
+    }
+  },
+  "BlogPage": {
+    "title": "De Blog",
+    "subtitle": "Inzichten, verhalen en updates van ons team",
+    "search_placeholder": "Zoek artikelen...",
+    "read_more": "Lees verder",
+    "more_articles": "Meer artikelen",
+    "newsletter_title": "Blijf op de hoogte",
+    "newsletter_subtitle": "Ontvang de nieuwste artikelen en bronnen rechtstreeks in uw inbox.",
+    "email_placeholder": "Uw e-mailadres",
+    "subscribe": "Abonneren"
+  }
 }

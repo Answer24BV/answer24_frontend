@@ -1,10 +1,12 @@
-"use client"
+"use client";
 
-import { Button } from "@/components/ui/button"
-import { ArrowRight, Play, Sparkles } from "lucide-react"
-import { motion } from "framer-motion"
-import Image from "next/image"
-import HeroImage from "@/public/image.png"
+import { Button } from "@/components/ui/button";
+import { ArrowRight, Play, Sparkles } from "lucide-react";
+import { motion } from "framer-motion";
+import Image from "next/image";
+import HeroImageOne from "@/public/hero-image-one.jpg";
+import HeroImageTwo from "@/public/hero-image-two.jpg";
+import HeroImageThree from "@/public/hero-image-three.jpg";
 import { useTranslations } from "next-intl";
 
 export function HeroSection() {
@@ -29,18 +31,17 @@ export function HeroSection() {
             className="inline-flex items-center gap-2 bg-blue-50 text-blue-700 px-4 py-2 rounded-full text-sm font-medium mb-6 border border-blue-200"
           >
             <Sparkles className="w-4 h-4" />
-            {t('hero_badge')}
+            {t("hero_badge")}
           </motion.div>
-
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.1 }}
-            className="text-3xl lg:text-5xl font-bold text-gray-900 mb-6 leading-tight"
+            className="text-3xl lg:text-5xl font-bold text-gray-900 mb-6 leading-relaxed"
           >
-            {t('hero_title_1')}
+            {t("hero_title_1")}
             <span className="bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent block">
-              {t('hero_title_2')}
+              {t("hero_title_2")}
             </span>
           </motion.h1>
           <motion.div
@@ -52,9 +53,9 @@ export function HeroSection() {
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
               <Button
                 size="lg"
-                className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 text-lg rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
+                className="bg-blue-600 hover:bg-blue-700 text-white !px-12 py-8! text-[17px] rounded-full shadow-lg hover:shadow-xl transition-all duration-200"
               >
-                {t('hero_button_1')}
+                {t("hero_button_1")}
                 <ArrowRight className="ml-2 w-5 h-5" />
               </Button>
             </motion.div>
@@ -62,10 +63,10 @@ export function HeroSection() {
               <Button
                 variant="outline"
                 size="lg"
-                className="px-8 py-4 text-lg rounded-xl border-gray-300 hover:border-blue-300 hover:bg-blue-50 transition-all duration-200 bg-transparent"
+                className="!px-12 py-8! text-[17px] rounded-full border-gray-300 hover:border-blue-300 hover:bg-blue-50 transition-all duration-200 bg-transparent"
               >
                 <Play className="mr-2 w-5 h-5" />
-                {t('hero_button_2')}
+                {t("hero_button_2")}
               </Button>
             </motion.div>
           </motion.div>
@@ -78,32 +79,37 @@ export function HeroSection() {
           transition={{ duration: 0.8, delay: 0.2 }}
           className="relative"
         >
-          <div className="relative bg-white rounded-2xl shadow-2xl p-8 border border-gray-200">
-            <Image
-              src={HeroImage}
-              alt="Hero Image"
-              width={500}
-              height={500}
-              className="w-full h-auto"
-            />
+          <div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="flex flex-col gap-6">
+                <Image
+                  src={HeroImageOne}
+                  alt="Top image"
+                  width={500}
+                  height={300}
+                  className="rounded-2xl w-full h-auto object-cover col-span-2"
+                />
 
-            {/* Floating elements */}
-            <motion.div
-              animate={{ y: [-10, 10, -10] }}
-              transition={{ duration: 4, repeat: Number.POSITIVE_INFINITY, ease: "easeInOut" }}
-              className="absolute w-72 -top-6 md:-left-16 -left-4"
-            >
-              <div className="relative bg-blue-600 text-white p-4 rounded-xl shadow-lg">
-                <p className="text-sm">
-                  {t('hero_floating_text')}
-                </p>
-                {/* Tail */}
-                <div className="absolute bottom-[-10px] right-8 w-0 h-0 border-l-[10px] border-l-transparent border-r-[10px] border-r-transparent border-t-[10px] border-t-blue-600" />
+                <Image
+                  src={HeroImageThree}
+                  alt="Left bottom image"
+                  width={500}
+                  height={300}
+                  className="rounded-2xl h-auto object-cover"
+                />
               </div>
-            </motion.div>
+
+              <Image
+                src={HeroImageTwo}
+                alt="Right bottom image"
+                width={250}
+                height={700}
+                className="rounded-2xl w-full h-auto object-cover mt-11 flex justify-center items-center"
+              />
+            </div>
           </div>
         </motion.div>
       </div>
     </section>
-  )
+  );
 }

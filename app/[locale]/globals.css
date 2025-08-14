@@ -133,3 +133,8 @@
     display: none;
   }
 }
+
+html,
+body {
+  font-family: var(--font-poppins), sans-serif;
+}

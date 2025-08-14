@@ -1,21 +1,21 @@
-'use client';
-import { useEffect, useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Search, ArrowRight, Clock, Calendar, BookOpen } from 'lucide-react';
-import Image from 'next/image';
-import { Link } from '@/i18n/navigation';
-import { Blog } from '@/types/blog.d';
-import BlogSkeleton from './BlogSkeleton';
-import BLOGIMAGEPLACEHOLDER from "@/public/image.png"
-import { getAllBlogs } from '@/app/[locale]/actions/blog';
-import { useTranslations as useDynamicTranslations } from '@/hooks/useTranslations';
+"use client";
+import { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Search, ArrowRight, Clock, Calendar, BookOpen } from "lucide-react";
+import Image from "next/image";
+import { Link } from "@/i18n/navigation";
+import { Blog } from "@/types/blog.d";
+import BlogSkeleton from "./BlogSkeleton";
+import BLOGIMAGEPLACEHOLDER from "@/public/image.png";
+import { getAllBlogs } from "@/app/[locale]/actions/blog";
+import { useTranslations } from "next-intl";
 
 const BlogComponent = () => {
   const [blogs, setBlogs] = useState<Blog[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { t } = useDynamicTranslations();
+  const t = useTranslations("BlogPage");
 
   useEffect(() => {
     const fetchBlogs = async () => {
@@ -24,7 +24,7 @@ const BlogComponent = () => {
         const blogData = await getAllBlogs();
         setBlogs(blogData.data);
       } catch (err) {
-        setError('Failed to fetch blogs.');
+        setError("Failed to fetch blogs.");
       } finally {
         setIsLoading(false);
       }
@@ -32,7 +32,7 @@ const BlogComponent = () => {
     fetchBlogs();
   }, []);
 
-  if (isLoading) return <BlogSkeleton/>;
+  if (isLoading) return <BlogSkeleton />;
   if (error) return <div className="p-4 text-red-500">Error: {error}</div>;
 
   const [featuredPost, ...otherPosts] = blogs;
@@ -44,17 +44,17 @@ const BlogComponent = () => {
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto text-center mt-10">
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-6 bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/70">
-              {t('blog.title', 'The Blog')}
+              {t("title")}
             </h1>
             <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-              {t('blog.subtitle', 'Insights, stories, and updates from our team')}
+              {t("subtitle")}
             </p>
-            
+
             <div className="relative max-w-xl mx-auto">
               <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
               <Input
                 type="text"
-                placeholder={t('blog.search_placeholder', 'Search articles...')}
+                placeholder={t("search_placeholder")}
                 className="pl-12 pr-6 py-5 text-base rounded-full border-0 shadow-sm focus-visible:ring-2 focus-visible:ring-primary/50"
               />
             </div>
@@ -68,7 +68,10 @@ const BlogComponent = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
             {/* Featured Post - Large Card */}
             <div className="md:col-span-2 lg:row-span-2 group">
-              <Link href={`/blog/${featuredPost.slug}`} className='cursor-pointer'>
+              <Link
+                href={`/blog/${featuredPost.slug}`}
+                className="cursor-pointer"
+              >
                 <div className="h-full flex flex-col bg-card rounded-2xl overflow-hidden border border-border hover:shadow-lg transition-shadow duration-300">
                   <div className="relative aspect-video overflow-hidden">
                     <img
@@ -83,22 +86,28 @@ const BlogComponent = () => {
                     <div className="flex items-center text-sm text-muted-foreground mb-3">
                       <span className="flex items-center">
                         <Calendar className="h-4 w-4 mr-1" />
-                        {new Date(featuredPost.published_at as any).toLocaleDateString('en-US', {
-                          month: 'short',
-                          day: 'numeric',
-                          year: 'numeric'
+                        {new Date(
+                          featuredPost.published_at as any
+                        ).toLocaleDateString("en-US", {
+                          month: "short",
+                          day: "numeric",
+                          year: "numeric",
                         })}
                       </span>
                     </div>
                     <h2 className="text-2xl font-bold mb-3 line-clamp-2">
-                        {featuredPost.title}
+                      {featuredPost.title}
                     </h2>
                     <p className="text-muted-foreground mb-4 line-clamp-3">
                       {featuredPost.excerpt}
                     </p>
                     <div className="mt-auto pt-4 flex items-center">
-                      <Button variant="ghost" size="sm" className="ml-auto text-primary">
-                        {t('blog.read_more', 'Read more')}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="ml-auto text-primary"
+                      >
+                        {t("read_more")}
                         <ArrowRight className="ml-1 h-4 w-4" />
                       </Button>
                     </div>
@@ -109,28 +118,28 @@ const BlogComponent = () => {
             {/* Other Posts */}
             {otherPosts.slice(0, 2).map((post) => (
               <div key={post.id} className="group">
-                <Link href={`/blog/${post.slug}`} className='cursor-pointer'>
-                <div className="h-full flex flex-col bg-card rounded-2xl overflow-hidden border border-border hover:shadow-lg transition-shadow duration-300">
-                  <div className="relative aspect-video overflow-hidden">
-                    <Image
-                      src={post.blog_image || BLOGIMAGEPLACEHOLDER.src}
-                      alt={post.title}
-                      fill
-                      className="object-cover transition-transform duration-500 group-hover:scale-105"
-                      // onError={(e) => {
-                      //   e.currentTarget.src = BLOGIMAGEPLACEHOLDER.src;
-                      // }}
-                    />
+                <Link href={`/blog/${post.slug}`} className="cursor-pointer">
+                  <div className="h-full flex flex-col bg-card rounded-2xl overflow-hidden border border-border hover:shadow-lg transition-shadow duration-300">
+                    <div className="relative aspect-video overflow-hidden">
+                      <Image
+                        src={post.blog_image || BLOGIMAGEPLACEHOLDER.src}
+                        alt={post.title}
+                        fill
+                        className="object-cover transition-transform duration-500 group-hover:scale-105"
+                        // onError={(e) => {
+                        //   e.currentTarget.src = BLOGIMAGEPLACEHOLDER.src;
+                        // }}
+                      />
+                    </div>
+                    <div className="p-5 flex-1 flex flex-col">
+                      <h3 className="text-lg font-semibold mb-2 line-clamp-2">
+                        {post.title}
+                      </h3>
+                      <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
+                        {post.excerpt}
+                      </p>
+                    </div>
                   </div>
-                  <div className="p-5 flex-1 flex flex-col">
-                    <h3 className="text-lg font-semibold mb-2 line-clamp-2">
-                      {post.title}
-                    </h3>
-                    <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
-                      {post.excerpt}
-                    </p>
-                  </div>
-                </div>
                 </Link>
               </div>
             ))}
@@ -140,31 +149,31 @@ const BlogComponent = () => {
         {/* More Articles */}
         {otherPosts.length > 2 && (
           <div className="mb-16">
-            <h2 className="text-2xl font-bold mb-6">{t('blog.more_articles', 'More Articles')}</h2>
+            <h2 className="text-2xl font-bold mb-6">{t("more_articles")}</h2>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
               {otherPosts.slice(2).map((post) => (
                 <div key={post.id} className="group">
-                <Link href={`/blog/${post.slug}`} className='cursor-pointer'>
-                  <div className="h-full flex flex-col bg-card rounded-xl overflow-hidden border border-border hover:shadow-md transition-shadow duration-300">
-                    <div className="relative aspect-[16/9] overflow-hidden">
-                      <Image
-                        src={post.blog_image || BLOGIMAGEPLACEHOLDER.src}
-                        alt={post.title}
-                        fill
-                        className="object-cover transition-transform duration-500 group-hover:scale-105"
-                      />
+                  <Link href={`/blog/${post.slug}`} className="cursor-pointer">
+                    <div className="h-full flex flex-col bg-card rounded-xl overflow-hidden border border-border hover:shadow-md transition-shadow duration-300">
+                      <div className="relative aspect-[16/9] overflow-hidden">
+                        <Image
+                          src={post.blog_image || BLOGIMAGEPLACEHOLDER.src}
+                          alt={post.title}
+                          fill
+                          className="object-cover transition-transform duration-500 group-hover:scale-105"
+                        />
+                      </div>
+                      <div className="p-5">
+                        <h3 className="font-semibold mb-2 line-clamp-2">
+                          {post.title}
+                        </h3>
+                        <p className="text-sm text-muted-foreground line-clamp-2">
+                          {post.excerpt}
+                        </p>
+                      </div>
                     </div>
-                    <div className="p-5">
-                      <h3 className="font-semibold mb-2 line-clamp-2">
-                        {post.title}
-                      </h3>
-                      <p className="text-sm text-muted-foreground line-clamp-2">
-                        {post.excerpt}
-                      </p>
-                    </div>
-                  </div>
-                </Link>
-                  </div>
+                  </Link>
+                </div>
               ))}
             </div>
           </div>
@@ -172,17 +181,17 @@ const BlogComponent = () => {
         {/* Newsletter */}
         <div className="bg-gradient-to-r from-primary/5 to-primary/10 rounded-2xl p-8 text-center">
           <BookOpen className="h-10 w-10 mx-auto mb-4 text-primary" />
-          <h2 className="text-2xl font-bold mb-2">{t('blog.newsletter_title', 'Stay in the loop')}</h2>
+          <h2 className="text-2xl font-bold mb-2">{t("newsletter_title")}</h2>
           <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-            {t('blog.newsletter_subtitle', 'Get the latest articles and resources sent straight to your inbox.')}
+            {t("newsletter_subtitle")}
           </p>
           <div className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
             <Input
               type="email"
-              placeholder={t('blog.email_placeholder', 'Your email address')}
+              placeholder={t("email_placeholder")}
               className="bg-background"
             />
-            <Button>{t('blog.subscribe', 'Subscribe')}</Button>
+            <Button>{t("subscribe")}</Button>
           </div>
         </div>
       </div>
