@@ -2,12 +2,12 @@
 
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
-import { Link } from "@/i18n/navigation.ts";
+import { Link } from "@/i18n/navigation";
 import { useState, FormEvent, useEffect } from "react";
 import { useTranslations } from "next-intl";
-import { authAPI, tokenUtils } from "@/utils/auth.ts";
-import { useRouter } from "@/i18n/navigation.ts";
-import { AuthGuard } from "@/components";
+import { authAPI, tokenUtils } from "@/utils/auth";
+import { useRouter } from "@/i18n/navigation";
+import { AuthGuard } from "@/components/AuthGuard";
 
 interface Errors {
   fullName: string;
