@@ -971,12 +971,7 @@
   resolved "https://registry.npmjs.org/@next/env/-/env-15.4.6.tgz"
   integrity sha512-yHDKVTcHrZy/8TWhj0B23ylKv5ypocuCwey9ZqPyv4rPdUdRzpGCkSi03t04KBPyU96kxVtUqx6O3nE1kpxASQ==
 
-"@next/swc-win32-x64-msvc@13.5.9":
-  version "13.5.9"
-  resolved "https://registry.npmjs.org/@next/swc-win32-x64-msvc/-/swc-win32-x64-msvc-13.5.9.tgz"
-  integrity sha512-/72/dZfjXXNY/u+n8gqZDjI6rxKMpYsgBBYNZKWOQw0BpBF7WCnPflRy3ZtvQ2+IYI3ZH2bPyj7K+6a6wNk90Q==
-
-"@next/swc-win32-x64-msvc@15.4.6":
+"@next/swc-win32-x64-msvc@13.5.9", "@next/swc-win32-x64-msvc@15.4.6":
   version "15.4.6"
   resolved "https://registry.npmjs.org/@next/swc-win32-x64-msvc/-/swc-win32-x64-msvc-15.4.6.tgz"
   integrity sha512-T4ufqnZ4u88ZheczkBTtOF+eKaM14V8kbjud/XrAakoM5DKQWjW09vD6B9fsdsWS2T7D5EY31hRHdta7QKWOng==
@@ -3929,7 +3924,7 @@ next-themes@^0.4.6:
   resolved "https://registry.npmjs.org/next-themes/-/next-themes-0.4.6.tgz"
   integrity sha512-pZvgD5L0IEvX5/9GWyHMf3m8BKiVQwsCMHfoFosXtXBMnaS0ZnIJ9ST4b4NqLVKDEm8QBxoNNGNaBv2JNF6XNA==
 
-"next@^12.0.0 || ^13.0.0 || ^14.0.0 || ^15.0.0", next@>=14.0.0, next@>=9.0.0, next@15.4.6:
+"next@^12.0.0 || ^13.0.0 || ^14.0.0 || ^15.0.0", next@^15.4.6, next@>=14.0.0, next@>=9.0.0:
   version "15.4.6"
   resolved "https://registry.npmjs.org/next/-/next-15.4.6.tgz"
   integrity sha512-us++E/Q80/8+UekzB3SAGs71AlLDsadpFMXVNM/uQ0BMwsh9m3mr0UNQIfjKed8vpWXsASe+Qifrnu1oLIcKEQ==
