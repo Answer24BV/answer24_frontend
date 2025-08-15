@@ -43,7 +43,7 @@ export function Navbar() {
           : "bg-transparent"
       }`}
     >
-      <div className="max-w-7xl mx-auto px-6">
+      <div className="max-w-fit mx-auto px-6">
         <div className="flex items-center justify-between h-20">
           {/* Logo */}
 
@@ -77,7 +77,7 @@ export function Navbar() {
           </div>
 
           {/* Desktop CTA */}
-          <div className="hidden md:flex items-center space-x-4">
+          <div className="hidden md:flex items-center space-x-4 pl-5">
             <LanguageSwitcher />
             <Link href="/signin">
               <Button
@@ -89,7 +89,7 @@ export function Navbar() {
             </Link>
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
               <Link href="/signup">
-                <Button className="bg-blue-600 hover:bg-blue-700 text-white px-6 rounded-xl flex items-center">
+                <Button className="bg-blue-600 hover:bg-blue-700 text-white !p-6 rounded-full flex items-center">
                   {t("startFreeTrial")}
                   <ArrowRight className="ml-2 w-4 h-4" />
                 </Button>
