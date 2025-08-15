@@ -60,7 +60,7 @@ export function ConfirmDialog({
             </div>
           </div>
         </DialogHeader>
-        
+
         <div className="mt-4 ml-16">
           <DialogDescription className="text-left text-gray-600 leading-relaxed">
             {description}
