@@ -8,9 +8,21 @@ import HeroImageOne from "@/public/hero-image-one.jpg";
 import HeroImageTwo from "@/public/hero-image-two.jpg";
 import HeroImageThree from "@/public/hero-image-three.jpg";
 import { useTranslations } from "next-intl";
+import { useRouter, usePathname } from "next/navigation";
+import { useLocale } from "next-intl";
 
 export function HeroSection() {
   const t = useTranslations("HeroSection");
+  const router = useRouter();
+  const locale = useLocale();
+
+  const redirectToSignup = () => {
+    router.push(`/${locale}/signup`);
+  };
+
+  const redirectToWebshop = () => {
+    router.push(`/${locale}/webshop`);
+  };
 
   return (
     <section className="relative min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 via-white to-blue-50 overflow-hidden pt-30">
@@ -53,6 +65,7 @@ export function HeroSection() {
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
               <Button
                 size="lg"
+                onClick={redirectToSignup}
                 className="bg-blue-600 hover:bg-blue-700 text-white !px-12 py-8! text-[17px] rounded-full shadow-lg hover:shadow-xl transition-all duration-200"
               >
                 {t("hero_button_1")}
@@ -62,6 +75,7 @@ export function HeroSection() {
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
               <Button
                 variant="outline"
+                onClick={redirectToWebshop}
                 size="lg"
                 className="!px-12 py-8! text-[17px] rounded-full border-gray-300 hover:border-blue-300 hover:bg-blue-50 transition-all duration-200 bg-transparent"
               >

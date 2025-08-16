@@ -1,10 +1,18 @@
-import React from 'react';
-import Image from 'next/image';
-import { Button } from '@/components/ui/button';
-import { ArrowLeft, Calendar, Clock, Share2, MessageSquare, Tag, User } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { Link } from '@/i18n/navigation';
-import { Blog } from '@/types/blog.d';
+import React from "react";
+import Image from "next/image";
+import { Button } from "@/components/ui/button";
+import {
+  ArrowLeft,
+  Calendar,
+  Clock,
+  Share2,
+  MessageSquare,
+  Tag,
+  User,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Link } from "@/i18n/navigation";
+import { Blog } from "@/types/blog.d";
 
 interface BlogDetailsProps {
   post: Blog;
@@ -12,17 +20,20 @@ interface BlogDetailsProps {
   className?: string;
 }
 
-const BlogDetails = ({ 
+const BlogDetails = ({
   post,
-  relatedPosts = [], 
-  className 
+  relatedPosts = [],
+  className,
 }: BlogDetailsProps) => {
   return (
-    <article className={cn('max-w-4xl mx-auto', className)}>
+    <article className={cn("max-w-4xl mx-auto", className)}>
       {/* Back Button */}
       <div className="mb-8">
         <Button variant="ghost" asChild>
-          <Link href="/blog" className="flex items-center text-muted-foreground hover:text-foreground">
+          <Link
+            href="/blog"
+            className="flex items-center text-muted-foreground hover:text-foreground"
+          >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Blog
           </Link>
@@ -34,18 +45,19 @@ const BlogDetails = ({
         <div className="flex items-center text-sm text-muted-foreground mb-4">
           <span className="flex items-center">
             <Calendar className="h-4 w-4 mr-1" />
-            {post.published_at && new Date(post.published_at).toLocaleDateString('en-US', {
-              year: 'numeric',
-              month: 'long',
-              day: 'numeric',
-            })}
+            {post.published_at &&
+              new Date(post.published_at).toLocaleDateString("en-US", {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+              })}
           </span>
         </div>
-        
+
         <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight mb-6">
           {post.title}
         </h1>
-        
+
         <div className="flex items-center">
           <div className="ml-auto flex items-center space-x-2">
             <Button variant="outline" size="icon" className="rounded-full">
@@ -69,14 +81,10 @@ const BlogDetails = ({
 
       {/* Content */}
       <div className="prose prose-lg dark:prose-invert max-w-none mb-12">
-        <p className="text-xl text-muted-foreground mb-8">
-          {post.excerpt}
-        </p>
-        
+        <p className="text-xl text-muted-foreground mb-8">{post.excerpt}</p>
+
         <div dangerouslySetInnerHTML={{ __html: post.content }} />
       </div>
-
- 
 
       {/* Related Posts */}
       {relatedPosts.length > 0 && (
@@ -99,7 +107,13 @@ const BlogDetails = ({
                     {relatedPost.title}
                   </h3>
                   <div className="flex items-center text-xs text-muted-foreground mt-1">
-                    <span>{relatedPost.published_at && new Date(relatedPost.published_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+                    <span>
+                      {relatedPost.published_at &&
+                        new Date(relatedPost.published_at).toLocaleDateString(
+                          "en-US",
+                          { month: "short", day: "numeric" }
+                        )}
+                    </span>
                   </div>
                 </Link>
               </article>

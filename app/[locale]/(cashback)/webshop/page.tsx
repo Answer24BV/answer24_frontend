@@ -31,11 +31,22 @@ type Category = "All" | string;
 const CashbackHomepage = () => {
   const [activeCategory, setActiveCategory] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
-  const [webshops, setWebshops] = useState<Webshop[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
+  // const [webshops, setWebshops] = useState<Webshop[]>([]);
+  // const [categories, setCategories] = useState<Category[]>([]);
   const router = useRouter();
 
-  /*
+  const endpoint = "https://staging.answer24.nl/api/v1/preferences/categories";
+  const token = localStorage.getItem("auth_token");
+
+  fetch(endpoint, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  })
+    .then((res) => res.json())
+    .then((data) => console.log(data.data));
+
   const categories = [
     "All",
     "Electronics",
@@ -46,9 +57,7 @@ const CashbackHomepage = () => {
     "Sports",
     "Beauty",
   ];
-  */
 
-  /*
   const webshops = [
     {
       id: 1,
@@ -111,42 +120,6 @@ const CashbackHomepage = () => {
       featured: false,
     },
   ];
-  */
-
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token) return;
-
-    console.log(token);
-    // Fetch categories
-    fetch("https://staging.answer24.nl/api/v1/daisycon/category", {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
-      .then((res) => res.json())
-      .then((data: { data?: { name: string }[] }) => {
-        console.log("Categories API response:", data); // ✅ log the raw data
-        const cats = data.data?.map((cat) => cat.name) || [];
-        setCategories(["All", ...cats]); // always include "All"
-      })
-      .catch((err) => {
-        console.error("Error fetching categories:", err);
-        setCategories(["All"]); // fallback
-      });
-
-    // Fetch webshops / media
-    fetch("https://staging.answer24.nl/api/v1/daisycon/media")
-      .then((res) => res.json())
-      .then((data: { data?: Webshop[] }) => {
-        console.log("Webshops API response:", data); // ✅ log the raw data
-        setWebshops(data.data || []); // default to empty array
-      })
-      .catch((err) => {
-        console.error("Error fetching webshops:", err);
-        setWebshops([]); // fallback
-      });
-  }, []);
 
   const filteredWebshops = webshops.filter((shop) => {
     const matchesCategory =
