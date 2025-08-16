@@ -267,11 +267,83 @@ export default function SignUp() {
       setSelectedPaymentMethod(null);
     }
   }
+  const handleGoogleSignUp = async () => {
+    try {
+      console.log("Initiating Google Sign-Up...");
+      console.log("API Base URL:", process.env.NEXT_PUBLIC_API_BASE_URL);
 
-  const handleGoogleSignIn = () => {
-    console.log("Signing up with Google...");
+      const apiUrl = "https://staging.answer24.nl/api/v1/sso/google/auth-url";
+      console.log("Fetching signup auth URL from:", apiUrl);
+
+      const res = await fetch(apiUrl, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+      });
+
+      console.log("Response status:", res.status);
+      console.log("Response ok:", res.ok);
+
+      // Check if response is ok
+      if (!res.ok) {
+        const errorText = await res.text();
+        console.error("HTTP Error:", res.status, res.statusText);
+        console.error("Error response:", errorText);
+        throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+      }
+
+      // Check if response is JSON
+      const contentType = res.headers.get("content-type");
+      if (!contentType || !contentType.includes("application/json")) {
+        const text = await res.text();
+        console.error("Response is not JSON:", text);
+        throw new Error("Server returned non-JSON response");
+      }
+
+      const data = await res.json();
+      console.log("Google signup auth response:", data);
+
+      // Check for different possible response structures
+      const authUrl =
+        data?.url || data?.data?.url || data?.authUrl || data?.data?.authUrl;
+
+      if (authUrl) {
+        console.log("Redirecting to Google signup:", authUrl);
+
+        // Add signup parameter to distinguish from sign-in
+        const urlWithSignupParam = new URL(authUrl);
+        urlWithSignupParam.searchParams.set("signup", "true");
+
+        window.location.href = urlWithSignupParam.toString();
+      } else {
+        console.error("Auth URL not found in response:", data);
+
+        // Check if there's an error message in the response
+        if (data?.error) {
+          throw new Error(`Server error: ${data.error}`);
+        } else if (data?.message) {
+          throw new Error(`Server message: ${data.message}`);
+        } else {
+          throw new Error("Signup auth URL not received from server");
+        }
+      }
+    } catch (err) {
+      console.error("Google signup failed:", err);
+
+      // Show user-friendly error message
+      if (err instanceof TypeError && err.message.includes("fetch")) {
+        alert(
+          "Network error: Please check your internet connection and try again."
+        );
+      } else if (err instanceof Error) {
+        alert(`Signup failed: ${err.message}`);
+      } else {
+        alert("An unexpected error occurred during signup. Please try again.");
+      }
+    }
   };
-
   return (
     <AuthGuard requireAuth={false}>
       <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50">
@@ -457,8 +529,8 @@ export default function SignUp() {
                 >
                   <button
                     type="button"
-                    onClick={handleGoogleSignIn}
-                    className="w-full flex items-center justify-center space-x-2 border border-gray-300 rounded-lg py-3 text-gray-700 font-semibold hover:bg-gray-50 transition-colors"
+                    onClick={handleGoogleSignUp}
+                    className="w-full flex items-center  cursor-pointer justify-center space-x-2 border border-gray-300 rounded-lg py-3 text-gray-700 font-semibold hover:bg-gray-50 transition-colors"
                   >
                     <Image
                       src="/google-icon.svg"

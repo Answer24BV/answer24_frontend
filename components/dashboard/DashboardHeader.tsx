@@ -17,12 +17,10 @@ import {
   Newspaper,
   Languages,
   FileText,
-  Plus,
   MessageSquare,
   ChevronDown,
   CreditCard,
   Mail,
-  Home,
   Globe,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -52,6 +50,7 @@ export function DashboardHeader() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSwitchDropdownOpen, setIsSwitchDropdownOpen] = useState(false);
   const [user, setUser] = useState<User | null>(null);
+
   const t = useTranslations("Navigation");
   const currentPath = usePathname();
   const router = useRouter();
@@ -61,8 +60,6 @@ export function DashboardHeader() {
     currentPath.includes("/dashboard") ||
     currentPath.includes("/admin") ||
     currentPath.includes("/account");
-
-  console.log("the user is", user);
 
   const handleLogout = () => {
     tokenUtils.logout();
@@ -79,7 +76,7 @@ export function DashboardHeader() {
     const userData = tokenUtils.getUser();
     setUser(userData);
 
-    // Set up a small delay to ensure user data is loaded
+    // Retry fetching user until it loads
     const userCheckInterval = setInterval(() => {
       const currentUserData = tokenUtils.getUser();
       if (currentUserData && (!user || user.id !== currentUserData.id)) {
@@ -88,7 +85,7 @@ export function DashboardHeader() {
       }
     }, 100);
 
-    // Clear interval after 5 seconds to avoid infinite checking
+    // Clear interval after 5 seconds
     setTimeout(() => clearInterval(userCheckInterval), 5000);
 
     return () => {
@@ -96,8 +93,6 @@ export function DashboardHeader() {
       clearInterval(userCheckInterval);
     };
   }, []);
-
-  console.log("the user is", user);
 
   // Create navItems dynamically based on current user state
   const getNavItems = (): NavItem[] => [
@@ -114,26 +109,6 @@ export function DashboardHeader() {
       roles: ["client", "partner", "admin"],
       badge: 3,
     },
-    /*
-    {
-      title: "Finance",
-      href: "/dashboard/wallet",
-      icon: Wallet,
-      roles: ["client", "partner", "admin"],
-    },
-    {
-      title: "Notifications",
-      href: `/${user?.role?.name || "client"}/notifications`,
-      icon: Bell,
-      roles: ["client", "partner", "admin"],
-    },
-    {
-      title: t("plans"),
-      href: "/dashboard/plans",
-      icon: CreditCard,
-      roles: ["client", "partner"],
-    },
-    */
     {
       title: "Email",
       href: "/dashboard/email",
@@ -306,7 +281,7 @@ export function DashboardHeader() {
 
           {/* Desktop CTA */}
           <div className="hidden md:flex items-center space-x-4">
-            {/* Improved Location Switch Dropdown */}
+            {/* Location Switch Dropdown */}
             <div className="relative">
               <DropdownMenu
                 open={isSwitchDropdownOpen}
@@ -388,27 +363,24 @@ export function DashboardHeader() {
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>
-                  <Link
-                    href="/dashboard/account"
-                    className="flex  items-center"
-                  >
+                <Link href="/dashboard/account" className="flex  items-center">
+                  <DropdownMenuItem>
                     <UserIcon className="mr-2 h-4 w-4" />
                     <span>{t("userMenu.profile")}</span>
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <Link href="/dashboard/chat" className="flex  items-center">
+                  </DropdownMenuItem>
+                </Link>
+                <Link href="/dashboard/chat" className="flex  items-center">
+                  <DropdownMenuItem>
                     <MessageCircle className="mr-2 h-4 w-4" />
                     <span>{t("chat")}</span>
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <Link href="/dashboard/wallet" className="flex  items-center">
+                  </DropdownMenuItem>
+                </Link>
+                <Link href="/dashboard/wallet" className="flex  items-center">
+                  <DropdownMenuItem>
                     <Wallet className="mr-2 h-4 w-4" />
                     <span>{t("wallet")}</span>
-                  </Link>
-                </DropdownMenuItem>
+                  </DropdownMenuItem>
+                </Link>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleLogout}>
                   <LogOut className="mr-2 h-4 w-4" />

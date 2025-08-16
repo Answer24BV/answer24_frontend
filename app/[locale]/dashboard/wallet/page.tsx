@@ -332,6 +332,8 @@ export default function WalletPage() {
   const [walletHistoryLoader, setWalletHistoryLoader] = useState<boolean>(true);
   const [isPageLoading, setIsPageLoading] = useState<boolean>(true);
   const [addMoneyModal, setAddMoneyModal] = useState<boolean>(false);
+
+  const [user, setUser] = useState("");
   const router = useRouter();
   const t = useTranslations("WalletPage");
 
@@ -546,18 +548,19 @@ export default function WalletPage() {
     const fetchTransactions = async () => {
       setWalletHistoryLoader(true);
 
-      // TODO: Replace with real API call when ready
-      // const token = tokenUtils.getToken();
-      // const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/wallet/transactions`, {
-      //   method: 'GET',
-      //   headers: {
-      //     'Content-Type': 'application/json',
-      //     'Accept': 'application/json',
-      //     'Authorization': `Bearer ${token}`,
-      //   },
-      // });
+      const token = tokenUtils.getToken();
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/wallet/transactions`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
-      // For now, set empty transactions array to show "no transactions yet"
       await new Promise((resolve) => setTimeout(resolve, 1000));
       setWalletHistory([]);
       setWalletHistoryLoader(false);

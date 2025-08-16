@@ -1,6 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { motion, AnimatePresence } from "framer-motion";
+import { LockIcon } from "lucide-react";
 
 interface LockScreenProps {
   onUnlock: () => void;
@@ -10,8 +12,13 @@ interface LockScreenProps {
 const LockScreen: React.FC<LockScreenProps> = ({ onUnlock, show }) => {
   const [input, setInput] = useState("");
   const [error, setError] = useState("");
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  if (!show) return null;
+  useEffect(() => {
+    if (show && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [show]);
 
   const handleUnlock = (e: React.FormEvent) => {
     e.preventDefault();
@@ -22,9 +29,21 @@ const LockScreen: React.FC<LockScreenProps> = ({ onUnlock, show }) => {
       setInput("");
       onUnlock();
     } else {
-      setError("Incorrect key. Try again.");
+      setError("Incorrect key. Please try again.");
+      setInput("");
+      inputRef.current?.focus();
     }
   };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.replace(/[^0-9]/g, "").slice(0, 6);
+    setInput(value);
+    if (error && value.length === 6) {
+      setError("");
+    }
+  };
+
+  if (!show) return null;
 
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/90 bg-opacity-80">
