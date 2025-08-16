@@ -1,6 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { motion, AnimatePresence } from "framer-motion";
+import { LockIcon } from "lucide-react";
 
 interface LockScreenProps {
   onUnlock: () => void;
@@ -10,41 +12,98 @@ interface LockScreenProps {
 const LockScreen: React.FC<LockScreenProps> = ({ onUnlock, show }) => {
   const [input, setInput] = useState("");
   const [error, setError] = useState("");
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  if (!show) return null;
+  useEffect(() => {
+    if (show && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [show]);
 
   const handleUnlock = (e: React.FormEvent) => {
     e.preventDefault();
-    const savedKey = typeof window !== "undefined" ? localStorage.getItem("lockKey") : null;
+    const savedKey =
+      typeof window !== "undefined" ? localStorage.getItem("lockKey") : null;
     if (input === savedKey) {
       setError("");
       setInput("");
       onUnlock();
     } else {
-      setError("Incorrect key. Try again.");
+      setError("Incorrect key. Please try again.");
+      setInput("");
+      inputRef.current?.focus();
     }
   };
 
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.replace(/[^0-9]/g, "").slice(0, 6);
+    setInput(value);
+    if (error && value.length === 6) {
+      setError("");
+    }
+  };
+
+  if (!show) return null;
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 bg-opacity-80">
-      <form className="bg-white rounded-lg p-8 shadow-lg flex flex-col items-center min-w-[300px]" onSubmit={handleUnlock}>
-        <h2 className="text-2xl font-bold mb-4">Locked</h2>
-        <p className="mb-4 text-gray-600">Enter your 6-digit lock key to continue.</p>
-        <Input
-          type="password"
-          inputMode="numeric"
-          pattern="\d{6}"
-          maxLength={6}
-          minLength={6}
-          autoFocus
-          value={input}
-          onChange={e => setInput(e.target.value.replace(/[^0-9]/g, ""))}
-          className="mb-2 text-center text-lg tracking-widest"
-        />
-        {error && <div className="text-red-500 mb-2">{error}</div>}
-        <Button type="submit" className="w-full">Unlock</Button>
-      </form>
-    </div>
+    <AnimatePresence>
+      {show && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.3 }}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/95 backdrop-blur-sm"
+        >
+          <motion.form
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.9, opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            onSubmit={handleUnlock}
+            className="bg-white rounded-xl p-8 shadow-2xl flex flex-col items-center w-full max-w-sm mx-4"
+          >
+            <LockIcon className="w-12 h-12 text-blue-900 mb-4" />
+
+            <h2 className="text-2xl font-semibold text-gray-800 mb-2">
+              Secure Access
+            </h2>
+            <p className="mb-6 text-gray-500 text-sm text-center">
+              Enter your 6-digit lock key to unlock the application.
+            </p>
+            <Input
+              ref={inputRef}
+              type="password"
+              inputMode="numeric"
+              pattern="\d{6}"
+              maxLength={6}
+              minLength={6}
+              value={input}
+              onChange={handleInputChange}
+              className="mb-4 text-center text-lg tracking-wider border-gray-300 focus:border-blue-500 focus:ring-blue-500 transition-colors duration-200"
+              placeholder="••••••"
+              aria-label="6-digit lock key"
+            />
+            {error && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="text-red-600 text-sm mb-4"
+              >
+                {error}
+              </motion.div>
+            )}
+            <Button
+              type="submit"
+              className="w-full bg-blue-900 hover:bg-blue-800 text-white font-medium py-2 rounded-lg transition-colors duration-200"
+              disabled={input.length !== 6}
+            >
+              Unlock
+            </Button>
+          </motion.form>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 };
 

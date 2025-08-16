@@ -321,17 +321,21 @@ export default function WalletPage() {
   const [walletHistoryLoader, setWalletHistoryLoader] = useState<boolean>(true);
   const [isPageLoading, setIsPageLoading] = useState<boolean>(true);
   const [addMoneyModal, setAddMoneyModal] = useState<boolean>(false);
+
+  const [user, setUser] = useState("");
   const router = useRouter();
   const t = useTranslations("WalletPage");
 
-  // Dummy User Data
-  const user = {
-    name: "John Doe",
-    email: "john.doe@example.com",
-    avatar: "/Image-1.png", // Ensure this path is valid or remove if not needed
-    joinDate: "January 15, 2023", // Replaced moment with a string for simplicity
-  };
-
+  useEffect(() => {
+    try {
+      const userData = tokenUtils.getUser();
+      console.log(userData);
+      setUser(userData);
+    } catch (error) {
+      console.error("Error getting user data:", error);
+      setUser("");
+    }
+  }, []);
   const wallet = {
     balance: walletData?.balance || 0,
     currency: "EUR",
@@ -417,18 +421,19 @@ export default function WalletPage() {
     const fetchTransactions = async () => {
       setWalletHistoryLoader(true);
 
-      // TODO: Replace with real API call when ready
-      // const token = tokenUtils.getToken();
-      // const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/wallet/transactions`, {
-      //   method: 'GET',
-      //   headers: {
-      //     'Content-Type': 'application/json',
-      //     'Accept': 'application/json',
-      //     'Authorization': `Bearer ${token}`,
-      //   },
-      // });
+      const token = tokenUtils.getToken();
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/wallet/transactions`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
-      // For now, set empty transactions array to show "no transactions yet"
       await new Promise((resolve) => setTimeout(resolve, 1000));
       setWalletHistory([]);
       setWalletHistoryLoader(false);
@@ -513,18 +518,16 @@ export default function WalletPage() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center space-x-3">
-                <Avatar className="w-12 h-12">
+                <Avatar className="h-10 w-10">
                   <AvatarImage
-                    src={user.avatar || "/placeholder.svg"}
-                    alt={user.name}
+                    src={
+                      user?.profile_picture || "https://github.com/shadcn.png"
+                    }
+                    alt={user?.name || "User"}
                   />
-                  <AvatarFallback>
-                    {user.name
-                      .split(" ")
-                      .map((n) => n[0])
-                      .join("")}
-                  </AvatarFallback>
+                  <AvatarFallback>{user?.name?.[0] || "U"}</AvatarFallback>
                 </Avatar>
+
                 <div>
                   <p className="font-medium">{user.name}</p>
                   <p className="text-sm text-muted-foreground">{user.email}</p>

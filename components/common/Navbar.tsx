@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Menu, X, ArrowRight } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import LanguageSwitcher from "./LanguageSwitcher";
 import { Link } from "@/i18n/navigation";
@@ -16,9 +16,7 @@ export function Navbar() {
   const t = useTranslations("Navigation");
 
   useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 20);
-    };
+    const handleScroll = () => setIsScrolled(window.scrollY > 20);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
@@ -39,30 +37,22 @@ export function Navbar() {
       transition={{ duration: 0.6, ease: "easeOut" }}
       className={`fixed top-0 left-0 right-0 z-50 transition-all bg-white/95 duration-300 ${
         isScrolled
-          ? " backdrop-blur-md shadow-lg border-b border-gray-200/50"
+          ? "backdrop-blur-md shadow-lg border-b border-gray-200/50"
           : "bg-transparent"
       }`}
     >
-      <div className="max-w-fit mx-auto px-6">
-        <div className="flex items-center justify-between h-20">
-          {/* Logo */}
-
-          <Link href="/">
+      <div className="max-w-7xl mx-auto flex items-center justify-between h-20 px-6">
+        <div className=" flex items-center justify-center gap-10">
+          <Link href="/" className="flex items-center">
             <Image
               src={ANSWER24LOGO}
               alt="Answer24 Logo"
-              width={200}
-              height={200}
+              width={150}
+              height={50}
             />
-            {/* <motion.span whileHover={{ scale: 1.05 }} className="flex items-center space-x-2 cursor-pointer">
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl flex items-center justify-center">
-                <Image src={ANSWER24LOGO} alt="Answer24 Logo" width={50} height={50} />
-              </div>
-              <span className="text-2xl font-bold text-gray-900">Answer24</span>
-            </motion.span> */}
           </Link>
 
-          {/* Desktop Navigation */}
+          {/* Center: Navigation */}
           <div className="hidden md:flex items-center space-x-8">
             {navItems.map((item) => (
               <motion.div
@@ -75,40 +65,29 @@ export function Navbar() {
               </motion.div>
             ))}
           </div>
-
-          {/* Desktop CTA */}
-          <div className="hidden md:flex items-center space-x-4 pl-5">
-            <LanguageSwitcher />
-            <Link href="/signin">
-              <Button
-                variant="ghost"
-                className="text-gray-700 hover:text-blue-600"
-              >
-                {t("signIn")}
-              </Button>
-            </Link>
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-              <Link href="/signup">
-                <Button className="bg-blue-600 hover:bg-blue-700 text-white !p-6 rounded-full flex items-center">
-                  {t("startFreeTrial")}
-                  <ArrowRight className="ml-2 w-4 h-4" />
-                </Button>
-              </Link>
-            </motion.div>
-          </div>
-
-          {/* Mobile Menu Button */}
-          <button
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="md:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors"
-          >
-            {isMobileMenuOpen ? (
-              <X className="w-6 h-6" />
-            ) : (
-              <Menu className="w-6 h-6" />
-            )}
-          </button>
         </div>
+
+        {/* Right: Language switcher + CTA */}
+        <div className="hidden md:flex items-center space-x-4">
+          <LanguageSwitcher />
+          <Link href="/signin">
+            <Button className="bg-blue-600 hover:bg-blue-700 text-white px-6 rounded-full">
+              {t("signIn")}
+            </Button>
+          </Link>
+        </div>
+
+        {/* Mobile Menu Button */}
+        <button
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          className="md:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors"
+        >
+          {isMobileMenuOpen ? (
+            <X className="w-6 h-6" />
+          ) : (
+            <Menu className="w-6 h-6" />
+          )}
+        </button>
       </div>
 
       {/* Mobile Menu */}
@@ -132,21 +111,13 @@ export function Navbar() {
                 </Link>
               ))}
               <div className="pt-4 space-y-2">
+                <LanguageSwitcher />
                 <Link href="/signin">
                   <Button
-                    variant="outline"
-                    className="w-full bg-transparent"
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     {t("signIn")}
-                  </Button>
-                </Link>
-                <Link href="/signup">
-                  <Button
-                    className="w-full bg-blue-600 hover:bg-blue-700"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    {t("startFreeTrial")}
                   </Button>
                 </Link>
               </div>
