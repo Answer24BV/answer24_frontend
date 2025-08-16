@@ -46,7 +46,6 @@ import { NavItem } from "@/types/sidebar";
 import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import NotificationBell from "@/components/common/NotificationBell";
-import { ThemeToggle } from "../theme-toggle";
 
 export function DashboardHeader() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -359,7 +358,6 @@ export function DashboardHeader() {
 
             <LanguageSwitcher />
             <NotificationBell />
-            <ThemeToggle />
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild className="cursor-pointer">
