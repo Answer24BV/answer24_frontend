@@ -1,6 +1,6 @@
-"use client"
-import { useState, useEffect } from "react"
-import { Button } from "@/components/ui/button"
+"use client";
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
 import {
   Menu,
   X,
@@ -22,11 +22,13 @@ import {
   ChevronDown,
   CreditCard,
   Mail,
-} from "lucide-react"
-import { motion, AnimatePresence } from "framer-motion"
-import LanguageSwitcher from "@/components/common/LanguageSwitcher"
-import { Link } from "@/i18n/navigation"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+  Home,
+  Globe,
+} from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import LanguageSwitcher from "@/components/common/LanguageSwitcher";
+import { Link } from "@/i18n/navigation";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -34,59 +36,70 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { useTranslations } from "next-intl"
-import ANSWER24LOGO from "@/public/Answer24Logo.png"
-import Image from "next/image"
-import { tokenUtils } from "@/utils/auth"
-import { User } from "@/types/user"
-import { NavItem } from "@/types/sidebar"
-import { usePathname } from "next/navigation"
-import { cn } from "@/lib/utils"
-import NotificationBell from "@/components/common/NotificationBell"
+} from "@/components/ui/dropdown-menu";
+import { useTranslations } from "next-intl";
+import ANSWER24LOGO from "@/public/Answer24Logo.png";
+import Image from "next/image";
+import { tokenUtils } from "@/utils/auth";
+import { User } from "@/types/user";
+import { NavItem } from "@/types/sidebar";
+import { usePathname, useRouter } from "next/navigation";
+import { cn } from "@/lib/utils";
+import NotificationBell from "@/components/common/NotificationBell";
+import { ThemeToggle } from "../theme-toggle";
 
 export function DashboardHeader() {
-  const [isScrolled, setIsScrolled] = useState(false)
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
-  const [user, setUser] = useState<User | null>(null)
-  const t = useTranslations("Navigation")
-  const currentPath = usePathname()
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isSwitchDropdownOpen, setIsSwitchDropdownOpen] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
+  const t = useTranslations("Navigation");
+  const currentPath = usePathname();
+  const router = useRouter();
 
-  console.log("the user is", user)
+  // Determine if we're on frontend or dashboard
+  const isDashboardView =
+    currentPath.includes("/dashboard") ||
+    currentPath.includes("/admin") ||
+    currentPath.includes("/account");
+
+  console.log("the user is", user);
+
   const handleLogout = () => {
-    tokenUtils.logout()
-    setUser(null)
-  }
+    tokenUtils.logout();
+    setUser(null);
+  };
+
   useEffect(() => {
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 20)
-    }
-    window.addEventListener("scroll", handleScroll)
-    
+      setIsScrolled(window.scrollY > 20);
+    };
+    window.addEventListener("scroll", handleScroll);
+
     // Initialize user data
-    const userData = tokenUtils.getUser()
-    setUser(userData)
-    
+    const userData = tokenUtils.getUser();
+    setUser(userData);
+
     // Set up a small delay to ensure user data is loaded
     const userCheckInterval = setInterval(() => {
-      const currentUserData = tokenUtils.getUser()
+      const currentUserData = tokenUtils.getUser();
       if (currentUserData && (!user || user.id !== currentUserData.id)) {
-        setUser(currentUserData)
-        clearInterval(userCheckInterval)
+        setUser(currentUserData);
+        clearInterval(userCheckInterval);
       }
-    }, 100)
-    
-    // Clear interval after 5 seconds to avoid infinite checking
-    setTimeout(() => clearInterval(userCheckInterval), 5000)
-    
-    return () => {
-      window.removeEventListener("scroll", handleScroll)
-      clearInterval(userCheckInterval)
-    }
-  }, [])
+    }, 100);
 
-  console.log("the user is", user)
-  
+    // Clear interval after 5 seconds to avoid infinite checking
+    setTimeout(() => clearInterval(userCheckInterval), 5000);
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      clearInterval(userCheckInterval);
+    };
+  }, []);
+
+  console.log("the user is", user);
+
   // Create navItems dynamically based on current user state
   const getNavItems = (): NavItem[] => [
     {
@@ -102,6 +115,7 @@ export function DashboardHeader() {
       roles: ["client", "partner", "admin"],
       badge: 3,
     },
+    /*
     {
       title: "Finance",
       href: "/dashboard/wallet",
@@ -110,7 +124,7 @@ export function DashboardHeader() {
     },
     {
       title: "Notifications",
-      href: `/${user?.role?.name || 'client'}/notifications`,
+      href: `/${user?.role?.name || "client"}/notifications`,
       icon: Bell,
       roles: ["client", "partner", "admin"],
     },
@@ -120,6 +134,7 @@ export function DashboardHeader() {
       icon: CreditCard,
       roles: ["client", "partner"],
     },
+    */
     {
       title: "Email",
       href: "/dashboard/email",
@@ -184,15 +199,21 @@ export function DashboardHeader() {
   const navItems = getNavItems();
   const filteredNavItems = navItems.filter(
     (item) => !item.roles || item.roles.includes(user?.role?.name || "admin")
-  )
+  );
 
   const isNavItemActive = (item: NavItem) => {
-    if (currentPath === item.href) return true
+    if (currentPath === item.href) return true;
     if (item.subItems) {
-      return item.subItems.some((subItem) => currentPath === subItem.href)
+      return item.subItems.some((subItem) => currentPath === subItem.href);
     }
-    return false
-  }
+    return false;
+  };
+
+  // Handle navigation
+  const handleNavigation = (path: string) => {
+    router.push(path);
+    setIsSwitchDropdownOpen(false);
+  };
 
   return (
     <motion.header
@@ -201,9 +222,9 @@ export function DashboardHeader() {
       transition={{ duration: 0.6, ease: "easeOut" }}
       className={cn(
         "fixed top-0 left-0 right-0 z-50 transition-all duration-300 border-b border-gray-100/10",
-        isScrolled 
-          ? "bg-white/90 backdrop-blur-lg shadow-lg" 
-          : "bg-white/80 backdrop-blur-sm"
+        isScrolled
+          ? "bg-background/90 backdrop-blur-lg shadow-lg"
+          : "bg-background/80 backdrop-blur-sm"
       )}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -237,19 +258,21 @@ export function DashboardHeader() {
                         <ChevronDown className="ml-1 h-4 w-4 transition-transform group-data-[state=open]:rotate-180" />
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent 
+                    <DropdownMenuContent
                       align="center"
                       className="mt-2 p-2 rounded-xl shadow-xl border border-gray-100 min-w-[200px]"
                       sideOffset={10}
                     >
                       {item.subItems.map((subItem) => (
-                        <DropdownMenuItem 
-                          key={subItem.title} 
+                        <DropdownMenuItem
+                          key={subItem.title}
                           className="px-3 py-2.5 rounded-lg text-sm font-medium text-gray-700 hover:bg-blue-50 hover:text-blue-600 cursor-pointer transition-colors"
                           asChild
                         >
                           <Link href={subItem.href || "#"} className="w-full">
-                            {subItem.icon && <item.icon className="mr-2 h-4 w-4" />}
+                            {subItem.icon && (
+                              <subItem.icon className="mr-2 h-4 w-4" />
+                            )}
                             {subItem.title}
                           </Link>
                         </DropdownMenuItem>
@@ -257,7 +280,7 @@ export function DashboardHeader() {
                     </DropdownMenuContent>
                   </DropdownMenu>
                 ) : (
-                  <motion.div 
+                  <motion.div
                     whileHover={{ y: -2 }}
                     className="overflow-hidden rounded-full"
                   >
@@ -284,8 +307,60 @@ export function DashboardHeader() {
 
           {/* Desktop CTA */}
           <div className="hidden md:flex items-center space-x-4">
+            {/* Improved Location Switch Dropdown */}
+            <div className="relative">
+              <DropdownMenu
+                open={isSwitchDropdownOpen}
+                onOpenChange={setIsSwitchDropdownOpen}
+              >
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="flex items-center space-x-2 bg-gray-50 border-gray-200 hover:bg-gray-100"
+                  >
+                    {isDashboardView ? (
+                      <>
+                        <LayoutDashboard className="w-4 h-4" />
+                        <span>Dashboard</span>
+                      </>
+                    ) : (
+                      <>
+                        <Globe className="w-4 h-4" />
+                        <span>Frontend</span>
+                      </>
+                    )}
+                    <ChevronDown className="w-4 h-4 ml-1" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="min-w-[160px]">
+                  <DropdownMenuItem
+                    onClick={() => handleNavigation("/")}
+                    className={cn(
+                      "cursor-pointer flex items-center space-x-2",
+                      !isDashboardView && "bg-blue-50 text-blue-600"
+                    )}
+                  >
+                    <Globe className="w-4 h-4" />
+                    <span>Frontend</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => handleNavigation("/dashboard")}
+                    className={cn(
+                      "cursor-pointer flex items-center space-x-2",
+                      isDashboardView && "bg-blue-50 text-blue-600"
+                    )}
+                  >
+                    <LayoutDashboard className="w-4 h-4" />
+                    <span>Dashboard</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+
             <LanguageSwitcher />
             <NotificationBell />
+            <ThemeToggle />
+
             <DropdownMenu>
               <DropdownMenuTrigger asChild className="cursor-pointer">
                 <Button
@@ -294,7 +369,9 @@ export function DashboardHeader() {
                 >
                   <Avatar className="h-10 w-10">
                     <AvatarImage
-                      src={user?.profile_picture || "https://github.com/shadcn.png"}
+                      src={
+                        user?.profile_picture || "https://github.com/shadcn.png"
+                      }
                       alt="@shadcn"
                     />
                     <AvatarFallback>{user?.name?.[0] || "U"}</AvatarFallback>
@@ -314,7 +391,10 @@ export function DashboardHeader() {
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem>
-                  <Link href="/dashboard/account" className="flex  items-center">
+                  <Link
+                    href="/dashboard/account"
+                    className="flex  items-center"
+                  >
                     <UserIcon className="mr-2 h-4 w-4" />
                     <span>{t("userMenu.profile")}</span>
                   </Link>
@@ -326,10 +406,7 @@ export function DashboardHeader() {
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem>
-                  <Link
-                    href="/dashboard/wallet"
-                    className="flex  items-center"
-                  >
+                  <Link href="/dashboard/wallet" className="flex  items-center">
                     <Wallet className="mr-2 h-4 w-4" />
                     <span>{t("wallet")}</span>
                   </Link>
@@ -367,6 +444,34 @@ export function DashboardHeader() {
             className="md:hidden bg-white border-t border-gray-200"
           >
             <div className="px-6 py-4 space-y-4">
+              {/* Mobile Location Switch */}
+              <div className="flex space-x-2 mb-4">
+                <button
+                  onClick={() => handleNavigation("/")}
+                  className={cn(
+                    "flex-1 py-2 px-4 rounded-lg flex items-center justify-center space-x-2 transition-all",
+                    !isDashboardView
+                      ? "bg-blue-600 text-white"
+                      : "bg-gray-100 hover:bg-gray-200"
+                  )}
+                >
+                  <Globe className="w-4 h-4" />
+                  <span>Frontend</span>
+                </button>
+                <button
+                  onClick={() => handleNavigation("/dashboard")}
+                  className={cn(
+                    "flex-1 py-2 px-4 rounded-lg flex items-center justify-center space-x-2 transition-all",
+                    isDashboardView
+                      ? "bg-blue-600 text-white"
+                      : "bg-gray-100 hover:bg-gray-200"
+                  )}
+                >
+                  <LayoutDashboard className="w-4 h-4" />
+                  <span>Dashboard</span>
+                </button>
+              </div>
+
               {filteredNavItems.map((item) => (
                 <Link
                   key={item.title}
@@ -379,7 +484,9 @@ export function DashboardHeader() {
               ))}
               <div className="pt-4 border-t border-gray-200">
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-700 font-medium">Notifications</span>
+                  <span className="text-gray-700 font-medium">
+                    Notifications
+                  </span>
                   <NotificationBell />
                 </div>
               </div>
@@ -388,5 +495,5 @@ export function DashboardHeader() {
         )}
       </AnimatePresence>
     </motion.header>
-  )
+  );
 }
