@@ -153,7 +153,7 @@ const AvatarFallback = ({
   ...props
 }: AvatarFallbackProps) => (
   <span
-    className={`flex h-full w-full items-center justify-center rounded-full bg-muted ${className}`}
+    className={`flex h-full w-full items-center justify-center rounded-full bg-gray-200 text-gray-700 font-semibold ${className}`}
     {...props}
   >
     {children}
@@ -287,9 +287,19 @@ const PageLoader = () => (
   </div>
 );
 
-// Dummy data types
+// Data types
 interface WalletRes {
   balance: number;
+}
+
+interface UserProfile {
+  id: string;
+  name: string;
+  email: string;
+  avatar?: string;
+  phone?: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 interface Transaction {
@@ -317,6 +327,7 @@ const ErrorComp = ({ message }: { message: string }) => {
 export default function WalletPage() {
   const [balanceVisible, setBalanceVisible] = useState(true);
   const [walletData, setWalletData] = useState<WalletRes>();
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [walletHistory, setWalletHistory] = useState<Transaction[] | []>();
   const [walletHistoryLoader, setWalletHistoryLoader] = useState<boolean>(true);
   const [isPageLoading, setIsPageLoading] = useState<boolean>(true);
@@ -326,16 +337,6 @@ export default function WalletPage() {
   const router = useRouter();
   const t = useTranslations("WalletPage");
 
-  useEffect(() => {
-    try {
-      const userData = tokenUtils.getUser();
-      console.log(userData);
-      setUser(userData);
-    } catch (error) {
-      console.error("Error getting user data:", error);
-      setUser("");
-    }
-  }, []);
   const wallet = {
     balance: walletData?.balance || 0,
     currency: "EUR",
@@ -356,18 +357,132 @@ export default function WalletPage() {
   };
 
   const formatCurrency = (amount: number, currency: string) => {
-    return new Intl.NumberFormat("nl-NL", {
-      style: "currency",
-      currency: currency,
-    }).format(amount);
+    // Format to 2 decimal places without comma separators
+    const formattedAmount = amount.toFixed(2);
+
+    // Add currency symbol
+    if (currency === "EUR") {
+      return `€ ${formattedAmount}`;
+    } else if (currency === "USD") {
+      return `$ ${formattedAmount}`;
+    } else {
+      return `${currency} ${formattedAmount}`;
+    }
   };
+
+  const formatJoinDate = (dateString?: string) => {
+    if (!dateString) return "N/A";
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  };
+
+  // Fetch user profile from API
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      try {
+        const token =
+          typeof window !== "undefined"
+            ? localStorage.getItem("auth_token")
+            : null;
+
+        if (!token) {
+          console.error("No authentication token found");
+          // Set fallback user data when no token
+          setUserProfile({
+            id: "fallback",
+            name: "Guest User",
+            email: "guest@example.com",
+          });
+          return;
+        }
+
+        console.log(
+          "Fetching profile with token:",
+          token ? "Token exists" : "No token"
+        );
+        console.log("API URL:", "https://staging.answer24.nl/api/v1/profile");
+
+        const response = await fetch(
+          "https://staging.answer24.nl/api/v1/profile",
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              Accept: "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        console.log("User profile API response status:", response.status);
+        console.log("User profile API response headers:", response.headers);
+
+        // Get response text first to see what we're actually receiving
+        const responseText = await response.text();
+        console.log("Raw response text:", responseText);
+
+        if (response.ok) {
+          try {
+            const data = JSON.parse(responseText);
+            console.log("User profile API response data:", data);
+
+            // Handle different possible response structures
+            const profile = data.data || data.user || data;
+            console.log("Parsed profile:", profile);
+            setUserProfile(profile);
+          } catch (parseError) {
+            console.error("Error parsing JSON response:", parseError);
+            console.log("Response was:", responseText);
+
+            // Set fallback user data on parse error
+            setUserProfile({
+              id: "parse-error",
+              name: "Parse Error",
+              email: "parse@example.com",
+            });
+          }
+        } else {
+          console.error(
+            "Failed to fetch user profile:",
+            response.status,
+            response.statusText,
+            "Response:",
+            responseText
+          );
+
+          // Set fallback user data on error
+          setUserProfile({
+            id: "error",
+            name: "Error Loading User",
+            email: "error@example.com",
+          });
+        }
+      } catch (err) {
+        console.error("Error fetching user profile:", err);
+
+        // Set fallback user data on network error
+        setUserProfile({
+          id: "network-error",
+          name: "Network Error",
+          email: "network@example.com",
+        });
+      }
+    };
+    fetchUserProfile();
+  }, []);
 
   // Fetch wallet balance from API
   useEffect(() => {
     const fetchWallet = async () => {
       setIsPageLoading(true);
       try {
-        const token = tokenUtils.getToken();
+        const token =
+          typeof window !== "undefined"
+            ? localStorage.getItem("auth_token")
+            : null;
 
         if (!token) {
           console.error("No authentication token found");
@@ -389,19 +504,31 @@ export default function WalletPage() {
 
         console.log("Wallet balance API response status:", response.status);
 
-        if (response.ok) {
-          const data = await response.json();
-          console.log("Wallet balance API response:", data);
+        // Get response text first to see what we're actually receiving
+        const responseText = await response.text();
+        console.log("Raw wallet response text:", responseText);
 
-          // Handle different possible response structures
-          const balance = data.balance || data.data?.balance || 0;
-          setWalletData({ balance });
+        if (response.ok) {
+          try {
+            const data = JSON.parse(responseText);
+            console.log("Wallet balance API response:", data);
+
+            // Handle different possible response structures
+            const balance = data.balance || data.data?.balance || 0;
+            setWalletData({ balance });
+          } catch (parseError) {
+            console.error("Error parsing wallet JSON response:", parseError);
+            console.log("Wallet response was:", responseText);
+            // Set default balance on parse error
+            setWalletData({ balance: 0 });
+          }
         } else {
-          const errorData = await response.json().catch(() => ({}));
           console.error(
             "Failed to fetch wallet balance:",
             response.status,
-            errorData
+            response.statusText,
+            "Response:",
+            responseText
           );
           // Set default balance on error
           setWalletData({ balance: 0 });
@@ -517,29 +644,51 @@ export default function WalletPage() {
               <CardTitle className="text-lg">Account Details</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex items-center space-x-3">
-                <Avatar className="h-10 w-10">
-                  <AvatarImage
-                    src={
-                      user?.profile_picture || "https://github.com/shadcn.png"
-                    }
-                    alt={user?.name || "User"}
-                  />
-                  <AvatarFallback>{user?.name?.[0] || "U"}</AvatarFallback>
-                </Avatar>
-
-                <div>
-                  <p className="font-medium">{user.name}</p>
-                  <p className="text-sm text-muted-foreground">{user.email}</p>
+              {userProfile ? (
+                <>
+                  <div className="flex items-center space-x-3">
+                    <Avatar className="w-12 h-12">
+                      {userProfile.avatar ? (
+                        <AvatarImage
+                          src={userProfile.avatar}
+                          alt={userProfile.name}
+                          onError={(e) => {
+                            // Hide the image if it fails to load
+                            e.currentTarget.style.display = "none";
+                          }}
+                        />
+                      ) : null}
+                      <AvatarFallback className="bg-gray-200 text-gray-700 font-semibold text-lg">
+                        {userProfile.name
+                          ? userProfile.name.charAt(0).toUpperCase()
+                          : "U"}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <p className="font-medium">{userProfile.name}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {userProfile.email}
+                      </p>
+                    </div>
+                  </div>
+                  <Separator />
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">
+                        Member Since
+                      </span>
+                      <span>{formatJoinDate(userProfile.created_at)}</span>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="w-6 h-6 animate-spin text-blue-500" />
+                  <span className="ml-2 text-sm text-muted-foreground">
+                    Loading profile...
+                  </span>
                 </div>
-              </div>
-              <Separator />
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Member Since</span>
-                  <span>{user.joinDate}</span>
-                </div>
-              </div>
+              )}
             </CardContent>
           </Card>
 
