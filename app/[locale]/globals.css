@@ -138,3 +138,7 @@ html,
 body {
   font-family: var(--font-poppins), sans-serif;
 }
+
+.switch {
+  visibility: visible;
+}

@@ -1,6 +1,6 @@
-"use client"
-import { useState, useEffect } from "react"
-import { Button } from "@/components/ui/button"
+"use client";
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
 import {
   Menu,
   X,
@@ -9,11 +9,11 @@ import {
   LogOut,
   MessageCircle,
   Wallet,
-} from "lucide-react"
-import { motion, AnimatePresence } from "framer-motion"
-import LanguageSwitcher from "./LanguageSwitcher"
-import { Link } from "@/i18n/navigation"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+} from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import LanguageSwitcher from "./LanguageSwitcher";
+import { Link } from "@/i18n/navigation";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,36 +21,40 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { useTranslations } from "next-intl"
-import ANSWER24LOGO from "@/public/Answer24Logo.png"
-import Image from "next/image"
-import { tokenUtils } from "@/utils/auth"
+} from "@/components/ui/dropdown-menu";
+import { useTranslations } from "next-intl";
+import ANSWER24LOGO from "@/public/Answer24Logo.png";
+import Image from "next/image";
+import { tokenUtils } from "@/utils/auth";
 import { User } from "@/types/user";
 import NotificationBell from "./NotificationBell";
 
 export function PrivateNavbar() {
-  const [isScrolled, setIsScrolled] = useState(false)
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 20)
-    }
-    window.addEventListener("scroll", handleScroll)
+      setIsScrolled(window.scrollY > 20);
+    };
+    window.addEventListener("scroll", handleScroll);
     const userData = tokenUtils.getUser();
     setUser(userData);
-    return () => window.removeEventListener("scroll", handleScroll)
-  }, [])
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   const t = useTranslations("Navigation");
 
   const navItems = [
-    { name: t('account'), href: "/dashboard", as: "/dashboard" },
-    { name: t('chat'), href: "/dashboard/chat", as: "/chat" },
-    { name: t('wallet'), href: "/dashboard/account/wallet", as: "/account/wallet" },
-  ]
+    { name: t("account"), href: "/dashboard", as: "/dashboard" },
+    { name: t("chat"), href: "/dashboard/chat", as: "/chat" },
+    {
+      name: t("wallet"),
+      href: "/dashboard/account/wallet",
+      as: "/account/wallet",
+    },
+  ];
 
   return (
     <motion.nav
@@ -87,45 +91,61 @@ export function PrivateNavbar() {
             <LanguageSwitcher />
             <DropdownMenu>
               <DropdownMenuTrigger asChild className="cursor-pointer">
-                <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+                <Button
+                  variant="ghost"
+                  className="relative h-10 w-10 rounded-full"
+                >
                   <Avatar className="h-10 w-10">
-                    <AvatarImage src={user?.profile_picture || "https://github.com/shadcn.png"} alt="@shadcn" />
-                    <AvatarFallback>{user?.name?.[0] || 'U'}</AvatarFallback>
+                    <AvatarImage
+                      src={
+                        user?.profile_picture || "https://github.com/shadcn.png"
+                      }
+                      alt="@shadcn"
+                    />
+                    <AvatarFallback>{user?.name?.[0] || "U"}</AvatarFallback>
                   </Avatar>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-56" align="end" forceMount>
                 <DropdownMenuLabel className="font-normal">
                   <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium leading-none">{user?.name || 'User'}</p>
+                    <p className="text-sm font-medium leading-none">
+                      {user?.name || "User"}
+                    </p>
                     <p className="text-xs leading-none text-muted-foreground">
-                      {user?.email || 'user@example.com'}
+                      {user?.email || "user@example.com"}
                     </p>
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem>
-                  <Link href="/dashboard/account" className="flex  items-center">
+                  <Link
+                    href="/dashboard/account"
+                    className="flex  items-center"
+                  >
                     <UserIcon className="mr-2 h-4 w-4" />
-                    <span>{t('userMenu.profile')}</span>
+                    <span>{t("userMenu.profile")}</span>
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem>
                   <Link href="/dashboard/chat" className="flex  items-center">
                     <MessageCircle className="mr-2 h-4 w-4" />
-                    <span>{t('chat')}</span>
+                    <span>{t("chat")}</span>
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem>
-                  <Link href="/dashboard/account/wallet" className="flex  items-center">
+                  <Link
+                    href="/dashboard/account/wallet"
+                    className="flex  items-center"
+                  >
                     <Wallet className="mr-2 h-4 w-4" />
-                    <span>{t('wallet')}</span>
+                    <span>{t("wallet")}</span>
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem>
                   <LogOut className="mr-2 h-4 w-4" />
-                  <span>{t('userMenu.logOut')}</span>
+                  <span>{t("userMenu.logOut")}</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -171,5 +191,5 @@ export function PrivateNavbar() {
         )}
       </AnimatePresence> */}
     </motion.nav>
-  )
+  );
 }
