@@ -17,17 +17,10 @@ import {
   Newspaper,
   Languages,
   FileText,
-  Plus,
   MessageSquare,
   ChevronDown,
   CreditCard,
   Mail,
-} from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
-import LanguageSwitcher from "@/components/common/LanguageSwitcher";
-import { Link } from "@/i18n/navigation";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-  Home,
   Globe,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -48,16 +41,6 @@ import Image from "next/image";
 import { tokenUtils } from "@/utils/auth";
 import { User } from "@/types/user";
 import { NavItem } from "@/types/sidebar";
-import { usePathname } from "next/navigation";
-import { cn } from "@/lib/utils";
-import NotificationBell from "@/components/common/NotificationBell";
-} from "@/components/ui/dropdown-menu";
-import { useTranslations } from "next-intl";
-import ANSWER24LOGO from "@/public/Answer24Logo.png";
-import Image from "next/image";
-import { tokenUtils } from "@/utils/auth";
-import { User } from "@/types/user";
-import { NavItem } from "@/types/sidebar";
 import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import NotificationBell from "@/components/common/NotificationBell";
@@ -65,15 +48,9 @@ import NotificationBell from "@/components/common/NotificationBell";
 export function DashboardHeader() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [user, setUser] = useState<User | null>(null);
-  const t = useTranslations("Navigation");
-  const currentPath = usePathname();
-
-  console.log("the user is", user);
-  const [isScrolled, setIsScrolled] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSwitchDropdownOpen, setIsSwitchDropdownOpen] = useState(false);
   const [user, setUser] = useState<User | null>(null);
+
   const t = useTranslations("Navigation");
   const currentPath = usePathname();
   const router = useRouter();
@@ -84,12 +61,7 @@ export function DashboardHeader() {
     currentPath.includes("/admin") ||
     currentPath.includes("/account");
 
-  console.log("the user is", user);
-
   const handleLogout = () => {
-    tokenUtils.logout();
-    setUser(null);
-  };
     tokenUtils.logout();
     setUser(null);
   };
@@ -104,7 +76,7 @@ export function DashboardHeader() {
     const userData = tokenUtils.getUser();
     setUser(userData);
 
-    // Set up a small delay to ensure user data is loaded
+    // Retry fetching user until it loads
     const userCheckInterval = setInterval(() => {
       const currentUserData = tokenUtils.getUser();
       if (currentUserData && (!user || user.id !== currentUserData.id)) {
@@ -113,7 +85,7 @@ export function DashboardHeader() {
       }
     }, 100);
 
-    // Clear interval after 5 seconds to avoid infinite checking
+    // Clear interval after 5 seconds
     setTimeout(() => clearInterval(userCheckInterval), 5000);
 
     return () => {
@@ -121,8 +93,6 @@ export function DashboardHeader() {
       clearInterval(userCheckInterval);
     };
   }, []);
-
-  console.log("the user is", user);
 
   // Create navItems dynamically based on current user state
   const getNavItems = (): NavItem[] => [
@@ -139,26 +109,6 @@ export function DashboardHeader() {
       roles: ["client", "partner", "admin"],
       badge: 3,
     },
-    /*
-    {
-      title: "Finance",
-      href: "/dashboard/wallet",
-      icon: Wallet,
-      roles: ["client", "partner", "admin"],
-    },
-    {
-      title: "Notifications",
-      href: `/${user?.role?.name || "client"}/notifications`,
-      icon: Bell,
-      roles: ["client", "partner", "admin"],
-    },
-    {
-      title: t("plans"),
-      href: "/dashboard/plans",
-      icon: CreditCard,
-      roles: ["client", "partner"],
-    },
-    */
     {
       title: "Email",
       href: "/dashboard/email",
@@ -232,8 +182,6 @@ export function DashboardHeader() {
     }
     return false;
   };
-    return false;
-  };
 
   // Handle navigation
   const handleNavigation = (path: string) => {
@@ -297,9 +245,6 @@ export function DashboardHeader() {
                         >
                           <Link href={subItem.href || "#"} className="w-full">
                             {subItem.icon && (
-                              <item.icon className="mr-2 h-4 w-4" />
-                            )}
-                            {subItem.icon && (
                               <subItem.icon className="mr-2 h-4 w-4" />
                             )}
                             {subItem.title}
@@ -336,7 +281,7 @@ export function DashboardHeader() {
 
           {/* Desktop CTA */}
           <div className="hidden md:flex items-center space-x-4">
-            {/* Improved Location Switch Dropdown */}
+            {/* Location Switch Dropdown */}
             <div className="relative">
               <DropdownMenu
                 open={isSwitchDropdownOpen}
