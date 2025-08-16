@@ -1,25 +1,25 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useLocale } from 'next-intl';
-import { legalPagesService, LegalPage } from '@/lib/legalPages';
-import { useTranslations } from '@/hooks/useTranslations';
-import { toast } from 'react-toastify';
-import { Plus, Loader2 } from 'lucide-react';
-import { LegalPageEditor } from '@/components/admin/LegalPageEditor';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
+import { useState, useEffect } from "react";
+import { useLocale } from "next-intl";
+import { legalPagesService, LegalPage } from "@/lib/legalPages";
+import { useTranslations } from "@/hooks/useTranslations";
+import { toast } from "react-toastify";
+import { Plus, Loader2 } from "lucide-react";
+import { LegalPageEditor } from "@/components/admin/LegalPageEditor";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
-const DEFAULT_LANGUAGES = ['en', 'nl'];
+const DEFAULT_LANGUAGES = ["en", "nl"];
 
 export default function LegalPagesManagement() {
   const locale = useLocale();
   const [pages, setPages] = useState<LegalPage[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const [activeLanguage, setActiveLanguage] = useState(locale);
   const { t } = useTranslations();
 
@@ -36,7 +36,7 @@ export default function LegalPagesManagement() {
       const pagesData = await legalPagesService.getAllPages(locale);
       setPages(pagesData);
     } catch (error) {
-      console.error('Error loading legal pages:', error);
+      console.error("Error loading legal pages:", error);
       toast("Error loading legal pages");
     } finally {
       setIsLoading(false);
@@ -45,17 +45,17 @@ export default function LegalPagesManagement() {
 
   const handleCreateNew = () => {
     const newPage: LegalPage = {
-      id: 'new-' + Date.now(),
-      slug: '',
-      title: '',
-      content: '',
+      id: "new-" + Date.now(),
+      slug: "",
+      title: "",
+      content: "",
       language: activeLanguage,
       last_updated_at: new Date().toISOString(),
-      last_updated_by: 'current-user', // This should be replaced with actual user info
+      last_updated_by: "current-user", // This should be replaced with actual user info
       is_active: true,
     };
 
-    setPages(prev => [newPage, ...prev]);
+    setPages((prev) => [newPage, ...prev]);
     setIsCreating(true);
   };
 
@@ -63,7 +63,7 @@ export default function LegalPagesManagement() {
     try {
       let success: boolean;
 
-      if (pageData.id?.startsWith('new-')) {
+      if (pageData.id?.startsWith("new-")) {
         // Handle new page
         const { id, ...newPage } = pageData;
         const created = await legalPagesService.createPage(newPage);
@@ -85,10 +85,10 @@ export default function LegalPagesManagement() {
         toast("Page saved successfully");
         return true;
       } else {
-        throw new Error('Failed to save page');
+        throw new Error("Failed to save page");
       }
     } catch (error) {
-      console.error('Error saving page:', error);
+      console.error("Error saving page:", error);
       toast("Error saving page");
       return false;
     }
@@ -100,22 +100,25 @@ export default function LegalPagesManagement() {
       await loadPages();
       toast("Page deleted successfully");
     } catch (error) {
-      console.error('Error deleting page:', error);
+      console.error("Error deleting page:", error);
       toast("Error deleting page");
     }
   };
 
   // Filter pages based on search query and active language
-  const filteredPages = pages.filter(page => {
-    const matchesSearch = page.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+  const filteredPages = pages.filter((page) => {
+    const matchesSearch =
+      page.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       page.slug.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesLanguage = page.language === activeLanguage;
     return matchesSearch && matchesLanguage;
   });
 
   // Get pages for the currently active language tab
-  const languagePages = pages.filter(page => page.language === activeLanguage);
-  const activePage = pages.find(p => p.id?.startsWith('new-'));
+  const languagePages = pages.filter(
+    (page) => page.language === activeLanguage
+  );
+  const activePage = pages.find((p) => p.id?.startsWith("new-"));
 
   // Show loading state
   if (isLoading) {
@@ -165,7 +168,7 @@ export default function LegalPagesManagement() {
             />
             {searchQuery && (
               <button
-                onClick={() => setSearchQuery('')}
+                onClick={() => setSearchQuery("")}
                 className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
               >
                 ✕
@@ -181,8 +184,8 @@ export default function LegalPagesManagement() {
 
       <Card>
         <CardHeader className="pb-2">
-          <Tabs 
-            value={activeLanguage} 
+          <Tabs
+            value={activeLanguage}
             onValueChange={setActiveLanguage}
             className="w-full"
           >
@@ -195,7 +198,9 @@ export default function LegalPagesManagement() {
                 ))}
               </TabsList>
               <div className="text-sm text-muted-foreground">
-                {filteredPages.length} {filteredPages.length === 1 ? 'page' : 'pages'} in {activeLanguage.toUpperCase()}
+                {filteredPages.length}{" "}
+                {filteredPages.length === 1 ? "page" : "pages"} in{" "}
+                {activeLanguage.toUpperCase()}
               </div>
             </div>
           </Tabs>
@@ -212,15 +217,16 @@ export default function LegalPagesManagement() {
                 availableLanguages={availableLanguages}
               />
             )}
-            
+
             {/* Show empty state or page list */}
             {filteredPages.length === 0 ? (
               <div className="text-center py-12">
                 <div className="text-muted-foreground mb-2">
-                  No pages found for "{searchQuery}" in {activeLanguage.toUpperCase()}
+                  No pages found for "{searchQuery}" in{" "}
+                  {activeLanguage.toUpperCase()}
                 </div>
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   onClick={handleCreateNew}
                   disabled={isCreating}
                 >
@@ -230,7 +236,7 @@ export default function LegalPagesManagement() {
               </div>
             ) : (
               filteredPages
-                .filter(page => !page.id?.startsWith('new-'))
+                .filter((page) => !page.id?.startsWith("new-"))
                 .map((page) => (
                   <LegalPageEditor
                     key={`${page.slug}-${page.language}`}
