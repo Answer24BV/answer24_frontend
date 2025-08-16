@@ -1,37 +1,40 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import { Bell } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import React, { useState, useEffect } from "react";
+import { Bell } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { getNotifications, Notification } from '@/app/actions/notificationActions';
-import Avatar from '@/components/common/Avatar';
-import { toast } from 'react-hot-toast';
-import { tokenUtils } from '@/utils/auth';
-import { useParams } from 'next/navigation';
-import { useUser } from '@/hooks/useUser';
-import { Link } from '@/i18n/navigation';
+} from "@/components/ui/dropdown-menu";
+import {
+  getNotifications,
+  Notification,
+} from "@/app/actions/notificationActions";
+import Avatar from "@/components/common/Avatar";
+import { toast } from "react-hot-toast";
+import { tokenUtils } from "@/utils/auth";
+import { useParams } from "next/navigation";
+import { useUser } from "@/hooks/useUser";
+import { Link } from "@/i18n/navigation";
 
 const NotificationBell: React.FC = () => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const { user, userType, isLoading: userLoading } = useUser();
-  
-  // Get notifications path based on user type
-  const notificationsPath = `${userType}/notifications`;
+
+  // Get notifications path based on user type - make it absolute with leading slash
+  const notificationsPath = `/${userType}/notifications`;
 
   const fetchNotifications = async () => {
     try {
       setIsLoading(true);
       const data = await getNotifications(1, 5, userType); // Get first 5 notifications
       setNotifications(data);
-      setUnreadCount(data.filter(n => !n.read).length);
+      setUnreadCount(data.filter((n) => !n.read).length);
     } catch (error: any) {
       // Error fetching notifications, continue silently
     } finally {
@@ -43,10 +46,10 @@ const NotificationBell: React.FC = () => {
     // Only fetch notifications when user data is loaded and available
     if (!userLoading && user) {
       fetchNotifications();
-      
+
       // Set up polling for new notifications every 30 seconds
       const interval = setInterval(fetchNotifications, 30000);
-      
+
       return () => clearInterval(interval);
     }
   }, [user, userLoading, userType]); // Re-run when user data changes
@@ -57,11 +60,11 @@ const NotificationBell: React.FC = () => {
         <Button variant="ghost" size="sm" className="relative p-2">
           <Bell className="h-5 w-5" />
           {unreadCount > 0 && (
-            <Badge 
-              variant="destructive" 
+            <Badge
+              variant="destructive"
               className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs"
             >
-              {unreadCount > 9 ? '9+' : unreadCount}
+              {unreadCount > 9 ? "9+" : unreadCount}
             </Badge>
           )}
         </Button>
@@ -70,15 +73,15 @@ const NotificationBell: React.FC = () => {
         <div className="p-4 border-b">
           <div className="flex items-center justify-between">
             <h3 className="font-semibold text-gray-900">Notifications</h3>
-            <Link 
-              href={notificationsPath} 
+            <Link
+              href={notificationsPath}
               className="text-sm text-blue-600 hover:text-blue-700"
             >
               View all
             </Link>
           </div>
         </div>
-        
+
         <div className="max-h-96 overflow-y-auto scrollbar-hide scroll-smooth">
           {isLoading ? (
             <div className="p-4 text-center text-gray-500">
@@ -93,7 +96,7 @@ const NotificationBell: React.FC = () => {
                 className="block p-4 hover:bg-gray-50 border-b last:border-b-0 transition-colors"
               >
                 <div className="flex items-start gap-3">
-                  <Avatar 
+                  <Avatar
                     imgUrl={notification.sender?.avatar}
                     userName={notification.sender?.name}
                     sizeClass="size-8"
@@ -101,7 +104,7 @@ const NotificationBell: React.FC = () => {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between mb-1">
                       <p className="text-sm font-medium text-gray-900 truncate">
-                        {notification.sender?.name || 'System'}
+                        {notification.sender?.name || "System"}
                       </p>
                       {!notification.read && (
                         <div className="w-2 h-2 bg-blue-600 rounded-full flex-shrink-0"></div>
@@ -124,10 +127,10 @@ const NotificationBell: React.FC = () => {
             </div>
           )}
         </div>
-        
+
         {notifications.length > 0 && (
           <div className="p-3 border-t bg-gray-50">
-            <Link 
+            <Link
               href={notificationsPath}
               className="block text-center text-sm text-blue-600 hover:text-blue-700 font-medium"
             >

@@ -27,6 +27,13 @@ import { motion, AnimatePresence } from "framer-motion";
 import LanguageSwitcher from "@/components/common/LanguageSwitcher";
 import { Link } from "@/i18n/navigation";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+  Home,
+  Globe,
+} from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import LanguageSwitcher from "@/components/common/LanguageSwitcher";
+import { Link } from "@/i18n/navigation";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -44,6 +51,16 @@ import { NavItem } from "@/types/sidebar";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import NotificationBell from "@/components/common/NotificationBell";
+} from "@/components/ui/dropdown-menu";
+import { useTranslations } from "next-intl";
+import ANSWER24LOGO from "@/public/Answer24Logo.png";
+import Image from "next/image";
+import { tokenUtils } from "@/utils/auth";
+import { User } from "@/types/user";
+import { NavItem } from "@/types/sidebar";
+import { usePathname, useRouter } from "next/navigation";
+import { cn } from "@/lib/utils";
+import NotificationBell from "@/components/common/NotificationBell";
 
 export function DashboardHeader() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -53,10 +70,30 @@ export function DashboardHeader() {
   const currentPath = usePathname();
 
   console.log("the user is", user);
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isSwitchDropdownOpen, setIsSwitchDropdownOpen] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
+  const t = useTranslations("Navigation");
+  const currentPath = usePathname();
+  const router = useRouter();
+
+  // Determine if we're on frontend or dashboard
+  const isDashboardView =
+    currentPath.includes("/dashboard") ||
+    currentPath.includes("/admin") ||
+    currentPath.includes("/account");
+
+  console.log("the user is", user);
+
   const handleLogout = () => {
     tokenUtils.logout();
     setUser(null);
   };
+    tokenUtils.logout();
+    setUser(null);
+  };
+
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 20);
@@ -102,6 +139,7 @@ export function DashboardHeader() {
       roles: ["client", "partner", "admin"],
       badge: 3,
     },
+    /*
     {
       title: "Finance",
       href: "/dashboard/wallet",
@@ -120,6 +158,7 @@ export function DashboardHeader() {
       icon: CreditCard,
       roles: ["client", "partner"],
     },
+    */
     {
       title: "Email",
       href: "/dashboard/email",
@@ -193,6 +232,14 @@ export function DashboardHeader() {
     }
     return false;
   };
+    return false;
+  };
+
+  // Handle navigation
+  const handleNavigation = (path: string) => {
+    router.push(path);
+    setIsSwitchDropdownOpen(false);
+  };
 
   return (
     <motion.header
@@ -200,10 +247,10 @@ export function DashboardHeader() {
       animate={{ y: 0 }}
       transition={{ duration: 0.6, ease: "easeOut" }}
       className={cn(
-        "fixed top-0 left-0 right-0 z-30 transition-all duration-300 border-b border-gray-100/10",
+        "fixed top-0 left-0 right-0 z-50 transition-all duration-300 border-b border-gray-100/10",
         isScrolled
-          ? "bg-white/90 backdrop-blur-lg shadow-lg"
-          : "bg-white/80 backdrop-blur-sm"
+          ? "bg-background/90 backdrop-blur-lg shadow-lg"
+          : "bg-background/80 backdrop-blur-sm"
       )}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -252,6 +299,9 @@ export function DashboardHeader() {
                             {subItem.icon && (
                               <item.icon className="mr-2 h-4 w-4" />
                             )}
+                            {subItem.icon && (
+                              <subItem.icon className="mr-2 h-4 w-4" />
+                            )}
                             {subItem.title}
                           </Link>
                         </DropdownMenuItem>
@@ -286,8 +336,59 @@ export function DashboardHeader() {
 
           {/* Desktop CTA */}
           <div className="hidden md:flex items-center space-x-4">
+            {/* Improved Location Switch Dropdown */}
+            <div className="relative">
+              <DropdownMenu
+                open={isSwitchDropdownOpen}
+                onOpenChange={setIsSwitchDropdownOpen}
+              >
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="flex items-center space-x-2 bg-gray-50 border-gray-200 hover:bg-gray-100"
+                  >
+                    {isDashboardView ? (
+                      <>
+                        <LayoutDashboard className="w-4 h-4" />
+                        <span>Dashboard</span>
+                      </>
+                    ) : (
+                      <>
+                        <Globe className="w-4 h-4" />
+                        <span>Frontend</span>
+                      </>
+                    )}
+                    <ChevronDown className="w-4 h-4 ml-1" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="min-w-[160px]">
+                  <DropdownMenuItem
+                    onClick={() => handleNavigation("/")}
+                    className={cn(
+                      "cursor-pointer flex items-center space-x-2",
+                      !isDashboardView && "bg-blue-50 text-blue-600"
+                    )}
+                  >
+                    <Globe className="w-4 h-4" />
+                    <span>Frontend</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => handleNavigation("/dashboard")}
+                    className={cn(
+                      "cursor-pointer flex items-center space-x-2",
+                      isDashboardView && "bg-blue-50 text-blue-600"
+                    )}
+                  >
+                    <LayoutDashboard className="w-4 h-4" />
+                    <span>Dashboard</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+
             <LanguageSwitcher />
             <NotificationBell />
+
             <DropdownMenu>
               <DropdownMenuTrigger asChild className="cursor-pointer">
                 <Button
@@ -371,6 +472,34 @@ export function DashboardHeader() {
             className="md:hidden bg-white border-t border-gray-200"
           >
             <div className="px-6 py-4 space-y-4">
+              {/* Mobile Location Switch */}
+              <div className="flex space-x-2 mb-4">
+                <button
+                  onClick={() => handleNavigation("/")}
+                  className={cn(
+                    "flex-1 py-2 px-4 rounded-lg flex items-center justify-center space-x-2 transition-all",
+                    !isDashboardView
+                      ? "bg-blue-600 text-white"
+                      : "bg-gray-100 hover:bg-gray-200"
+                  )}
+                >
+                  <Globe className="w-4 h-4" />
+                  <span>Frontend</span>
+                </button>
+                <button
+                  onClick={() => handleNavigation("/dashboard")}
+                  className={cn(
+                    "flex-1 py-2 px-4 rounded-lg flex items-center justify-center space-x-2 transition-all",
+                    isDashboardView
+                      ? "bg-blue-600 text-white"
+                      : "bg-gray-100 hover:bg-gray-200"
+                  )}
+                >
+                  <LayoutDashboard className="w-4 h-4" />
+                  <span>Dashboard</span>
+                </button>
+              </div>
+
               {filteredNavItems.map((item) => (
                 <Link
                   key={item.title}
