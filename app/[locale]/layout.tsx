@@ -7,7 +7,6 @@ import { routing } from "@/i18n/routing";
 import Head from "./head";
 import ClientLayout from "./ClientLayout";
 import { Toaster } from "@/components/ui/sonner";
-import { ThemeProvider } from "@/components/theme-provider";
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -54,9 +53,7 @@ export default async function RootLayout({
       <body className={`${poppins.variable} antialiased`}>
         <NextIntlClientProvider>
           <ClientLayout>
-            <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-              {children}
-            </ThemeProvider>
+            {children}
             <Toaster />
           </ClientLayout>
         </NextIntlClientProvider>
