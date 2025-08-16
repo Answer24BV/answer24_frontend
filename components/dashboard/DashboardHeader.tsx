@@ -363,27 +363,24 @@ export function DashboardHeader() {
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>
-                  <Link
-                    href="/dashboard/account"
-                    className="flex  items-center"
-                  >
+                <Link href="/dashboard/account" className="flex  items-center">
+                  <DropdownMenuItem>
                     <UserIcon className="mr-2 h-4 w-4" />
                     <span>{t("userMenu.profile")}</span>
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <Link href="/dashboard/chat" className="flex  items-center">
+                  </DropdownMenuItem>
+                </Link>
+                <Link href="/dashboard/chat" className="flex  items-center">
+                  <DropdownMenuItem>
                     <MessageCircle className="mr-2 h-4 w-4" />
                     <span>{t("chat")}</span>
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <Link href="/dashboard/wallet" className="flex  items-center">
+                  </DropdownMenuItem>
+                </Link>
+                <Link href="/dashboard/wallet" className="flex  items-center">
+                  <DropdownMenuItem>
                     <Wallet className="mr-2 h-4 w-4" />
                     <span>{t("wallet")}</span>
-                  </Link>
-                </DropdownMenuItem>
+                  </DropdownMenuItem>
+                </Link>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleLogout}>
                   <LogOut className="mr-2 h-4 w-4" />
