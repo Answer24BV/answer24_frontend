@@ -61,20 +61,28 @@ export function PrivateNavbar() {
       initial={{ y: -100 }}
       animate={{ y: 0 }}
       transition={{ duration: 0.6, ease: "easeOut" }}
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300
-        `}
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+        isScrolled
+          ? "bg-white/95 backdrop-blur-md shadow-lg"
+          : "bg-white border-b border-gray-100"
+      }`}
     >
-      <div className="max-w-7xl mx-auto ">
-        <div className="flex items-center justify-end h-20">
+      <div className="max-w-7xl mx-auto px-6">
+        <div className="flex items-center justify-between h-20">
           {/* Logo */}
-          {/* <Link href="/">
-            <Image src={ANSWER24LOGO} alt="Answer24 Logo" width={200} height={200} />
-           
-          </Link> */}
+          <Link href="/" className="flex-shrink-0">
+            <Image
+              src={ANSWER24LOGO}
+              alt="Answer24 Logo"
+              width={150}
+              height={50}
+              className="h-8 w-auto"
+            />
+          </Link>
 
           {/* Desktop Navigation */}
-          {/* <div className="hidden md:flex items-center space-x-8">
-            {navItems.map(item => (
+          <div className="hidden md:flex items-center space-x-8">
+            {navItems.map((item) => (
               <motion.div
                 key={item.name}
                 whileHover={{ y: -2 }}
@@ -84,10 +92,11 @@ export function PrivateNavbar() {
                 <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-600 transition-all duration-200 group-hover:w-full" />
               </motion.div>
             ))}
-          </div> */}
+          </div>
 
-          {/* Desktop CTA */}
+          {/* Desktop Actions */}
           <div className="hidden md:flex items-center space-x-4">
+            <NotificationBell />
             <LanguageSwitcher />
             <DropdownMenu>
               <DropdownMenuTrigger asChild className="cursor-pointer">
@@ -100,7 +109,7 @@ export function PrivateNavbar() {
                       src={
                         user?.profile_picture || "https://github.com/shadcn.png"
                       }
-                      alt="@shadcn"
+                      alt="User Avatar"
                     />
                     <AvatarFallback>{user?.name?.[0] || "U"}</AvatarFallback>
                   </Avatar>
@@ -121,14 +130,17 @@ export function PrivateNavbar() {
                 <DropdownMenuItem>
                   <Link
                     href="/dashboard/account"
-                    className="flex  items-center"
+                    className="flex items-center w-full"
                   >
                     <UserIcon className="mr-2 h-4 w-4" />
                     <span>{t("userMenu.profile")}</span>
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem>
-                  <Link href="/dashboard/chat" className="flex  items-center">
+                  <Link
+                    href="/dashboard/chat"
+                    className="flex items-center w-full"
+                  >
                     <MessageCircle className="mr-2 h-4 w-4" />
                     <span>{t("chat")}</span>
                   </Link>
@@ -136,7 +148,7 @@ export function PrivateNavbar() {
                 <DropdownMenuItem>
                   <Link
                     href="/dashboard/account/wallet"
-                    className="flex  items-center"
+                    className="flex items-center w-full"
                   >
                     <Wallet className="mr-2 h-4 w-4" />
                     <span>{t("wallet")}</span>
@@ -152,7 +164,7 @@ export function PrivateNavbar() {
           </div>
 
           {/* Mobile Menu Button */}
-          {/* <button
+          <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             className="md:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
           >
@@ -161,12 +173,12 @@ export function PrivateNavbar() {
             ) : (
               <Menu className="w-6 h-6" />
             )}
-          </button> */}
+          </button>
         </div>
       </div>
 
       {/* Mobile Menu */}
-      {/* <AnimatePresence>
+      <AnimatePresence>
         {isMobileMenuOpen && (
           <motion.div
             initial={{ opacity: 0, height: 0 }}
@@ -175,21 +187,59 @@ export function PrivateNavbar() {
             className="md:hidden bg-white border-t border-gray-200"
           >
             <div className="px-6 py-4 space-y-4">
-              {navItems.map(item => (
+              {navItems.map((item) => (
                 <Link
                   key={item.name}
                   href={item.href}
-                  as={item.as}
                   className="cursor-pointer block text-gray-700 hover:text-blue-600 font-medium py-2"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   {item.name}
                 </Link>
               ))}
+
+              {/* Mobile User Menu */}
+              <div className="pt-4 border-t border-gray-200">
+                <div className="flex items-center space-x-3 mb-4">
+                  <Avatar className="h-10 w-10">
+                    <AvatarImage
+                      src={
+                        user?.profile_picture || "https://github.com/shadcn.png"
+                      }
+                      alt="User Avatar"
+                    />
+                    <AvatarFallback>{user?.name?.[0] || "U"}</AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <p className="text-sm font-medium">
+                      {user?.name || "User"}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      {user?.email || "user@example.com"}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Link
+                    href="/dashboard/account"
+                    className="flex items-center py-2 text-gray-700 hover:text-blue-600"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    <UserIcon className="mr-3 h-4 w-4" />
+                    <span>{t("userMenu.profile")}</span>
+                  </Link>
+
+                  <button className="flex items-center py-2 text-gray-700 hover:text-blue-600 w-full text-left">
+                    <LogOut className="mr-3 h-4 w-4" />
+                    <span>{t("userMenu.logOut")}</span>
+                  </button>
+                </div>
+              </div>
             </div>
           </motion.div>
         )}
-      </AnimatePresence> */}
+      </AnimatePresence>
     </motion.nav>
   );
 }

@@ -1,4 +1,4 @@
-import { apiRequest } from '@/utils/auth';
+import { apiRequest } from "@/utils/auth";
 
 export interface Plan {
   id: string;
@@ -36,10 +36,10 @@ export const planService = {
   // Get all plans
   getPlans: async (): Promise<PlansResponse> => {
     try {
-      return await apiRequest('/plan');
+      return await apiRequest("/plan");
     } catch (error: any) {
-      console.error('Plan service - getPlans error:', error);
-      throw new Error(error?.message || 'Failed to fetch plans');
+      console.error("Plan service - getPlans error:", error);
+      throw new Error(error?.message || "Failed to fetch plans");
     }
   },
 
@@ -48,34 +48,37 @@ export const planService = {
     try {
       return await apiRequest(`/plan/${id}`);
     } catch (error: any) {
-      console.error('Plan service - getPlan error:', error);
-      throw new Error(error?.message || 'Failed to fetch plan');
+      console.error("Plan service - getPlan error:", error);
+      throw new Error(error?.message || "Failed to fetch plan");
     }
   },
 
   // Create new plan (admin only)
   createPlan: async (data: CreatePlanData): Promise<PlanResponse> => {
     try {
-      return await apiRequest('/plan', {
-        method: 'POST',
+      return await apiRequest("/plan", {
+        method: "POST",
         body: JSON.stringify(data),
       });
     } catch (error: any) {
-      console.error('Plan service - createPlan error:', error);
-      throw new Error(error?.message || 'Failed to create plan');
+      console.error("Plan service - createPlan error:", error);
+      throw new Error(error?.message || "Failed to create plan");
     }
   },
 
   // Update plan (admin only)
-  updatePlan: async (id: string, data: Partial<CreatePlanData>): Promise<PlanResponse> => {
+  updatePlan: async (
+    id: string,
+    data: Partial<CreatePlanData>
+  ): Promise<PlanResponse> => {
     try {
       return await apiRequest(`/plan/${id}`, {
-        method: 'PUT',
+        method: "PUT",
         body: JSON.stringify(data),
       });
     } catch (error: any) {
-      console.error('Plan service - updatePlan error:', error);
-      throw new Error(error?.message || 'Failed to update plan');
+      console.error("Plan service - updatePlan error:", error);
+      throw new Error(error?.message || "Failed to update plan");
     }
   },
 
@@ -83,11 +86,11 @@ export const planService = {
   deletePlan: async (id: string): Promise<void> => {
     try {
       return await apiRequest(`/plan/${id}`, {
-        method: 'DELETE',
+        method: "DELETE",
       });
     } catch (error: any) {
-      console.error('Plan service - deletePlan error:', error);
-      throw new Error(error?.message || 'Failed to delete plan');
+      console.error("Plan service - deletePlan error:", error);
+      throw new Error(error?.message || "Failed to delete plan");
     }
   },
 };
@@ -96,23 +99,23 @@ export const profileService = {
   // Get user profile
   getProfile: async () => {
     try {
-      return await apiRequest('/profile');
+      return await apiRequest("/profile");
     } catch (error: any) {
-      console.error('Profile service - getProfile error:', error);
-      throw new Error(error?.message || 'Failed to fetch profile');
+      console.error("Profile service - getProfile error:", error);
+      throw new Error(error?.message || "Failed to fetch profile");
     }
   },
 
   // Update user profile
   updateProfile: async (data: any) => {
     try {
-      return await apiRequest('/profile', {
-        method: 'PUT',
+      return await apiRequest("/profile", {
+        method: "PUT",
         body: JSON.stringify(data),
       });
     } catch (error: any) {
-      console.error('Profile service - updateProfile error:', error);
-      throw new Error(error?.message || 'Failed to update profile');
+      console.error("Profile service - updateProfile error:", error);
+      throw new Error(error?.message || "Failed to update profile");
     }
   },
 };
