@@ -1,16 +1,16 @@
 "use client";
 
-import { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { PlanCard } from '@/components/plans/PlanCard';
-import { PlanForm } from '@/components/plans/PlanForm';
-import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
-import { planService, Plan, CreatePlanData } from '@/services/planService';
-import { Plus, Search, Loader2 } from 'lucide-react';
-import { toast } from 'react-toastify';
-import { tokenUtils } from '@/utils/auth';
-import { motion } from 'framer-motion';
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { PlanCard } from "@/components/plans/PlanCard";
+import { PlanForm } from "@/components/plans/PlanForm";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
+import { planService, Plan, CreatePlanData } from "@/services/planService";
+import { Plus, Search, Loader2 } from "lucide-react";
+import { toast } from "react-toastify";
+import { tokenUtils } from "@/utils/auth";
+import { motion } from "framer-motion";
 import {
   Dialog,
   DialogContent,
@@ -22,7 +22,7 @@ import {
 export default function AdminPlansPage() {
   const [plans, setPlans] = useState<Plan[]>([]);
   const [filteredPlans, setFilteredPlans] = useState<Plan[]>([]);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingPlan, setEditingPlan] = useState<Plan | null>(null);
@@ -39,9 +39,10 @@ export default function AdminPlansPage() {
   }, []);
 
   useEffect(() => {
-    const filtered = plans.filter(plan =>
-      plan.display_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      plan.description.toLowerCase().includes(searchTerm.toLowerCase())
+    const filtered = plans.filter(
+      (plan) =>
+        plan.display_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        plan.description.toLowerCase().includes(searchTerm.toLowerCase())
     );
     setFilteredPlans(filtered);
   }, [plans, searchTerm]);
@@ -52,8 +53,11 @@ export default function AdminPlansPage() {
       const response = await planService.getPlans();
       setPlans(response.data);
     } catch (error: any) {
-      console.error('Error fetching plans:', error);
-      const errorMessage = error?.message || error?.response?.data?.message || 'Failed to fetch plans';
+      console.error("Error fetching plans:", error);
+      const errorMessage =
+        error?.message ||
+        error?.response?.data?.message ||
+        "Failed to fetch plans";
       toast.error(`Fetch Error: ${errorMessage}`);
     } finally {
       setIsLoading(false);
@@ -64,12 +68,15 @@ export default function AdminPlansPage() {
     try {
       setIsSubmitting(true);
       const response = await planService.createPlan(data);
-      setPlans(prev => [...prev, response.data]);
+      setPlans((prev) => [...prev, response.data]);
       setShowForm(false);
-      toast.success('Plan created successfully');
+      toast.success("Plan created successfully");
     } catch (error: any) {
-      console.error('Error creating plan:', error);
-      const errorMessage = error?.message || error?.response?.data?.message || 'Failed to create plan';
+      console.error("Error creating plan:", error);
+      const errorMessage =
+        error?.message ||
+        error?.response?.data?.message ||
+        "Failed to create plan";
       toast.error(`Create Error: ${errorMessage}`);
     } finally {
       setIsSubmitting(false);
@@ -78,19 +85,22 @@ export default function AdminPlansPage() {
 
   const handleUpdatePlan = async (data: CreatePlanData) => {
     if (!editingPlan) return;
-    
+
     try {
       setIsSubmitting(true);
       const response = await planService.updatePlan(editingPlan.id, data);
-      setPlans(prev => prev.map(plan => 
-        plan.id === editingPlan.id ? response.data : plan
-      ));
+      setPlans((prev) =>
+        prev.map((plan) => (plan.id === editingPlan.id ? response.data : plan))
+      );
       setEditingPlan(null);
       setShowForm(false);
-      toast.success('Plan updated successfully');
+      toast.success("Plan updated successfully");
     } catch (error: any) {
-      console.error('Error updating plan:', error);
-      const errorMessage = error?.message || error?.response?.data?.message || 'Failed to update plan';
+      console.error("Error updating plan:", error);
+      const errorMessage =
+        error?.message ||
+        error?.response?.data?.message ||
+        "Failed to update plan";
       toast.error(`Update Error: ${errorMessage}`);
     } finally {
       setIsSubmitting(false);
@@ -98,7 +108,7 @@ export default function AdminPlansPage() {
   };
 
   const handleDeletePlan = (planId: string) => {
-    const plan = plans.find(p => p.id === planId);
+    const plan = plans.find((p) => p.id === planId);
     if (plan) {
       setPlanToDelete(plan);
       setShowDeleteDialog(true);
@@ -107,23 +117,26 @@ export default function AdminPlansPage() {
 
   const confirmDeletePlan = async () => {
     if (!planToDelete) return;
-    
+
     try {
       setIsDeleting(true);
-      console.log('Attempting to delete plan with ID:', planToDelete.id);
+      console.log("Attempting to delete plan with ID:", planToDelete.id);
       await planService.deletePlan(planToDelete.id);
-      setPlans(prev => prev.filter(plan => plan.id !== planToDelete.id));
+      setPlans((prev) => prev.filter((plan) => plan.id !== planToDelete.id));
       toast.success(`Plan "${planToDelete.display_name}" deleted successfully`);
-      console.log('Plan deleted successfully:', planToDelete.id);
+      console.log("Plan deleted successfully:", planToDelete.id);
     } catch (error: any) {
-      console.error('Error deleting plan:', error);
-      console.error('Error details:', {
+      console.error("Error deleting plan:", error);
+      console.error("Error details:", {
         message: error?.message,
         response: error?.response,
         status: error?.response?.status,
-        data: error?.response?.data
+        data: error?.response?.data,
       });
-      const errorMessage = error?.message || error?.response?.data?.message || 'Failed to delete plan';
+      const errorMessage =
+        error?.message ||
+        error?.response?.data?.message ||
+        "Failed to delete plan";
       toast.error(`Delete Error: ${errorMessage}`);
     } finally {
       setIsDeleting(false);
@@ -159,10 +172,14 @@ export default function AdminPlansPage() {
       >
         <div className="flex justify-between items-center mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Plan Management</h1>
-            <p className="text-gray-600 mt-2">Manage subscription plans for clients and partners</p>
+            <h1 className="text-3xl font-bold text-gray-900">
+              Plan Management
+            </h1>
+            <p className="text-gray-600 mt-2">
+              Manage subscription plans for clients and partners
+            </p>
           </div>
-          <Button 
+          <Button
             onClick={() => setShowForm(true)}
             className="flex items-center gap-2 cursor-pointer"
           >
@@ -175,13 +192,12 @@ export default function AdminPlansPage() {
           <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto scrollbar-hide">
             <DialogHeader>
               <DialogTitle>
-                {editingPlan ? 'Edit Plan' : 'Create New Plan'}
+                {editingPlan ? "Edit Plan" : "Create New Plan"}
               </DialogTitle>
               <DialogDescription>
-                {editingPlan 
-                  ? 'Update the plan details below.' 
-                  : 'Fill in the details to create a new subscription plan.'
-                }
+                {editingPlan
+                  ? "Update the plan details below."
+                  : "Fill in the details to create a new subscription plan."}
               </DialogDescription>
             </DialogHeader>
             <PlanForm
@@ -198,7 +214,7 @@ export default function AdminPlansPage() {
           onOpenChange={setShowDeleteDialog}
           title="Delete Plan"
           description={
-            planToDelete 
+            planToDelete
               ? `Are you sure you want to delete "${planToDelete.display_name}"? This action cannot be undone and will affect all users currently subscribed to this plan.`
               : "Are you sure you want to delete this plan?"
           }
@@ -249,7 +265,9 @@ export default function AdminPlansPage() {
           <div className="text-center py-12">
             <p className="text-gray-500 text-lg">No plans found</p>
             <p className="text-gray-400 mt-2">
-              {searchTerm ? 'Try adjusting your search terms' : 'Create your first plan to get started'}
+              {searchTerm
+                ? "Try adjusting your search terms"
+                : "Create your first plan to get started"}
             </p>
           </div>
         )}
