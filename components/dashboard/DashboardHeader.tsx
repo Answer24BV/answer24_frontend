@@ -195,7 +195,7 @@ export function DashboardHeader() {
       animate={{ y: 0 }}
       transition={{ duration: 0.6, ease: "easeOut" }}
       className={cn(
-        "fixed top-0 left-0 right-0 z-50 transition-all duration-300 border-b border-gray-100/10",
+        "fixed top-0 left-0 right-0 z-25 transition-all duration-300 border-b border-gray-100/10",
         isScrolled
           ? "bg-background/90 backdrop-blur-lg shadow-lg"
           : "bg-background/80 backdrop-blur-sm"
