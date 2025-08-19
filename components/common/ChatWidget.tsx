@@ -80,7 +80,7 @@ const ChatWidget: React.FC = () => {
           { sender: "bot", text: "Can I assist you with anything?" },
         ]);
         setHasPromptedInactivity(true);
-      }, 30000); // 30 seconds
+      }, 60000);
     }
   }, [isOpen, hasPromptedInactivity]);
 
