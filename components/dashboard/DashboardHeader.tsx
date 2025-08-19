@@ -363,26 +363,43 @@ export function DashboardHeader() {
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <Link href="/dashboard/account" className="flex  items-center">
-                  <DropdownMenuItem>
+
+                <DropdownMenuItem className="w-full cursor-pointer">
+                  <Link
+                    href="/dashboard/account"
+                    className="flex items-center w-full"
+                  >
                     <UserIcon className="mr-2 h-4 w-4" />
                     <span>{t("userMenu.profile")}</span>
-                  </DropdownMenuItem>
-                </Link>
-                <Link href="/dashboard/chat" className="flex  items-center">
-                  <DropdownMenuItem>
+                  </Link>
+                </DropdownMenuItem>
+
+                <DropdownMenuItem className="w-full cursor-pointer">
+                  <Link
+                    href="/dashboard/chat"
+                    className="flex items-center w-full"
+                  >
                     <MessageCircle className="mr-2 h-4 w-4" />
                     <span>{t("chat")}</span>
-                  </DropdownMenuItem>
-                </Link>
-                <Link href="/dashboard/wallet" className="flex  items-center">
-                  <DropdownMenuItem>
+                  </Link>
+                </DropdownMenuItem>
+
+                <DropdownMenuItem className="w-full cursor-pointer">
+                  <Link
+                    href="/dashboard/wallet"
+                    className="flex items-center w-full"
+                  >
                     <Wallet className="mr-2 h-4 w-4" />
                     <span>{t("wallet")}</span>
-                  </DropdownMenuItem>
-                </Link>
+                  </Link>
+                </DropdownMenuItem>
+
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleLogout}>
+
+                <DropdownMenuItem
+                  onClick={handleLogout}
+                  className="w-full cursor-pointer"
+                >
                   <LogOut className="mr-2 h-4 w-4" />
                   <span>{t("userMenu.logOut")}</span>
                 </DropdownMenuItem>
