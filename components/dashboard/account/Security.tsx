@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,13 +6,59 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import React, { useState } from "react";
 import { toast } from "react-toastify";
+import { tokenUtils } from "@/utils/auth";
 
-// Mock API call
+// API call to update lock settings
+const updateLockSettings = async (data: {
+  lock_key?: string;
+  lock_timeout?: number;
+}) => {
+  try {
+    const response = await fetch(
+      `${
+        process.env.NEXT_PUBLIC_API_BASE_URL ||
+        "https://answer24.laravel.cloud/api/v1"
+      }/profile`,
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${tokenUtils.getToken()}`,
+        },
+        body: JSON.stringify(data),
+      }
+    );
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || "Failed to update lock settings");
+    }
+
+    const userData = await response.json();
+    if (userData.data) {
+      // Update local user data with new lock settings
+      const currentUser = tokenUtils.getUser();
+      const updatedUser = { ...currentUser, ...userData.data };
+      tokenUtils.setUser(updatedUser);
+    }
+
+    return { success: true, message: "Lock settings updated successfully!" };
+  } catch (error) {
+    console.error("Error updating lock settings:", error);
+    return {
+      success: false,
+      message:
+        error instanceof Error
+          ? error.message
+          : "Failed to update lock settings",
+    };
+  }
+};
+
+// Mock API call for password (keep existing)
 const updateUserPassword = async (data: any) => {
   console.log("Updating password with:", data);
-  // Simulate network delay
-  await new Promise(resolve => setTimeout(resolve, 1000));
-  // In a real app, you would make a request to your backend here
+  await new Promise((resolve) => setTimeout(resolve, 1000));
   return { success: true, message: "Password updated successfully!" };
 };
 
@@ -22,49 +68,86 @@ export function Security() {
   const [confirmPassword, setConfirmPassword] = useState("");
 
   // Lock screen state
-  const [lockKey, setLockKey] = useState('');
+  const [lockKey, setLockKey] = useState("");
   const [lockTimeout, setLockTimeout] = useState(1);
+  const [isUpdatingLock, setIsUpdatingLock] = useState(false);
 
-  // Sync with localStorage on mount
+  // Load current user data on mount
   React.useEffect(() => {
-    if (typeof window !== 'undefined') {
-      setLockKey(localStorage.getItem('lockKey') || '');
-      const storedTimeout = localStorage.getItem('lockTimeout');
-      setLockTimeout(storedTimeout ? Number(storedTimeout) : 1);
+    if (typeof window !== "undefined") {
+      const userData = tokenUtils.getUser();
+      if (userData) {
+        // Get lock settings from user data if available
+        setLockKey(userData.lock_key || "");
+        setLockTimeout(userData.lock_timeout || 1);
+      }
     }
   }, []);
 
-  const [lockSettingsMsg, setLockSettingsMsg] = useState<{ type: 'error' | 'success'; text: string } | null>(null);
+  const [lockSettingsMsg, setLockSettingsMsg] = useState<{
+    type: "error" | "success";
+    text: string;
+  } | null>(null);
 
-  const handleLockSettingsSubmit = (e: React.FormEvent) => {
+  const handleLockSettingsSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLockSettingsMsg(null);
+
     if (!/^\d{6}$/.test(lockKey)) {
-      setLockSettingsMsg({ type: 'error', text: 'Lock key must be exactly 6 digits.' });
+      setLockSettingsMsg({
+        type: "error",
+        text: "Lock key must be exactly 6 digits.",
+      });
       return;
     }
+
     if (lockTimeout < 1 || lockTimeout > 120) {
-      setLockSettingsMsg({ type: 'error', text: 'Timeout must be between 1 and 120 minutes.' });
+      setLockSettingsMsg({
+        type: "error",
+        text: "Timeout must be between 1 and 120 minutes.",
+      });
       return;
     }
-    localStorage.setItem('lockKey', lockKey);
-    localStorage.setItem('lockTimeout', String(lockTimeout));
-    toast.success('Lock settings saved!');
-    setLockSettingsMsg({ type: 'success', text: 'Lock settings saved!' });
+
+    setIsUpdatingLock(true);
+
+    try {
+      const response = await updateLockSettings({
+        lock_key: lockKey,
+        lock_timeout: lockTimeout,
+      });
+
+      if (response.success) {
+        toast.success(response.message);
+        setLockSettingsMsg({ type: "success", text: response.message });
+      } else {
+        setLockSettingsMsg({ type: "error", text: response.message });
+        toast.error(response.message);
+      }
+    } catch (error) {
+      const errorMsg = "Failed to update lock settings. Please try again.";
+      setLockSettingsMsg({ type: "error", text: errorMsg });
+      toast.error(errorMsg);
+    } finally {
+      setIsUpdatingLock(false);
+    }
   };
 
-  const [passwordMsg, setPasswordMsg] = useState<{ type: 'error' | 'success'; text: string } | null>(null);
+  const [passwordMsg, setPasswordMsg] = useState<{
+    type: "error" | "success";
+    text: string;
+  } | null>(null);
 
   const handlePasswordSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setPasswordMsg(null);
     if (newPassword !== confirmPassword) {
-      setPasswordMsg({ type: 'error', text: 'New passwords do not match.' });
+      setPasswordMsg({ type: "error", text: "New passwords do not match." });
       return;
     }
     const response = await updateUserPassword({ currentPassword, newPassword });
     if (response.success) {
-      setPasswordMsg({ type: 'success', text: response.message });
+      setPasswordMsg({ type: "success", text: response.message });
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
@@ -73,12 +156,18 @@ export function Security() {
 
   return (
     <div className="p-2">
-      <h2 className="text-xl font-semibold text-gray-800 mb-6">Security Settings</h2>
+      <h2 className="text-xl font-semibold text-gray-800 mb-6">
+        Security Settings
+      </h2>
       <div className="space-y-8">
         {/* 2FA */}
         <div>
-          <h3 className="text-lg font-medium text-gray-900">Two-Factor Authentication</h3>
-          <p className="mt-1 text-sm text-gray-500">Add an extra layer of security to your account.</p>
+          <h3 className="text-lg font-medium text-gray-900">
+            Two-Factor Authentication
+          </h3>
+          <p className="mt-1 text-sm text-gray-500">
+            Add an extra layer of security to your account.
+          </p>
           <div className="mt-4 flex items-center justify-between">
             <p className="text-sm font-medium text-gray-600">Enable 2FA</p>
             <Switch />
@@ -91,21 +180,45 @@ export function Security() {
           <form className="mt-4 space-y-4" onSubmit={handlePasswordSubmit}>
             <div>
               <Label htmlFor="current-password">Current Password</Label>
-              <Input id="current-password" type="password" placeholder="Enter current password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} />
+              <Input
+                id="current-password"
+                type="password"
+                placeholder="Enter current password"
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+              />
             </div>
             <div>
               <Label htmlFor="new-password">New Password</Label>
-              <Input id="new-password" type="password" placeholder="Enter new password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} />
+              <Input
+                id="new-password"
+                type="password"
+                placeholder="Enter new password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+              />
             </div>
             <div>
               <Label htmlFor="confirm-password">Confirm New Password</Label>
-              <Input id="confirm-password" type="password" placeholder="Confirm new password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />
+              <Input
+                id="confirm-password"
+                type="password"
+                placeholder="Confirm new password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+              />
             </div>
             <div className="flex justify-end">
               <Button type="submit">Update Password</Button>
             </div>
             {passwordMsg && (
-              <div className={`mt-2 text-sm ${passwordMsg.type === 'error' ? 'text-red-600' : 'text-green-600'}`}>
+              <div
+                className={`mt-2 text-sm ${
+                  passwordMsg.type === "error"
+                    ? "text-red-600"
+                    : "text-green-600"
+                }`}
+              >
                 {passwordMsg.text}
               </div>
             )}
@@ -115,7 +228,10 @@ export function Security() {
         {/* Lock Screen Settings */}
         <div>
           <h3 className="text-lg font-medium text-gray-900">Lock Screen</h3>
-          <p className="mt-1 text-sm text-gray-500">Set a 6-digit lock key and inactivity timeout. When inactive, your dashboard will be locked.</p>
+          <p className="mt-1 text-sm text-gray-500">
+            Set a 6-digit lock key and inactivity timeout. When inactive, your
+            dashboard will be locked.
+          </p>
           <form className="mt-4 space-y-4" onSubmit={handleLockSettingsSubmit}>
             <div>
               <Label htmlFor="lock-key">6-Digit Lock Key</Label>
@@ -128,8 +244,11 @@ export function Security() {
                 minLength={6}
                 placeholder="Enter 6-digit key"
                 value={lockKey}
-                onChange={e => setLockKey(e.target.value.replace(/[^0-9]/g, ''))}
+                onChange={(e) =>
+                  setLockKey(e.target.value.replace(/[^0-9]/g, ""))
+                }
                 autoComplete="off"
+                disabled={isUpdatingLock}
               />
             </div>
             <div>
@@ -140,14 +259,23 @@ export function Security() {
                 min={1}
                 max={120}
                 value={lockTimeout}
-                onChange={e => setLockTimeout(Number(e.target.value))}
+                onChange={(e) => setLockTimeout(Number(e.target.value))}
+                disabled={isUpdatingLock}
               />
             </div>
             <div className="flex justify-end">
-              <Button type="submit">Save Lock Settings</Button>
+              <Button type="submit" disabled={isUpdatingLock}>
+                {isUpdatingLock ? "Saving..." : "Save Lock Settings"}
+              </Button>
             </div>
             {lockSettingsMsg && (
-              <div className={`mt-2 text-sm ${lockSettingsMsg.type === 'error' ? 'text-red-600' : 'text-green-600'}`}>
+              <div
+                className={`mt-2 text-sm ${
+                  lockSettingsMsg.type === "error"
+                    ? "text-red-600"
+                    : "text-green-600"
+                }`}
+              >
                 {lockSettingsMsg.text}
               </div>
             )}
@@ -157,19 +285,26 @@ export function Security() {
         {/* Active Sessions */}
         <div>
           <h3 className="text-lg font-medium text-gray-900">Active Sessions</h3>
-          <p className="mt-1 text-sm text-gray-500">This is a list of devices that have logged into your account. Revoke any sessions that you do not recognize.</p>
+          <p className="mt-1 text-sm text-gray-500">
+            This is a list of devices that have logged into your account. Revoke
+            any sessions that you do not recognize.
+          </p>
           <ul className="mt-4 space-y-4">
             <li className="flex items-center justify-between">
               <div>
                 <p className="font-medium">Chrome on macOS</p>
-                <p className="text-sm text-gray-500">New York, USA - Current session</p>
+                <p className="text-sm text-gray-500">
+                  New York, USA - Current session
+                </p>
               </div>
               <Button variant="outline">Revoke</Button>
             </li>
             <li className="flex items-center justify-between">
               <div>
                 <p className="font-medium">Safari on iPhone</p>
-                <p className="text-sm text-gray-500">New York, USA - 2 hours ago</p>
+                <p className="text-sm text-gray-500">
+                  New York, USA - 2 hours ago
+                </p>
               </div>
               <Button variant="outline">Revoke</Button>
             </li>
