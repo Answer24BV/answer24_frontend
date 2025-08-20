@@ -60,7 +60,7 @@ export const tokenUtils = {
       const response = await fetch(
         `${
           process.env.NEXT_PUBLIC_API_BASE_URL ||
-          "https://staging.answer24.nl/api/v1"
+          "https://answer24.laravel.cloud/api/v1"
         }/auth/validate`,
         {
           method: "GET",
@@ -101,7 +101,7 @@ export const apiRequest = async (
 ) => {
   const baseUrl =
     process.env.NEXT_PUBLIC_API_BASE_URL ||
-    "https://staging.answer24.nl/api/v1";
+    "https://answer24.laravel.cloud/api/v1";
   const token = tokenUtils.getToken();
 
   const defaultHeaders: HeadersInit = {

@@ -32,7 +32,7 @@ export function Billing() {
   const [hasActivePlan, setHasActivePlan] = useState(false);
 
   const subscriptionEndpoint =
-    "https://staging.answer24.nl/api/v1/subscription/details";
+    "https://answer24.laravel.cloud/api/v1/subscription/details";
 
   const fetchSubscriptionData = async () => {
     try {

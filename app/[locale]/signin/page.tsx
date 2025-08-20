@@ -62,7 +62,8 @@ export default function SignIn() {
       console.log("Initiating Google Sign-In...");
       console.log("API Base URL:", process.env.NEXT_PUBLIC_API_BASE_URL);
 
-      const apiUrl = "https://staging.answer24.nl/api/v1/sso/google/auth-url";
+      const apiUrl =
+        "https://answer24.laravel.cloud/api/v1/sso/google/auth-url";
       console.log("Fetching auth URL from:", apiUrl);
 
       const res = await fetch(apiUrl, {

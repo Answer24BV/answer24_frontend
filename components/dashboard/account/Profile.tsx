@@ -5,7 +5,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Camera, User, Shield, Bell, CreditCard, ChevronRight } from "lucide-react";
+import {
+  Camera,
+  User,
+  Shield,
+  Bell,
+  CreditCard,
+  ChevronRight,
+} from "lucide-react";
 import { Security } from "./Security";
 import { Notifications } from "./Notifications";
 import { Billing } from "./Billing";
@@ -14,26 +21,33 @@ import { tokenUtils } from "@/utils/auth";
 import { toast } from "react-toastify";
 
 // API call to update user profile
-const updateUserProfile = async (data: { name?: string; profile_picture?: File | null }) => {
+const updateUserProfile = async (data: {
+  name?: string;
+  profile_picture?: File | null;
+}) => {
   try {
     const formData = new FormData();
-    if (data.name) formData.append('name', data.name);
-    if (data.profile_picture) formData.append('profile_picture', data.profile_picture);
+    if (data.name) formData.append("name", data.name);
+    if (data.profile_picture)
+      formData.append("profile_picture", data.profile_picture);
 
     const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_BASE_URL || "https://staging.answer24.nl/api/v1"}/profile`,
+      `${
+        process.env.NEXT_PUBLIC_API_BASE_URL ||
+        "https://answer24.laravel.cloud/api/v1"
+      }/profile`,
       {
-        method: 'PUT', // or 'PUT' depending on backend
+        method: "PUT", // or 'PUT' depending on backend
         headers: {
-          'Authorization': `Bearer ${tokenUtils.getToken()}`
+          Authorization: `Bearer ${tokenUtils.getToken()}`,
         },
-        body: formData
+        body: formData,
       }
     );
 
     if (!response.ok) {
       const error = await response.json();
-      throw new Error(error.message || 'Failed to update profile');
+      throw new Error(error.message || "Failed to update profile");
     }
 
     const userData = await response.json();
@@ -43,10 +57,11 @@ const updateUserProfile = async (data: { name?: string; profile_picture?: File |
 
     return { success: true, message: "Profile updated successfully!" };
   } catch (error) {
-    console.error('Error updating profile:', error);
+    console.error("Error updating profile:", error);
     return {
       success: false,
-      message: error instanceof Error ? error.message : 'Failed to update profile'
+      message:
+        error instanceof Error ? error.message : "Failed to update profile",
     };
   }
 };
@@ -77,24 +92,34 @@ const ProfileContent = ({
   profilePicture,
   onProfilePictureChange,
   onProfileSubmit,
-  setFullName
+  setFullName,
 }: ProfileContentProps) => (
   <div className="space-y-4">
     <div>
-      <h2 className="text-2xl font-semibold text-gray-900">Profile Information</h2>
-      <p className="text-gray-500 mt-1">Update your personal information and photo</p>
+      <h2 className="text-2xl font-semibold text-gray-900">
+        Profile Information
+      </h2>
+      <p className="text-gray-500 mt-1">
+        Update your personal information and photo
+      </p>
     </div>
     <div className="border-t border-gray-100 pt-6">
       <div className="flex flex-col sm:flex-row gap-8">
         <div className="flex flex-col items-center">
           <div className="relative">
             <Avatar className="w-32 h-32 border-4 border-white shadow-lg">
-              <AvatarImage 
-                src={profilePicture || '/images/avatar-placeholder.png'} 
-                alt="Profile picture" 
+              <AvatarImage
+                src={profilePicture || "/images/avatar-placeholder.png"}
+                alt="Profile picture"
               />
               <AvatarFallback className="text-2xl bg-gray-100">
-                {fullName ? fullName.split(' ').map(n => n[0]).join('').toUpperCase() : 'U'}
+                {fullName
+                  ? fullName
+                      .split(" ")
+                      .map((n) => n[0])
+                      .join("")
+                      .toUpperCase()
+                  : "U"}
               </AvatarFallback>
             </Avatar>
             <label
@@ -113,15 +138,20 @@ const ProfileContent = ({
           </div>
           <div className="mt-4 text-center">
             <Button variant="outline">Change Picture</Button>
-            <p className="text-xs text-gray-500 mt-2">JPG, GIF or PNG. 1MB max.</p>
+            <p className="text-xs text-gray-500 mt-2">
+              JPG, GIF or PNG. 1MB max.
+            </p>
           </div>
         </div>
-        
+
         <div className="flex-1">
           <form onSubmit={onProfileSubmit} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <Label htmlFor="full-name" className="text-sm font-medium text-gray-700 mb-1.5 block">
+                <Label
+                  htmlFor="full-name"
+                  className="text-sm font-medium text-gray-700 mb-1.5 block"
+                >
                   Full Name
                 </Label>
                 <Input
@@ -133,24 +163,26 @@ const ProfileContent = ({
                 />
               </div>
               <div>
-                <Label htmlFor="email" className="text-sm font-medium text-gray-700 mb-1.5 block">
+                <Label
+                  htmlFor="email"
+                  className="text-sm font-medium text-gray-700 mb-1.5 block"
+                >
                   Email
                 </Label>
-                <Input 
-                  id="email" 
-                  className="w-full bg-gray-50" 
-                  value={email} 
-                  disabled 
-                  placeholder={email || 'Your email address'}
+                <Input
+                  id="email"
+                  className="w-full bg-gray-50"
+                  value={email}
+                  disabled
+                  placeholder={email || "Your email address"}
                 />
-                <p className="mt-1 text-xs text-gray-500">Contact support to change your email</p>
+                <p className="mt-1 text-xs text-gray-500">
+                  Contact support to change your email
+                </p>
               </div>
             </div>
             <div className="pt-4 flex justify-end border-t border-gray-100">
-              <Button 
-                type="submit"
-                className="px-6 py-2.5 text-sm font-medium"
-              >
+              <Button type="submit" className="px-6 py-2.5 text-sm font-medium">
                 Save Changes
               </Button>
             </div>
@@ -167,8 +199,11 @@ export function Profile() {
   const [isLoading, setIsLoading] = useState(true);
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
-  const [profilePictureFile, setProfilePictureFile] = useState<File | null>(null);
-  const [profilePicturePreview, setProfilePicturePreview] = useState<string>("");
+  const [profilePictureFile, setProfilePictureFile] = useState<File | null>(
+    null
+  );
+  const [profilePicturePreview, setProfilePicturePreview] =
+    useState<string>("");
   const pathname = usePathname();
 
   // Fetch user data on component mount
@@ -178,12 +213,12 @@ export function Profile() {
         const userData = tokenUtils.getUser();
         if (userData) {
           setUser(userData);
-          setFullName(userData.name || '');
-          setEmail(userData.email || '');
-          setProfilePicturePreview(userData.profile_picture || '');
+          setFullName(userData.name || "");
+          setEmail(userData.email || "");
+          setProfilePicturePreview(userData.profile_picture || "");
         }
       } catch (error) {
-        console.error('Error fetching user data:', error);
+        console.error("Error fetching user data:", error);
       } finally {
         setIsLoading(false);
       }
@@ -192,7 +227,9 @@ export function Profile() {
     fetchUserData();
   }, []);
 
-  const handleProfilePictureChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleProfilePictureChange = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const file = e.target.files?.[0];
     if (file) {
       setProfilePictureFile(file); // store the File object for upload
@@ -207,16 +244,17 @@ export function Profile() {
   const handleProfileSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!fullName.trim() && !profilePictureFile) {
-      toast.error('Please enter your full name or select a profile picture');
+      toast.error("Please enter your full name or select a profile picture");
       return;
     }
 
     const payload: { name?: string; profile_picture?: File | null } = {};
-    if (fullName.trim() && fullName !== user?.name) payload.name = fullName.trim();
+    if (fullName.trim() && fullName !== user?.name)
+      payload.name = fullName.trim();
     if (profilePictureFile) payload.profile_picture = profilePictureFile;
 
     if (!payload.name && !payload.profile_picture) {
-      toast.info('No changes to update');
+      toast.info("No changes to update");
       return;
     }
 
@@ -226,15 +264,17 @@ export function Profile() {
         const updatedUser: UserData = {
           ...user,
           ...(payload.name ? { name: payload.name } : {}),
-          ...(payload.profile_picture ? { profile_picture: profilePicturePreview } : {})
+          ...(payload.profile_picture
+            ? { profile_picture: profilePicturePreview }
+            : {}),
         };
         setUser(updatedUser);
         tokenUtils.setUser(updatedUser);
       }
       toast.success(response.message);
     } catch (error) {
-      console.error('Profile update error:', error);
-      toast.error('Failed to update profile. Please try again.');
+      console.error("Profile update error:", error);
+      toast.error("Failed to update profile. Please try again.");
     }
   };
 
@@ -265,13 +305,15 @@ export function Profile() {
     if (!user) {
       return (
         <div className="text-center py-12">
-          <p className="text-gray-600">Failed to load user data. Please try again later.</p>
+          <p className="text-gray-600">
+            Failed to load user data. Please try again later.
+          </p>
         </div>
       );
     }
 
     return (
-      <ProfileContent 
+      <ProfileContent
         user={user}
         fullName={fullName}
         email={email}
@@ -285,18 +327,18 @@ export function Profile() {
 
   // Define tabs configuration
   const tabs = [
-    { id: 'profile', icon: User, label: 'Profile' },
-    { id: 'security', icon: Shield, label: 'Security' },
-    { id: 'notifications', icon: Bell, label: 'Notifications' },
-    { id: 'billing', icon: CreditCard, label: 'Billing' },
+    { id: "profile", icon: User, label: "Profile" },
+    { id: "security", icon: Shield, label: "Security" },
+    { id: "notifications", icon: Bell, label: "Notifications" },
+    { id: "billing", icon: CreditCard, label: "Billing" },
   ];
 
   // Determine active tab based on path
   useEffect(() => {
-    if (pathname?.includes('security')) setActiveTab('security');
-    else if (pathname?.includes('notifications')) setActiveTab('notifications');
-    else if (pathname?.includes('billing')) setActiveTab('billing');
-    else setActiveTab('profile');
+    if (pathname?.includes("security")) setActiveTab("security");
+    else if (pathname?.includes("notifications")) setActiveTab("notifications");
+    else if (pathname?.includes("billing")) setActiveTab("billing");
+    else setActiveTab("profile");
   }, [pathname]);
 
   return (
@@ -304,9 +346,11 @@ export function Profile() {
       <div className="max-w-7xl mx-auto">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">Account Settings</h1>
-          <p className="text-gray-500 mt-2">Manage your account settings and preferences</p>
+          <p className="text-gray-500 mt-2">
+            Manage your account settings and preferences
+          </p>
         </div>
-        
+
         <div className="flex flex-col md:flex-row gap-6">
           {/* Sidebar */}
           <div className="w-full md:w-64 flex-shrink-0">
@@ -320,8 +364,8 @@ export function Profile() {
                     onClick={() => setActiveTab(tab.id)}
                     className={`w-full flex items-center justify-between px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
                       isActive
-                        ? 'bg-blue-50 text-blue-700'
-                        : 'text-gray-600 hover:bg-gray-100'
+                        ? "bg-blue-50 text-blue-700"
+                        : "text-gray-600 hover:bg-gray-100"
                     }`}
                   >
                     <div className="flex items-center">

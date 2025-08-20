@@ -35,7 +35,8 @@ const CashbackHomepage = () => {
   // const [categories, setCategories] = useState<Category[]>([]);
   const router = useRouter();
 
-  const endpoint = "https://staging.answer24.nl/api/v1/preferences/categories";
+  const endpoint =
+    "https://answer24.laravel.cloud/api/v1/preferences/categories";
   const token = localStorage.getItem("auth_token");
 
   fetch(endpoint, {

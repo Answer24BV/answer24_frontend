@@ -52,7 +52,7 @@ export default function Pricing() {
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const router = useRouter();
 
-  const pricingEndpoint = "https://staging.answer24.nl/api/v1/plan";
+  const pricingEndpoint = "https://answer24.laravel.cloud/api/v1/plan";
 
   const fetchPricingData = async () => {
     try {

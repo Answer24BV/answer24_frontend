@@ -403,10 +403,13 @@ export default function WalletPage() {
           "Fetching profile with token:",
           token ? "Token exists" : "No token"
         );
-        console.log("API URL:", "https://staging.answer24.nl/api/v1/profile");
+        console.log(
+          "API URL:",
+          "https://answer24.laravel.cloud/api/v1/profile"
+        );
 
         const response = await fetch(
-          "https://staging.answer24.nl/api/v1/profile",
+          "https://answer24.laravel.cloud/api/v1/profile",
           {
             method: "GET",
             headers: {

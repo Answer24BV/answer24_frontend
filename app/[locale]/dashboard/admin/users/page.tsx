@@ -100,7 +100,7 @@ export default function AdminUsersPage() {
 
       const token = tokenUtils.getToken();
       const response = await fetch(
-        "https://staging.answer24.nl/api/v1/admin/users",
+        "https://answer24.laravel.cloud/api/v1/admin/users",
         {
           headers: {
             Accept: "application/json",
@@ -157,7 +157,7 @@ export default function AdminUsersPage() {
     try {
       const token = tokenUtils.getToken();
       const response = await fetch(
-        `https://staging.answer24.nl/api/v1/admin/users/${userId}/status`,
+        `https://answer24.laravel.cloud/api/v1/admin/users/${userId}/status`,
         {
           method: "PATCH",
           headers: {
