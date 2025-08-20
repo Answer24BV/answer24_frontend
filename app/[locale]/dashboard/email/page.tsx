@@ -30,12 +30,12 @@ export default function EmailDashboard() {
 
   return (
     <div className="flex h-screen w-full flex-col bg-gradient-to-br from-slate-50 via-white to-slate-50/50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950/50">
-      {/* Header Bar */}
-      <div className="flex h-14 items-center justify-between border-b border-slate-200/60 bg-white/80 px-6 backdrop-blur-sm dark:border-slate-800/60 dark:bg-slate-950/80">
+      {/* Enhanced Header with Search */}
+      <div className="flex h-16 items-center gap-6 border-b border-slate-200/60 bg-white/80 px-6 backdrop-blur-sm dark:border-slate-800/60 dark:bg-slate-950/80">
         <div className="flex items-center gap-3">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-sm">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 text-white shadow-lg">
             <svg
-              className="h-4 w-4"
+              className="h-5 w-5"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -48,15 +48,44 @@ export default function EmailDashboard() {
               />
             </svg>
           </div>
-          <h1 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
-            Email
-          </h1>
         </div>
 
-        <div className="flex items-center gap-2">
-          <button className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-300">
+        {/* Big Modern Search Field */}
+        <div className="flex-1 max-w-2xl">
+          <div className="relative">
+            <div className="absolute left-4 top-1/2 -translate-y-1/2 z-10">
+              <svg
+                className="h-5 w-5 text-slate-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                />
+              </svg>
+            </div>
+            <input
+              type="text"
+              placeholder="Search emails, customers, or conversations..."
+              className="w-full h-12 pl-12 pr-4 rounded-2xl bg-gradient-to-r from-slate-50 to-blue-50/50 border-2 border-slate-200/50 focus:border-blue-400 focus:bg-white focus:shadow-lg transition-all duration-300 text-slate-700 placeholder:text-slate-400 dark:from-slate-800 dark:to-blue-950/50 dark:border-slate-700/50 dark:focus:border-blue-500 dark:focus:bg-slate-900 dark:text-slate-200"
+            />
+            <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1">
+              <kbd className="hidden sm:inline-block px-2 py-1 text-xs bg-slate-200 text-slate-600 rounded-md dark:bg-slate-700 dark:text-slate-300">
+                ⌘K
+              </kbd>
+            </div>
+          </div>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex items-center gap-3">
+          <button className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-200">
             <svg
-              className="h-4 w-4"
+              className="h-5 w-5"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -65,13 +94,13 @@ export default function EmailDashboard() {
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth={2}
-                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                d="M12 6v6m0 0v6m0-6h6m-6 0H6"
               />
             </svg>
           </button>
-          <button className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-300">
+          <button className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-200">
             <svg
-              className="h-4 w-4"
+              className="h-5 w-5"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
