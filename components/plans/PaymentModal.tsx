@@ -1,29 +1,29 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
-import { 
-  CreditCard, 
-  Shield, 
-  CheckCircle, 
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import {
+  CreditCard,
+  Shield,
+  CheckCircle,
   X,
   Euro,
   Calendar,
-  User
-} from 'lucide-react';
-import { Plan } from '@/services/planService';
-import { motion } from 'framer-motion';
-import { tokenUtils } from '@/utils/auth';
-import { toast } from 'react-hot-toast';
+  User,
+} from "lucide-react";
+import { Plan } from "@/services/planService";
+import { motion } from "framer-motion";
+import { tokenUtils } from "@/utils/auth";
+import { toast } from "react-hot-toast";
 
 interface PaymentModalProps {
   isOpen: boolean;
@@ -36,7 +36,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
   isOpen,
   onClose,
   plan,
-  onProceedToPayment
+  onProceedToPayment,
 }) => {
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -47,15 +47,15 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
     try {
       const token = tokenUtils.getToken();
       if (!token) {
-        toast.error('Please log in to continue with payment');
+        toast.error("Please log in to continue with payment");
         return;
       }
 
-      console.log('🚀 Starting payment process for plan:', {
+      console.log("🚀 Starting payment process for plan:", {
         planId: plan.id,
         planName: plan.display_name,
         price: plan.price,
-        duration: plan.duration_days
+        duration: plan.duration_days,
       });
 
       const requestPayload = {
@@ -66,63 +66,80 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
         webhook_url: `${window.location.origin}/api/payment/webhook`,
       };
 
-      console.log('📤 Sending payment request:', requestPayload);
+      console.log("📤 Sending payment request:", requestPayload);
 
       // Call Answer24 API to create Mollie payment
-      const response = await fetch('https://staging.answer24.nl/api/v1/wallet/deposit', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        body: JSON.stringify(requestPayload),
-      });
+      const response = await fetch(
+        "https://answer24.laravel.cloud/api/v1/wallet/deposit",
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+          body: JSON.stringify(requestPayload),
+        }
+      );
 
-      console.log('📥 Payment API response status:', response.status);
-      console.log('📥 Payment API response headers:', Object.fromEntries(response.headers.entries()));
+      console.log("📥 Payment API response status:", response.status);
+      console.log(
+        "📥 Payment API response headers:",
+        Object.fromEntries(response.headers.entries())
+      );
 
       if (!response.ok) {
         const errorData = await response.json();
-        console.error('❌ Payment API error response:', errorData);
-        throw new Error(errorData.message || `HTTP ${response.status}: Failed to create payment`);
+        console.error("❌ Payment API error response:", errorData);
+        throw new Error(
+          errorData.message ||
+            `HTTP ${response.status}: Failed to create payment`
+        );
       }
 
       const paymentData = await response.json();
-      console.log('✅ Payment API success response:', paymentData);
-      
-      // Check for various possible checkout URL field names
-      const checkoutUrl = paymentData.checkout_url || 
-                         paymentData.payment_url || 
-                         paymentData.redirect_url || 
-                         paymentData.url ||
-                         paymentData.data?.checkout_url ||
-                         paymentData.data?.payment_url;
+      console.log("✅ Payment API success response:", paymentData);
 
-      console.log('🔍 Looking for checkout URL in response:', {
+      // Check for various possible checkout URL field names
+      const checkoutUrl =
+        paymentData.checkout_url ||
+        paymentData.payment_url ||
+        paymentData.redirect_url ||
+        paymentData.url ||
+        paymentData.data?.checkout_url ||
+        paymentData.data?.payment_url;
+
+      console.log("🔍 Looking for checkout URL in response:", {
         checkout_url: paymentData.checkout_url,
         payment_url: paymentData.payment_url,
         redirect_url: paymentData.redirect_url,
         url: paymentData.url,
         data_checkout_url: paymentData.data?.checkout_url,
         data_payment_url: paymentData.data?.payment_url,
-        foundUrl: checkoutUrl
+        foundUrl: checkoutUrl,
       });
-      
+
       // Redirect to Mollie checkout URL from API response
       if (checkoutUrl) {
-        console.log('🌐 Redirecting to checkout URL:', checkoutUrl);
+        console.log("🌐 Redirecting to checkout URL:", checkoutUrl);
         window.location.href = checkoutUrl;
       } else {
-        console.error('❌ No checkout URL found in response. Full response:', paymentData);
-        throw new Error('No checkout URL received from payment service. Please contact support.');
+        console.error(
+          "❌ No checkout URL found in response. Full response:",
+          paymentData
+        );
+        throw new Error(
+          "No checkout URL received from payment service. Please contact support."
+        );
       }
-      
+
       await onProceedToPayment(plan);
     } catch (error: any) {
-      console.error('💥 Payment error:', error);
-      console.error('💥 Error stack:', error.stack);
-      toast.error(error.message || 'Failed to process payment. Please try again.');
+      console.error("💥 Payment error:", error);
+      console.error("💥 Error stack:", error.stack);
+      toast.error(
+        error.message || "Failed to process payment. Please try again."
+      );
     } finally {
       setIsProcessing(false);
     }
@@ -156,10 +173,8 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                 <h3 className="text-2xl font-bold text-gray-900 mb-2">
                   {plan.display_name}
                 </h3>
-                <p className="text-gray-600 text-sm mb-4">
-                  {plan.description}
-                </p>
-                
+                <p className="text-gray-600 text-sm mb-4">{plan.description}</p>
+
                 <div className="flex items-center justify-center gap-2 mb-4">
                   <Euro className="w-6 h-6 text-blue-600" />
                   <span className="text-3xl font-bold text-blue-600">
@@ -221,7 +236,9 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
               <Shield className="w-3 h-3" />
               <span className="font-medium">Secure Payment</span>
             </div>
-            <p>Your payment information is encrypted and secure. Cancel anytime.</p>
+            <p>
+              Your payment information is encrypted and secure. Cancel anytime.
+            </p>
           </div>
         </motion.div>
       </DialogContent>

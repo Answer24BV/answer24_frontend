@@ -16,7 +16,8 @@ export interface Notification {
 }
 
 const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL || "https://staging.answer24.nl/api/v1";
+  process.env.NEXT_PUBLIC_API_BASE_URL ||
+  "https://answer24.laravel.cloud/api/v1";
 
 /**
  * Fetches notifications for the current user.
@@ -28,8 +29,10 @@ export const getNotifications = async (
   userType?: "admin" | "partner" | "client"
 ): Promise<Notification[]> => {
   // Mock API call - simulate network delay
-  await new Promise(resolve => setTimeout(resolve, 300 + Math.random() * 500));
-  
+  await new Promise((resolve) =>
+    setTimeout(resolve, 300 + Math.random() * 500)
+  );
+
   // Return mock data based on user type with pagination
   return getMockNotifications(userType, page, pageSize);
 };
@@ -42,8 +45,8 @@ export const markAsRead = async (
   notificationId: string
 ): Promise<{ success: boolean }> => {
   // Mock API call - simulate network delay
-  await new Promise(resolve => setTimeout(resolve, 200));
-  
+  await new Promise((resolve) => setTimeout(resolve, 200));
+
   return { success: true };
 };
 
@@ -53,8 +56,8 @@ export const markAsRead = async (
  */
 export const markAllAsRead = async (): Promise<{ success: boolean }> => {
   // Mock API call - simulate network delay
-  await new Promise(resolve => setTimeout(resolve, 400));
-  
+  await new Promise((resolve) => setTimeout(resolve, 400));
+
   return { success: true };
 };
 
@@ -100,7 +103,7 @@ const getMockNotifications = (
           name: "Analytics System",
           avatar: "/answerLogobgRemover-removebg-preview.png",
         },
-      },  
+      },
     ],
     partner: [
       {
@@ -176,10 +179,10 @@ const getMockNotifications = (
   };
 
   const notifications = baseNotifications[userType || "client"];
-  
+
   // Add more mock notifications for pagination testing
   const extendedNotifications = [...notifications];
-  
+
   // Generate additional mock notifications if needed
   for (let i = notifications.length; i < pageSize * 3; i++) {
     const baseNotification = notifications[i % notifications.length];
@@ -187,14 +190,14 @@ const getMockNotifications = (
       ...baseNotification,
       id: `${baseNotification.id}-${i}`,
       message: `${baseNotification.message} (${i + 1})`,
-      createdAt: new Date(Date.now() - (i * 3600000)).toISOString(), // Spread over hours
+      createdAt: new Date(Date.now() - i * 3600000).toISOString(), // Spread over hours
       read: Math.random() > 0.3, // 70% chance of being read
     });
   }
-  
+
   // Implement pagination
   const startIndex = (page - 1) * pageSize;
   const endIndex = startIndex + pageSize;
-  
+
   return extendedNotifications.slice(startIndex, endIndex);
 };

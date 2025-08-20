@@ -1,8 +1,8 @@
-'use server';
+"use server";
 
-import { revalidatePath } from 'next/cache';
+import { revalidatePath } from "next/cache";
 
-const API_BASE_URL = 'https://staging.answer24.nl/api/v1';
+const API_BASE_URL = "https://answer24.laravel.cloud/api/v1";
 
 export type ApiResponse<T> = {
   success: boolean;
@@ -17,7 +17,7 @@ export type Avatar = {
   description: string;
   functions: string[];
   image: string;
-  required_plan: 'small' | 'medium' | 'big';
+  required_plan: "small" | "medium" | "big";
   created_at: string;
   updated_at: string;
 };
@@ -25,11 +25,11 @@ export type Avatar = {
 export async function getAvatars(): Promise<Avatar[]> {
   try {
     const response = await fetch(`${API_BASE_URL}/avatar`, {
-      method: 'GET',
+      method: "GET",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
-      cache: 'no-store', // Ensure we always get fresh data
+      cache: "no-store", // Ensure we always get fresh data
     });
 
     if (!response.ok) {
@@ -37,14 +37,14 @@ export async function getAvatars(): Promise<Avatar[]> {
     }
 
     const result: ApiResponse<Avatar[]> = await response.json();
-    
+
     if (!result.success) {
-      throw new Error(result.message || 'Failed to fetch avatars');
+      throw new Error(result.message || "Failed to fetch avatars");
     }
 
     return result.data;
   } catch (error) {
-    console.error('Error fetching avatars:', error);
+    console.error("Error fetching avatars:", error);
     throw error;
   }
 }
@@ -52,9 +52,9 @@ export async function getAvatars(): Promise<Avatar[]> {
 export async function getAvatarById(id: string): Promise<Avatar | null> {
   try {
     const response = await fetch(`${API_BASE_URL}/avatar/${id}`, {
-      method: 'GET',
+      method: "GET",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
     });
 
@@ -67,9 +67,9 @@ export async function getAvatarById(id: string): Promise<Avatar | null> {
     }
 
     const result: ApiResponse<Avatar> = await response.json();
-    
+
     if (!result.success) {
-      throw new Error(result.message || 'Failed to fetch avatar');
+      throw new Error(result.message || "Failed to fetch avatar");
     }
 
     return result.data;
@@ -81,92 +81,108 @@ export async function getAvatarById(id: string): Promise<Avatar | null> {
 
 export async function createAvatar(
   token: string,
-  avatarData: FormData | Omit<Avatar, 'id' | 'created_at' | 'updated_at'>
+  avatarData: FormData | Omit<Avatar, "id" | "created_at" | "updated_at">
 ): Promise<Avatar> {
   try {
     const isFormData = avatarData instanceof FormData;
 
     const headers: HeadersInit = {
-      'Authorization': `Bearer ${token}`,
+      Authorization: `Bearer ${token}`,
     };
 
     if (!isFormData) {
-      headers['Content-Type'] = 'application/json';
+      headers["Content-Type"] = "application/json";
     }
 
     const response = await fetch(`${API_BASE_URL}/admin/avatars`, {
-      method: 'POST',
+      method: "POST",
       headers,
       body: isFormData ? avatarData : JSON.stringify(avatarData),
     });
 
     const result = await response.json().catch(() => ({}));
-    
+
     if (!response.ok) {
       // Handle validation errors (422)
       if (response.status === 422 && result.errors) {
         const errorMessages = Object.entries(result.errors)
-          .map(([field, messages]) => `${field}: ${Array.isArray(messages) ? messages.join(', ') : messages}`)
-          .join('\n');
+          .map(
+            ([field, messages]) =>
+              `${field}: ${
+                Array.isArray(messages) ? messages.join(", ") : messages
+              }`
+          )
+          .join("\n");
         throw new Error(`Validation failed:\n${errorMessages}`);
       }
-      
-      throw new Error(result.message || `Failed to create avatar: ${response.statusText}`);
-    }
-    
-    if (!result.success) {
-      throw new Error(result.message || 'Failed to create avatar');
+
+      throw new Error(
+        result.message || `Failed to create avatar: ${response.statusText}`
+      );
     }
 
-    revalidatePath('/client/avatar');
+    if (!result.success) {
+      throw new Error(result.message || "Failed to create avatar");
+    }
+
+    revalidatePath("/client/avatar");
     return result.data;
   } catch (error) {
-    console.error('Error creating avatar:', error);
+    console.error("Error creating avatar:", error);
     throw error;
   }
 }
 
 export async function updateAvatar(
-  id: string, 
+  id: string,
   token: string,
-  avatarData: FormData | Partial<Omit<Avatar, 'id' | 'created_at' | 'updated_at'>>
+  avatarData:
+    | FormData
+    | Partial<Omit<Avatar, "id" | "created_at" | "updated_at">>
 ): Promise<Avatar> {
   try {
     const isFormData = avatarData instanceof FormData;
 
     const headers: HeadersInit = {
-      'Authorization': `Bearer ${token}`,
+      Authorization: `Bearer ${token}`,
     };
 
     if (!isFormData) {
-      headers['Content-Type'] = 'application/json';
+      headers["Content-Type"] = "application/json";
     }
 
     const response = await fetch(`${API_BASE_URL}/admin/avatars/${id}`, {
-      method: 'PATCH',
+      method: "PATCH",
       headers,
       body: isFormData ? avatarData : JSON.stringify(avatarData),
     });
 
     const result = await response.json().catch(() => ({}));
-    
+
     if (!response.ok) {
       // Handle validation errors (422)
       if (response.status === 422 && result.errors) {
         const errorMessages = Object.entries(result.errors)
-          .map(([field, messages]) => `${field}: ${Array.isArray(messages) ? messages.join(', ') : messages}`)
-          .join('\n');
+          .map(
+            ([field, messages]) =>
+              `${field}: ${
+                Array.isArray(messages) ? messages.join(", ") : messages
+              }`
+          )
+          .join("\n");
         throw new Error(`Validation failed:\n${errorMessages}`);
       }
-      
-      throw new Error(result.message || `Failed to update avatar: ${response.statusText}`);
-    }
-    
-    if (!result.success) {
-      throw new Error(result.message || 'Failed to update avatar');
+
+      throw new Error(
+        result.message || `Failed to update avatar: ${response.statusText}`
+      );
     }
 
-    revalidatePath('/client/avatar');
+    if (!result.success) {
+      throw new Error(result.message || "Failed to update avatar");
+    }
+
+    revalidatePath("/client/avatar");
     return result.data;
   } catch (error) {
     console.error(`Error updating avatar with id ${id}:`, error);
@@ -174,12 +190,15 @@ export async function updateAvatar(
   }
 }
 
-export async function deleteAvatar(id: string, token: string): Promise<boolean> {
+export async function deleteAvatar(
+  id: string,
+  token: string
+): Promise<boolean> {
   try {
     const response = await fetch(`${API_BASE_URL}/admin/avatars/${id}`, {
-      method: 'DELETE',
+      method: "DELETE",
       headers: {
-        'Authorization': `Bearer ${token}`,
+        Authorization: `Bearer ${token}`,
       },
     });
 
@@ -192,12 +211,12 @@ export async function deleteAvatar(id: string, token: string): Promise<boolean> 
     }
 
     const result = await response.json();
-    
+
     if (!result.success) {
-      throw new Error(result.message || 'Failed to delete avatar');
+      throw new Error(result.message || "Failed to delete avatar");
     }
 
-    revalidatePath('/client/avatar');
+    revalidatePath("/client/avatar");
     return true;
   } catch (error) {
     console.error(`Error deleting avatar with id ${id}:`, error);

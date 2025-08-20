@@ -3,6 +3,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
 import { LockIcon } from "lucide-react";
+import { tokenUtils } from "@/utils/auth";
 
 interface LockScreenProps {
   onUnlock: () => void;
@@ -12,19 +13,36 @@ interface LockScreenProps {
 const LockScreen: React.FC<LockScreenProps> = ({ onUnlock, show }) => {
   const [input, setInput] = useState("");
   const [error, setError] = useState("");
+  const [userLockKey, setUserLockKey] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (show && inputRef.current) {
       inputRef.current.focus();
+
+      // Get user's lock key from stored user data
+      const userData = tokenUtils.getUser();
+      if (userData && userData.lock_key) {
+        setUserLockKey(userData.lock_key);
+      } else {
+        // If no lock key is set, show error
+        setError(
+          "No lock key configured. Please set one in Security settings."
+        );
+      }
     }
   }, [show]);
 
   const handleUnlock = (e: React.FormEvent) => {
     e.preventDefault();
-    const savedKey =
-      typeof window !== "undefined" ? localStorage.getItem("lockKey") : null;
-    if (input === savedKey) {
+
+    // Check if user has a lock key configured
+    if (!userLockKey) {
+      setError("No lock key configured. Please set one in Security settings.");
+      return;
+    }
+
+    if (input === userLockKey) {
       setError("");
       setInput("");
       onUnlock();
@@ -83,12 +101,13 @@ const LockScreen: React.FC<LockScreenProps> = ({ onUnlock, show }) => {
               className="mb-4 text-center text-lg tracking-wider border-gray-300 focus:border-blue-500 focus:ring-blue-500 transition-colors duration-200"
               placeholder="••••••"
               aria-label="6-digit lock key"
+              disabled={!userLockKey}
             />
             {error && (
               <motion.div
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="text-red-600 text-sm mb-4"
+                className="text-red-600 text-sm mb-4 text-center"
               >
                 {error}
               </motion.div>
@@ -96,10 +115,16 @@ const LockScreen: React.FC<LockScreenProps> = ({ onUnlock, show }) => {
             <Button
               type="submit"
               className="w-full bg-blue-900 hover:bg-blue-800 text-white font-medium py-2 rounded-lg transition-colors duration-200"
-              disabled={input.length !== 6}
+              disabled={input.length !== 6 || !userLockKey}
             >
-              Unlock
+              {!userLockKey ? "No Lock Key Set" : "Unlock"}
             </Button>
+
+            {!userLockKey && (
+              <p className="text-xs text-gray-500 mt-4 text-center">
+                Please configure your lock key in Security settings first.
+              </p>
+            )}
           </motion.form>
         </motion.div>
       )}

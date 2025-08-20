@@ -3,24 +3,24 @@
 import { Blog, BlogData, BlogResponse, BlogsResponse } from "@/types/blog.d";
 import BLOGIMAGEPLACEHOLDER from "@/public/image.png";
 
-const BASE_URL = "https://staging.answer24.nl/api/v1";
+const BASE_URL = "https://answer24.laravel.cloud/api/v1";
 
 // Client-side function to delete a blog post
 export async function deleteBlog(id: string, token: string) {
   try {
     if (!token) {
-      console.error('No authentication token provided for delete');
-      return { 
-        errors: { 
-          _form: ["Authentication required. Please log in again."] 
-        } 
+      console.error("No authentication token provided for delete");
+      return {
+        errors: {
+          _form: ["Authentication required. Please log in again."],
+        },
       };
     }
 
     const response = await fetch(`${BASE_URL}/admin/blogs/${id}`, {
       method: "DELETE",
       headers: {
-        "Authorization": `Bearer ${token}`,
+        Authorization: `Bearer ${token}`,
       },
     });
 
@@ -32,14 +32,14 @@ export async function deleteBlog(id: string, token: string) {
     // Revalidation is handled by the server action
     return { success: true };
   } catch (error) {
-    console.error('Delete blog error:', error);
+    console.error("Delete blog error:", error);
     return {
-      errors: { 
+      errors: {
         _form: [
-          error instanceof Error 
-            ? error.message 
-            : "An unexpected error occurred while deleting the blog post."
-        ] 
+          error instanceof Error
+            ? error.message
+            : "An unexpected error occurred while deleting the blog post.",
+        ],
       },
     };
   }
@@ -57,12 +57,12 @@ export async function getAllBlogs(): Promise<BlogData> {
     }
 
     const result: BlogsResponse = await response.json();
-    console.log("result", result)
+    console.log("result", result);
     return {
       ...result.data,
     };
   } catch (error) {
-    console.error('Get all blogs error:', error);
+    console.error("Get all blogs error:", error);
     return {
       data: [],
       links: { first: "", last: "", prev: null, next: null },
@@ -84,15 +84,15 @@ export async function getAllBlogs(): Promise<BlogData> {
 export async function getBlogBySlug(slug: string): Promise<BlogResponse> {
   try {
     const response = await fetch(`${BASE_URL}/blog/${slug}`, {
-      cache: 'no-store',
+      cache: "no-store",
     });
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      return { 
-        success: false, 
+      return {
+        success: false,
         message: errorData.message || "Failed to fetch blog post",
-        data: {} as Blog
+        data: {} as Blog,
       };
     }
 
@@ -100,10 +100,10 @@ export async function getBlogBySlug(slug: string): Promise<BlogResponse> {
     return result;
   } catch (error) {
     console.error(`Error fetching blog post ${slug}:`, error);
-    return { 
-      success: false, 
+    return {
+      success: false,
       message: "An unexpected error occurred.",
-      data: {} as Blog
+      data: {} as Blog,
     };
   }
 }
