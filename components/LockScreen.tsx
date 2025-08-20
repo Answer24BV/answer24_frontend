@@ -14,52 +14,21 @@ const LockScreen: React.FC<LockScreenProps> = ({ onUnlock, show }) => {
   const [input, setInput] = useState("");
   const [error, setError] = useState("");
   const [userLockKey, setUserLockKey] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Fetch user profile from API
-  const fetchUserProfile = async () => {
-    try {
-      const response = await fetch(
-        `${
-          process.env.NEXT_PUBLIC_API_BASE_URL ||
-          "https://answer24.laravel.cloud/api/v1"
-        }/profile`,
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${tokenUtils.getToken()}`,
-          },
-        }
-      );
+  useEffect(() => {
+    if (show && inputRef.current) {
+      inputRef.current.focus();
 
-      if (!response.ok) throw new Error("Failed to fetch profile");
-      const data = await response.json();
-
-      if (data?.data?.lock_key) {
-        setUserLockKey(data.data.lock_key);
+      // Get user's lock key from stored user data
+      const userData = tokenUtils.getUser();
+      if (userData && userData.lock_key) {
+        setUserLockKey(userData.lock_key);
       } else {
+        // If no lock key is set, show error
         setError(
           "No lock key configured. Please set one in Security settings."
         );
-      }
-    } catch (err) {
-      setError("Could not load profile. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    if (show) {
-      setInput("");
-      setError("");
-      setUserLockKey(null);
-      setLoading(true);
-      fetchUserProfile();
-
-      if (inputRef.current) {
-        inputRef.current.focus();
       }
     }
   }, [show]);
@@ -67,6 +36,7 @@ const LockScreen: React.FC<LockScreenProps> = ({ onUnlock, show }) => {
   const handleUnlock = (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Check if user has a lock key configured
     if (!userLockKey) {
       setError("No lock key configured. Please set one in Security settings.");
       return;
@@ -119,26 +89,20 @@ const LockScreen: React.FC<LockScreenProps> = ({ onUnlock, show }) => {
             <p className="mb-6 text-gray-500 text-sm text-center">
               Enter your 6-digit lock key to unlock the application.
             </p>
-
-            {loading ? (
-              <p className="text-sm text-gray-500 mb-4">Loading...</p>
-            ) : (
-              <Input
-                ref={inputRef}
-                type="password"
-                inputMode="numeric"
-                pattern="\d{6}"
-                maxLength={6}
-                minLength={6}
-                value={input}
-                onChange={handleInputChange}
-                className="mb-4 text-center text-lg tracking-wider border-gray-300 focus:border-blue-500 focus:ring-blue-500 transition-colors duration-200"
-                placeholder="••••••"
-                aria-label="6-digit lock key"
-                disabled={!userLockKey}
-              />
-            )}
-
+            <Input
+              ref={inputRef}
+              type="password"
+              inputMode="numeric"
+              pattern="\d{6}"
+              maxLength={6}
+              minLength={6}
+              value={input}
+              onChange={handleInputChange}
+              className="mb-4 text-center text-lg tracking-wider border-gray-300 focus:border-blue-500 focus:ring-blue-500 transition-colors duration-200"
+              placeholder="••••••"
+              aria-label="6-digit lock key"
+              disabled={!userLockKey}
+            />
             {error && (
               <motion.div
                 initial={{ opacity: 0, y: -10 }}
@@ -148,16 +112,15 @@ const LockScreen: React.FC<LockScreenProps> = ({ onUnlock, show }) => {
                 {error}
               </motion.div>
             )}
-
             <Button
               type="submit"
               className="w-full bg-blue-900 hover:bg-blue-800 text-white font-medium py-2 rounded-lg transition-colors duration-200"
-              disabled={loading || input.length !== 6 || !userLockKey}
+              disabled={input.length !== 6 || !userLockKey}
             >
               {!userLockKey ? "No Lock Key Set" : "Unlock"}
             </Button>
 
-            {!userLockKey && !loading && (
+            {!userLockKey && (
               <p className="text-xs text-gray-500 mt-4 text-center">
                 Please configure your lock key in Security settings first.
               </p>

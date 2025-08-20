@@ -34,13 +34,18 @@ const updateLockSettings = async (data: {
       throw new Error(error.message || "Failed to update lock settings");
     }
 
-    const userData = await response.json();
-    if (userData.data) {
-      // Update local user data with new lock settings
-      const currentUser = tokenUtils.getUser();
-      const updatedUser = { ...currentUser, ...userData.data };
-      tokenUtils.setUser(updatedUser);
-    }
+    const responseData = await response.json();
+
+    // Update local user data with new lock settings
+    const currentUser = tokenUtils.getUser();
+    const updatedUser = {
+      ...currentUser,
+      lock_key: data.lock_key,
+      lock_timeout: data.lock_timeout,
+    };
+    tokenUtils.setUser(updatedUser);
+
+    console.log("Updated user data:", updatedUser);
 
     return { success: true, message: "Lock settings updated successfully!" };
   } catch (error) {
