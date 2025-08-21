@@ -69,7 +69,8 @@ export default function AdminUsersPage() {
 
     // Fixed role check - role is now a string
     if (!userData || userData?.role.name !== "admin") {
-      router.push("/unauthorized");
+      alert("You are not authorized to visit this page");
+      router.back();
       return;
     }
 
