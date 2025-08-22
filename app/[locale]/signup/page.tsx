@@ -8,6 +8,7 @@ import { useTranslations } from "next-intl";
 import { authAPI, tokenUtils } from "@/utils/auth";
 import { useRouter } from "@/i18n/navigation";
 import { AuthGuard } from "@/components/AuthGuard";
+import { useSearchParams } from "next/navigation";
 
 interface Errors {
   fullName: string;
@@ -33,7 +34,12 @@ interface SubscriptionPlan {
 }
 
 export default function SignUp() {
-  const [signUpStep, setSignUpStep] = useState(1);
+  const searchParams = useSearchParams();
+
+  const [signUpStep, setSignUpStep] = useState(() => {
+    const step = searchParams.get("step");
+    return step === "2" ? 2 : 1;
+  });
   const [email, setEmail] = useState("");
   const [fullName, setFullName] = useState("");
   const [password, setPassword] = useState("");
@@ -85,7 +91,7 @@ export default function SignUp() {
       }
 
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}/plan`,
+        "https://answer24.laravel.cloud/api/v1/plan",
         {
           method: "GET",
           headers: {
@@ -226,7 +232,7 @@ export default function SignUp() {
     try {
       const token = tokenUtils.getToken();
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}/subscription/subscribe`,
+        "https://answer24.laravel.cloud/api/v1/subscription/subscribe",
         {
           method: "POST",
           headers: {
