@@ -85,7 +85,7 @@ export default function SignUp() {
       }
 
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}/plan`,
+        "https://answer24.laravel.cloud/api/v1/plan",
         {
           method: "GET",
           headers: {
@@ -226,7 +226,7 @@ export default function SignUp() {
     try {
       const token = tokenUtils.getToken();
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}/subscription/subscribe`,
+        "https://answer24.laravel.cloud/api/v1/subscription/subscribe",
         {
           method: "POST",
           headers: {
