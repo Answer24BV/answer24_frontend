@@ -20,7 +20,9 @@ interface AllNotificationsProps {
   userType?: "admin" | "partner" | "client";
 }
 
-const AllNotifications: React.FC<AllNotificationsProps> = ({ userType: propUserType }) => {
+const AllNotifications: React.FC<AllNotificationsProps> = ({
+  userType: propUserType,
+}) => {
   const { locale } = useParams();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [notificationsLoader, setNotificationsLoader] = useState(false);
@@ -29,24 +31,26 @@ const AllNotifications: React.FC<AllNotificationsProps> = ({ userType: propUserT
   // Get user type from prop or hook
   const currentUserType = propUserType || hookUserType;
 
-  const fetchNotifications = async (page: number) => {
-    try {
-      setNotificationsLoader(true);
-      const data = await getNotifications(page, 10, currentUserType);
-      setNotifications(data);
-    } catch (error: any) {
-      toast.error(error.message || "Error fetching notifications");
-    } finally {
-      setNotificationsLoader(false);
-    }
-  };
-
   useEffect(() => {
-    // Only fetch notifications when user data is loaded and available, or userType prop is provided
-    if (!userLoading && (user || propUserType)) {
-      fetchNotifications(1);
+    const userTypeToUse = propUserType || hookUserType;
+
+    // Only fetch when we actually have a userType (and user is loaded)
+    if (!userLoading && userTypeToUse) {
+      const fetchNotifications = async () => {
+        try {
+          setNotificationsLoader(true);
+          const data = await getNotifications(1, 10, userTypeToUse);
+          setNotifications(data);
+        } catch (error: any) {
+          toast.error(error.message || "Error fetching notifications");
+        } finally {
+          setNotificationsLoader(false);
+        }
+      };
+
+      fetchNotifications();
     }
-  }, [user, userLoading, propUserType, currentUserType]); // Re-run when user data or userType changes
+  }, [userLoading, propUserType, hookUserType]);
 
   const handleNotificationClick = async (notificationId: string) => {
     try {

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -29,7 +29,10 @@ const NotificationBell: React.FC = () => {
   // Get notifications path based on user type - make it absolute with leading slash
   const notificationsPath = `/${userType}/notifications`;
 
-  const fetchNotifications = async () => {
+  // Memoize the fetch function to prevent infinite loops
+  const fetchNotifications = useCallback(async () => {
+    if (!user || !userType) return; // Early return if no user data
+
     try {
       setIsLoading(true);
       const data = await getNotifications(1, 5, userType); // Get first 5 notifications
@@ -37,14 +40,15 @@ const NotificationBell: React.FC = () => {
       setUnreadCount(data.filter((n) => !n.read).length);
     } catch (error: any) {
       // Error fetching notifications, continue silently
+      console.error("Error fetching notifications:", error);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [user, userType]); // Only depend on user and userType
 
   useEffect(() => {
     // Only fetch notifications when user data is loaded and available
-    if (!userLoading && user) {
+    if (!userLoading && user && userType) {
       fetchNotifications();
 
       // Set up polling for new notifications every 30 seconds
@@ -52,7 +56,7 @@ const NotificationBell: React.FC = () => {
 
       return () => clearInterval(interval);
     }
-  }, [user, userLoading, userType]); // Re-run when user data changes
+  }, [userLoading, user, userType]); // Remove fetchNotifications from deps to break the cycle
 
   return (
     <DropdownMenu>
