@@ -46,7 +46,7 @@ export const planService = {
   // Get single plan
   getPlan: async (id: string): Promise<PlanResponse> => {
     try {
-      return await apiRequest(`/plan/${id}`);
+      return await apiRequest(`/admin/plan/${id}`);
     } catch (error: any) {
       console.error("Plan service - getPlan error:", error);
       throw new Error(error?.message || "Failed to fetch plan");
@@ -56,7 +56,7 @@ export const planService = {
   // Create new plan (admin only)
   createPlan: async (data: CreatePlanData): Promise<PlanResponse> => {
     try {
-      return await apiRequest("/plan", {
+      return await apiRequest("/admin/plans", {
         method: "POST",
         body: JSON.stringify(data),
       });
@@ -72,7 +72,7 @@ export const planService = {
     data: Partial<CreatePlanData>
   ): Promise<PlanResponse> => {
     try {
-      return await apiRequest(`/plan/${id}`, {
+      return await apiRequest(`/admin/plans/${id}`, {
         method: "PUT",
         body: JSON.stringify(data),
       });
@@ -85,7 +85,7 @@ export const planService = {
   // Delete plan (admin only)
   deletePlan: async (id: string): Promise<void> => {
     try {
-      return await apiRequest(`/plan/${id}`, {
+      return await apiRequest(`/admin/plans/${id}`, {
         method: "DELETE",
       });
     } catch (error: any) {
