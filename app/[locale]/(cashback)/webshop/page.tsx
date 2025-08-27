@@ -24,72 +24,132 @@ const CashbackHomepage = () => {
   const [webshops, setWebshops] = useState<Webshop[]>([]);
   const [categories, setCategories] = useState<Category[]>(["All"]);
   const [loading, setLoading] = useState(true);
+  const [isConnected, setIsConnected] = useState(false);
+  const [connectionChecked, setConnectionChecked] = useState(false);
   const router = useRouter();
 
   const categoryEndpoint =
     "https://answer24.laravel.cloud/api/v1/daisycon/category";
   const connectEndpoint =
-    "https://answer24.laravel.cloud/api/v1/daisycon/connect"; // 👈 adjust if backend named it differently
+    "https://answer24.laravel.cloud/api/v1/daisycon/connect";
+  const mediaEndpoint = "https://answer24.laravel.cloud/api/v1/daisycon/media";
+
   const token =
     typeof window !== "undefined" ? localStorage.getItem("auth_token") : null;
 
-  // 👇 Fetch categories and handle Daisycon connection
-  useEffect(() => {
+  // Fetch media/webshops
+  const fetchMedia = async () => {
+    try {
+      const res = await fetch(mediaEndpoint, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+
+      if (data.success === true && data.data) {
+        const mediaList = data.data.map((media: any) => ({
+          id: media.id || Math.random(),
+          name: media.name || "Unknown Store",
+          logo: media.logo || "https://avatar.iran.liara.run/public/45",
+          cashback: media.cashback || "Up to 5%",
+          description: media.description || "Earn cashback on purchases",
+          category: media.category || "General",
+          rating: media.rating || 4.5,
+          featured: media.featured || false,
+        }));
+
+        setWebshops(mediaList);
+      } else {
+        console.error("Failed to fetch media:", data);
+        setWebshops([]);
+      }
+    } catch (err) {
+      console.error("Media fetch error:", err);
+      setWebshops([]);
+    }
+  };
+
+  // Check Daisycon connection status
+  const checkDaisyconConnection = async () => {
     if (!token) {
       router.push("/login");
       return;
     }
 
-    const fetchCategories = async () => {
-      try {
-        const res = await fetch(categoryEndpoint, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const data = await res.json();
+    try {
+      setLoading(true);
 
-        if (data.status === "error") {
-          // Not connected yet, get OAuth URL
-          const connectRes = await fetch(connectEndpoint, {
-            headers: { Authorization: `Bearer ${token}` },
-          });
-          const connectData = await connectRes.json();
+      // Try to fetch categories to check if connected
+      const res = await fetch(categoryEndpoint, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
 
-          if (connectData?.data?.authorization_url) {
-            alert(
-              "You need to connect your Daisycon account. You will be redirected now."
-            );
-            window.location.href = connectData.data.authorization_url;
-          }
-        } else if (data?.data) {
-          setCategories(["All", ...data.data.map((c: any) => c.name)]);
-          // here you could also fetch media (stores) in the same way
-        }
-      } catch (err) {
-        console.error("Category fetch error:", err);
-      } finally {
-        setLoading(false);
+      if (data.success === true && data.data) {
+        // User is connected, load categories
+        setIsConnected(true);
+        setCategories(["All", ...data.data.map((c: any) => c.name)]);
+
+        // Fetch webshops/media
+        await fetchMedia();
+      } else {
+        // User is not connected, initiate OAuth flow
+        setIsConnected(false);
+        await initiateOAuthConnection();
       }
-    };
+    } catch (err) {
+      console.error("Connection check error:", err);
+      // If category fetch fails, assume not connected
+      setIsConnected(false);
+      await initiateOAuthConnection();
+    } finally {
+      setConnectionChecked(true);
+      setLoading(false);
+    }
+  };
 
-    fetchCategories();
-  }, [token, router]);
+  // Initiate OAuth connection
+  const initiateOAuthConnection = async () => {
+    try {
+      const connectRes = await fetch(connectEndpoint, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const connectData = await connectRes.json();
 
-  // Mock for now until media endpoint works
+      if (connectData?.success && connectData?.data?.url) {
+        // Store current page in localStorage so we can return here after OAuth
+        localStorage.setItem("daisycon_return_url", window.location.pathname);
+
+        // Redirect to Daisycon OAuth
+        window.location.href = connectData.data.url;
+      } else {
+        console.error("Failed to get OAuth URL:", connectData);
+        alert("Failed to initiate Daisycon connection. Please try again.");
+      }
+    } catch (err) {
+      console.error("OAuth initiation error:", err);
+      alert("Failed to connect to Daisycon. Please try again.");
+    }
+  };
+
+  // Check for OAuth return (when user comes back from Daisycon)
   useEffect(() => {
-    if (!token) return;
-    setWebshops([
-      {
-        id: 1,
-        name: "Samsung",
-        logo: "https://avatar.iran.liara.run/public/45",
-        cashback: "Up to 8%",
-        description: "Latest smartphones, tablets, and electronics",
-        category: "Electronics",
-        rating: 4.8,
-        featured: true,
-      },
-    ]);
-  }, [token]);
+    const urlParams = new URLSearchParams(window.location.search);
+    const code = urlParams.get("code");
+    const state = urlParams.get("state");
+
+    if (code && state) {
+      // User returned from OAuth, clean URL and recheck connection
+      window.history.replaceState({}, document.title, window.location.pathname);
+
+      // Give backend time to process the callback, then recheck
+      setTimeout(() => {
+        checkDaisyconConnection();
+      }, 2000);
+    } else {
+      // Normal page load, check connection
+      checkDaisyconConnection();
+    }
+  }, [token, router]);
 
   const filteredWebshops = webshops.filter((shop) => {
     const matchesCategory =
@@ -104,101 +164,165 @@ const CashbackHomepage = () => {
     router.push(`/nl/webshop/${shopName}`);
   };
 
-  return (
-    <div className="min-h-screen bg-gray-50 -mt-20">
-      <Navbar />
-
-      {/* Search and Filters */}
-      <section className="bg-white py-8 border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col lg:flex-row gap-6 items-center">
-            {/* Search */}
-            <div className="relative flex-1 max-w-md">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-              <input
-                type="text"
-                placeholder="Search stores..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            </div>
-
-            {/* Categories */}
-            <div className="flex items-center space-x-2 overflow-x-auto">
-              <Filter className="w-5 h-5 text-gray-500 flex-shrink-0" />
-              {categories.map((cat) => (
-                <button
-                  key={cat}
-                  onClick={() => setActiveCategory(cat)}
-                  className={`px-4 py-2 rounded-lg font-medium whitespace-nowrap transition-all ${
-                    activeCategory === cat
-                      ? "bg-blue-500 text-white"
-                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                  }`}
-                >
-                  {cat}
-                </button>
-              ))}
-            </div>
+  // Show loading while checking connection
+  if (!connectionChecked || loading) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Navbar />
+        <div className="flex items-center justify-center min-h-[60vh] pt-20">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+            <p className="text-gray-600">
+              {!connectionChecked
+                ? "Checking Daisycon connection..."
+                : "Loading stores..."}
+            </p>
           </div>
         </div>
-      </section>
+      </div>
+    );
+  }
 
-      {/* All Stores */}
-      <section className="py-16 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-gray-900 mb-8">All Stores</h2>
-
-          {loading ? (
-            <div className="text-center py-12 text-gray-500">Loading...</div>
-          ) : filteredWebshops.length === 0 ? (
-            <div className="text-center py-12 text-gray-500">
-              No stores found.
+  // Show connection prompt if not connected
+  if (!isConnected) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Navbar />
+        <div className="flex items-center justify-center min-h-[60vh] pt-20">
+          <div className="text-center max-w-md mx-auto p-8">
+            <div className="bg-blue-100 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-6">
+              <svg
+                className="w-10 h-10 text-blue-500"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"
+                />
+              </svg>
             </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {filteredWebshops.map((shop) => (
-                <div
-                  key={shop.id}
-                  className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 hover:shadow-md transition-all cursor-pointer"
-                  onClick={() => handleShopClick(shop.name)}
-                >
-                  <div className="flex items-center space-x-3 mb-3">
-                    <img
-                      src={shop.logo}
-                      alt={shop.name}
-                      className="w-12 h-6 object-contain"
-                    />
-                    <div>
-                      <h3 className="font-semibold text-gray-900">
-                        {shop.name}
-                      </h3>
-                      <div className="text-green-600 font-medium text-sm">
-                        {shop.cashback}
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">
+              Connect to Daisycon
+            </h2>
+            <p className="text-gray-600 mb-6">
+              You need to connect your Daisycon account to access cashback
+              stores and start earning rewards.
+            </p>
+            <button
+              onClick={initiateOAuthConnection}
+              className="bg-blue-500 hover:bg-blue-600 text-white font-medium py-3 px-6 rounded-lg transition-colors"
+            >
+              Connect Daisycon Account
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Main content (when connected)
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <Navbar />
+
+      {/* Hero Section with padding to account for fixed navbar */}
+      <div className="pt-20">
+        {/* Search and Filters */}
+        <section className="bg-white py-8 border-b">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex flex-col lg:flex-row gap-6 items-center">
+              {/* Search */}
+              <div className="relative flex-1 max-w-md">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <input
+                  type="text"
+                  placeholder="Search stores..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+
+              {/* Categories */}
+              <div className="flex items-center space-x-2 overflow-x-auto">
+                <Filter className="w-5 h-5 text-gray-500 flex-shrink-0" />
+                {categories.map((cat) => (
+                  <button
+                    key={cat}
+                    onClick={() => setActiveCategory(cat)}
+                    className={`px-4 py-2 rounded-lg font-medium whitespace-nowrap transition-all ${
+                      activeCategory === cat
+                        ? "bg-blue-500 text-white"
+                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                    }`}
+                  >
+                    {cat}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* All Stores */}
+        <section className="py-16 bg-gray-50">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 className="text-3xl font-bold text-gray-900 mb-8">
+              All Stores
+            </h2>
+
+            {filteredWebshops.length === 0 ? (
+              <div className="text-center py-12 text-gray-500">
+                No stores found.
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {filteredWebshops.map((shop) => (
+                  <div
+                    key={shop.id}
+                    className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 hover:shadow-md transition-all cursor-pointer"
+                    onClick={() => handleShopClick(shop.name)}
+                  >
+                    <div className="flex items-center space-x-3 mb-3">
+                      <img
+                        src={shop.logo}
+                        alt={shop.name}
+                        className="w-12 h-6 object-contain"
+                      />
+                      <div>
+                        <h3 className="font-semibold text-gray-900">
+                          {shop.name}
+                        </h3>
+                        <div className="text-green-600 font-medium text-sm">
+                          {shop.cashback}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  <p className="text-gray-600 text-sm mb-3">
-                    {shop.description}
-                  </p>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-1">
-                      <Star className="w-3 h-3 text-yellow-400 fill-current" />
-                      <span className="text-xs text-gray-600">
-                        {shop.rating}
+                    <p className="text-gray-600 text-sm mb-3">
+                      {shop.description}
+                    </p>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-1">
+                        <Star className="w-3 h-3 text-yellow-400 fill-current" />
+                        <span className="text-xs text-gray-600">
+                          {shop.rating}
+                        </span>
+                      </div>
+                      <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                        {shop.category}
                       </span>
                     </div>
-                    <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
-                      {shop.category}
-                    </span>
                   </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </section>
+                ))}
+              </div>
+            )}
+          </div>
+        </section>
+      </div>
 
       <Footer />
     </div>
