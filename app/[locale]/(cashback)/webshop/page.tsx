@@ -1,5 +1,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
+import { PrivateNavbar } from "@/components/common/PrivateNavbar";
 import { Navbar } from "@/components/common/Navbar";
 import { Search, Star, Filter } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -68,7 +69,7 @@ const CashbackHomepage = () => {
     }
   };
 
-  // Check Daisycon connection status
+  // Check Daisycon connection status (NO auto-redirect)
   const checkDaisyconConnection = async () => {
     if (!token) {
       router.push("/login");
@@ -85,29 +86,25 @@ const CashbackHomepage = () => {
       const data = await res.json();
 
       if (data.success === true && data.data) {
-        // User is connected, load categories
+        // User is connected, load categories and media
         setIsConnected(true);
         setCategories(["All", ...data.data.map((c: any) => c.name)]);
-
-        // Fetch webshops/media
         await fetchMedia();
       } else {
-        // User is not connected, initiate OAuth flow
+        // User is not connected, just show the prompt - NO auto-redirect
         setIsConnected(false);
-        await initiateOAuthConnection();
       }
     } catch (err) {
       console.error("Connection check error:", err);
-      // If category fetch fails, assume not connected
+      // If category fetch fails, assume not connected - NO auto-redirect
       setIsConnected(false);
-      await initiateOAuthConnection();
     } finally {
       setConnectionChecked(true);
       setLoading(false);
     }
   };
 
-  // Initiate OAuth connection
+  // Initiate OAuth connection (only called when user clicks button)
   const initiateOAuthConnection = async () => {
     try {
       const connectRes = await fetch(connectEndpoint, {
@@ -168,7 +165,7 @@ const CashbackHomepage = () => {
   if (!connectionChecked || loading) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <Navbar />
+        <PrivateNavbar />
         <div className="flex items-center justify-center min-h-[60vh] pt-20">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
@@ -187,7 +184,7 @@ const CashbackHomepage = () => {
   if (!isConnected) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <Navbar />
+        <PrivateNavbar />
         <div className="flex items-center justify-center min-h-[60vh] pt-20">
           <div className="text-center max-w-md mx-auto p-8">
             <div className="bg-blue-100 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-6">
@@ -206,11 +203,11 @@ const CashbackHomepage = () => {
               </svg>
             </div>
             <h2 className="text-2xl font-bold text-gray-900 mb-4">
-              Connect to Daisycon
+              You are not connected to Daisycon
             </h2>
             <p className="text-gray-600 mb-6">
-              You need to connect your Daisycon account to access cashback
-              stores and start earning rewards.
+              Connect your Daisycon account to access cashback stores and start
+              earning rewards.
             </p>
             <button
               onClick={initiateOAuthConnection}
