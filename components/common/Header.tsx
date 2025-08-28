@@ -12,13 +12,14 @@ const Header = () => {
     "/account",
     "/account/chat",
     "/wallet",
-    "/dashboard", // Fixed: added missing leading slash
+    "/dashboard",
     "/client/avatar",
     "/client/autoservicejanssen",
     "/admin",
     "/admin/blog",
     "/admin/client-domain-management",
     "/pricing",
+    "/webshop",
   ];
 
   // Check if the current route is a private route

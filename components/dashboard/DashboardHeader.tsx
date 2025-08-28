@@ -22,6 +22,7 @@ import {
   CreditCard,
   Mail,
   Globe,
+  ShoppingBag,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import LanguageSwitcher from "@/components/common/LanguageSwitcher";
@@ -106,6 +107,13 @@ export function DashboardHeader() {
       title: "Messages",
       href: "/dashboard/chat",
       icon: MessageSquare,
+      roles: ["client", "partner", "admin"],
+      badge: 3,
+    },
+    {
+      title: "Webshop",
+      href: "/webshop",
+      icon: ShoppingBag,
       roles: ["client", "partner", "admin"],
       badge: 3,
     },
