@@ -10,7 +10,7 @@ import type {
   ForgotPasswordResponse,
   VerifyResetTokenResponse,
   ResetPasswordResponse,
-} from "@/interfaces/auth";
+} from "@/interfaces";
 
 export const authService = {
   /**
