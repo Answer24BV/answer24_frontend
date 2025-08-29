@@ -7,17 +7,18 @@ import { routing } from "@/i18n/routing";
 import Head from "./head";
 import ClientLayout from "./ClientLayout";
 import { Toaster } from "@/components/ui/sonner";
-const geistSans = Geist({
+
+export const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
 });
 
-const geistMono = Geist_Mono({
+export const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
 });
 
-const poppins = Poppins({
+export const poppins = Poppins({
   variable: "--font-poppins",
   subsets: ["latin"],
   weight: "400",
@@ -27,7 +28,6 @@ export const metadata: Metadata = {
   title: "Answer24",
   description: "AI-powered Google Ads optimization platform.",
   manifest: "/manifest.json",
-  themeColor: "#ffffff",
 };
 
 export const viewport: Viewport = {
@@ -41,7 +41,6 @@ export default async function RootLayout({
   children: React.ReactNode;
   params: Promise<{ locale: string }>;
 }>) {
-  // Ensure that the incoming `locale` is valid
   const { locale } = await params;
   if (!hasLocale(routing.locales, locale)) {
     notFound();
