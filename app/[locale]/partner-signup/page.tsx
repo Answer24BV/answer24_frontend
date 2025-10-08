@@ -184,24 +184,24 @@ export default function PartnerSignUp() {
 
       console.log("Partner registration API response:", response);
 
-      // Store token and user data (token is nested in response.data.token)
-      if (response.data?.token) {
-        console.log("Storing partner token:", response.data.token);
-        tokenUtils.setToken(response.data.token);
+      // Store token and user data
+      if (response.token) {
+        console.log("Storing partner token:", response.token);
+        tokenUtils.setToken(response.token);
       } else {
         console.error("No token in partner registration response");
       }
-      if (response.data?.user) {
-        console.log("Storing partner user data:", response.data.user);
-        tokenUtils.setUser(response.data.user);
+      if (response.user) {
+        console.log("Storing partner user data:", response.user);
+        tokenUtils.setUser(response.user);
       }
 
       // Verify token was stored
       const storedToken = tokenUtils.getToken();
       console.log("Partner token after storage:", storedToken);
 
-      // Go to step 2 (plan selection) after successful signup
-      setSignUpStep(2);
+      // Skip plan selection and go directly to dashboard
+      router.push("/dashboard");
     } catch (err: any) {
       setError(err.message || "Partner registration failed. Please try again.");
     } finally {

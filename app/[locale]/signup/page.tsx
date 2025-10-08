@@ -82,6 +82,7 @@ export default function SignUp() {
     try {
       const token = tokenUtils.getToken();
       console.log("Token for subscription plans:", token);
+      console.log("API Base URL:", process.env.NEXT_PUBLIC_API_BASE_URL);
 
       if (!token) {
         console.error("No token found in localStorage");
@@ -91,7 +92,7 @@ export default function SignUp() {
       }
 
       const response = await fetch(
-        "https://answer24.laravel.cloud/api/v1/plan",
+        `${process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000/api/v1"}/plan`,
         {
           method: "GET",
           headers: {
@@ -192,24 +193,24 @@ export default function SignUp() {
 
       console.log("Registration API response:", response);
 
-      // Store token and user data (token is nested in response.data.token)
-      if (response.data?.token) {
-        console.log("Storing token:", response.data.token);
-        tokenUtils.setToken(response.data.token);
+      // Store token and user data
+      if (response.token) {
+        console.log("Storing token:", response.token);
+        tokenUtils.setToken(response.token);
       } else {
         console.error("No token in registration response");
       }
-      if (response.data?.user) {
-        console.log("Storing user data:", response.data.user);
-        tokenUtils.setUser(response.data.user);
+      if (response.user) {
+        console.log("Storing user data:", response.user);
+        tokenUtils.setUser(response.user);
       }
 
       // Verify token was stored
       const storedToken = tokenUtils.getToken();
       console.log("Token after storage:", storedToken);
 
-      // Go to step 2 (plan selection) after successful signup
-      setSignUpStep(2);
+      // Skip plan selection and go directly to dashboard
+      router.push("/dashboard");
     } catch (err: any) {
       setError(err.message || "Registration failed. Please try again.");
     } finally {
@@ -232,7 +233,7 @@ export default function SignUp() {
     try {
       const token = tokenUtils.getToken();
       const response = await fetch(
-        "https://answer24.laravel.cloud/api/v1/subscription/subscribe",
+        `${process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000/api/v1"}/subscription/subscribe`,
         {
           method: "POST",
           headers: {
