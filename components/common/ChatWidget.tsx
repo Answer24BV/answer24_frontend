@@ -40,7 +40,7 @@ const ChatWidget: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([
     {
       sender: "bot",
-      text: "Hi there! I'm answer24, your assistant. How can I help you today?",
+      text: process.env.NEXT_PUBLIC_CHATBOT_WELCOME_MESSAGE || "Hi there! I'm answer24, your assistant. How can I help you today?",
     },
   ]);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
@@ -251,23 +251,32 @@ const ChatWidget: React.FC = () => {
       setIsTyping(true);
 
       try {
-        // Simulate API delay for demo
-        await new Promise((resolve) =>
-          setTimeout(resolve, 1000 + Math.random() * 2000)
-        );
+        // Prepare message history for AI service
+        const messageHistory = messages
+          .filter(msg => msg.sender === "user" || msg.sender === "bot")
+          .map(msg => ({
+            role: msg.sender === "user" ? "user" : "assistant",
+            content: msg.text
+          }));
 
-        // Demo responses
-        const responses = [
-          "Thanks for your message! I'm here to help with any questions you have about answer24.",
-          "I understand you're looking for assistance. Let me help you with that!",
-          "Great question! I can provide information about our services and support.",
-          "I'm processing your request. Is there anything specific you'd like to know?",
-          "Thanks for reaching out! I'm ready to assist you with whatever you need.",
-        ];
+        // Call AI service API
+        const response = await fetch('/api/chat', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            message: input,
+            history: messageHistory
+          }),
+        });
 
-        const botReply =
-          responses[Math.floor(Math.random() * responses.length)];
-        setMessages((prev) => [...prev, { sender: "bot", text: botReply }]);
+        if (!response.ok) {
+          throw new Error(`API error: ${response.status}`);
+        }
+
+        const data = await response.json();
+        setMessages((prev) => [...prev, { sender: "bot", text: data.message }]);
       } catch (error) {
         console.error("Chat error:", error);
         setMessages((prev) => [
