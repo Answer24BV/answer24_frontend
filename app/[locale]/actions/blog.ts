@@ -6,8 +6,7 @@ import { Blog, BlogData, BlogResponse, BlogsResponse } from "@/types/blog.d";
 import { revalidatePath } from "next/cache";
 import BLOGIMAGEPLACEHOLDER from "@/public/image.png";
 import { tokenUtils } from "@/utils/auth";
-
-const BASE_URL = "https://answer24.laravel.cloud/api/v1";
+import { API_CONFIG, getApiUrl, getApiHeaders } from "@/lib/api-config";
 
 // Zod schema for blog post (updated to handle FormData)
 const blogSchema = z.object({
@@ -110,7 +109,7 @@ export async function createBlog(formData: FormData, token: string) {
 
     console.log("Sending blog creation request with FormData");
 
-    const response = await fetch(`${BASE_URL}/admin/blogs`, {
+    const response = await fetch(getApiUrl("/admin/blogs"), {
       method: "POST",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -253,7 +252,7 @@ export async function updateBlog(
 
     console.log("Updating blog with FormData for ID:", id);
 
-    const response = await fetch(`${BASE_URL}/admin/blogs/${id}`, {
+    const response = await fetch(getApiUrl(`/admin/blogs/${id}`), {
       method: "POST",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -311,7 +310,7 @@ export async function updateBlog(
 
 export async function getAllBlogs(): Promise<BlogData> {
   try {
-    const response = await fetch(`${BASE_URL}/blog`, {
+    const response = await fetch(getApiUrl(API_CONFIG.ENDPOINTS.BLOG.LIST), {
       cache: "no-store", // or 'force-cache' depending on your needs
     });
 
@@ -356,12 +355,9 @@ export async function deleteBlog(id: string, token: string) {
       };
     }
 
-    const response = await fetch(`${BASE_URL}/blog/${id}`, {
+    const response = await fetch(getApiUrl(API_CONFIG.ENDPOINTS.BLOG.BY_ID(id)), {
       method: "DELETE",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
+      headers: getApiHeaders(token),
     });
 
     if (!response.ok) {

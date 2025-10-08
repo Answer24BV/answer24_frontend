@@ -1,6 +1,7 @@
 "use server";
 
 import { getAuthHeadersAsync } from "@/utils/serverAuth";
+import { API_CONFIG, getApiUrl, getApiHeaders } from "@/lib/api-config";
 
 // Define a standard Notification type
 export interface Notification {
@@ -14,10 +15,6 @@ export interface Notification {
     avatar: string;
   };
 }
-
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL ||
-  "https://answer24.laravel.cloud/api/v1";
 
 /**
  * Fetches notifications for the current user.

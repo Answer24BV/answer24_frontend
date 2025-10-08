@@ -31,13 +31,13 @@ export default function SignIn() {
       const response = await authAPI.login(email, password, rememberMe);
 
       // Store token and user data
-      if (response.data.token) {
-        console.log("Storing token:", response.data.token);
-        tokenUtils.setToken(response.data.token);
+      if (response.token) {
+        console.log("Storing token:", response.token);
+        tokenUtils.setToken(response.token);
       }
-      if (response.data.user) {
-        console.log("Storing user data:", response.data.user);
-        tokenUtils.setUser(response.data.user);
+      if (response.user) {
+        console.log("Storing user data:", response.user);
+        tokenUtils.setUser(response.user);
       }
 
       // Show success message

@@ -1,4 +1,5 @@
 import { FAQ } from "@/types/faq.d";
+import { API_CONFIG, getApiUrl, getApiHeaders } from "@/lib/api-config";
 
 export interface FAQItem {
   id: string;
@@ -32,7 +33,6 @@ export interface AdminFAQResponse {
   data: FAQ | FAQ[];
 }
 
-const BASE_URL = "https://answer24.laravel.cloud/api/v1";
 
 // Helper function to handle API responses
 async function handleResponse<T>(response: Response): Promise<T> {
@@ -45,7 +45,7 @@ async function handleResponse<T>(response: Response): Promise<T> {
 
 export async function getFAQs(): Promise<FAQCategory[]> {
   try {
-    const response = await fetch(`${BASE_URL}/faq`);
+    const response = await fetch(getApiUrl(API_CONFIG.ENDPOINTS.FAQ.LIST));
     const result: FAQResponse = await handleResponse<FAQResponse>(response);
     return result.data;
   } catch (error) {
@@ -57,7 +57,7 @@ export async function getFAQs(): Promise<FAQCategory[]> {
 // Get single FAQ by ID
 export async function getFAQById(id: string): Promise<FAQ> {
   try {
-    const response = await fetch(`${BASE_URL}/faqs/${id}`);
+    const response = await fetch(getApiUrl(`/faqs/${id}`));
     const result: AdminFAQResponse = await handleResponse<AdminFAQResponse>(
       response
     );
@@ -75,12 +75,9 @@ export async function createFAQ(
   faqData: Omit<FAQ, "id" | "created_at" | "updated_at">
 ): Promise<FAQ> {
   try {
-    const response = await fetch(`${BASE_URL}/admin/faqs`, {
+    const response = await fetch(getApiUrl("/admin/faqs"), {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
+      headers: getApiHeaders(token),
       body: JSON.stringify(faqData),
     });
 
@@ -101,12 +98,9 @@ export async function updateFAQ(
   faqData: Partial<Omit<FAQ, "id" | "created_at" | "updated_at">>
 ): Promise<FAQ> {
   try {
-    const response = await fetch(`${BASE_URL}/admin/faqs/${id}`, {
+    const response = await fetch(getApiUrl(`/admin/faqs/${id}`), {
       method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
+      headers: getApiHeaders(token),
       body: JSON.stringify(faqData),
     });
 
@@ -123,7 +117,7 @@ export async function updateFAQ(
 // Delete FAQ
 export async function deleteFAQ(id: string): Promise<{ success: boolean }> {
   try {
-    const response = await fetch(`${BASE_URL}/faqs/${id}`, {
+    const response = await fetch(getApiUrl(`/faqs/${id}`), {
       method: "DELETE",
     });
 
@@ -141,11 +135,9 @@ export async function toggleFAQStatus(
   isActive: boolean
 ): Promise<FAQ> {
   try {
-    const response = await fetch(`${BASE_URL}/faqs/${id}/status`, {
+    const response = await fetch(getApiUrl(`/faqs/${id}/status`), {
       method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: getApiHeaders(),
       body: JSON.stringify({ is_active: isActive }),
     });
 

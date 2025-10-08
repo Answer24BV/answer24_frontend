@@ -1,4 +1,6 @@
 // Token management utilities
+import { API_CONFIG, getApiUrl, getApiHeaders } from "@/lib/api-config";
+
 export const TOKEN_KEY = "auth_token";
 export const USER_KEY = "user_data";
 
@@ -58,10 +60,7 @@ export const tokenUtils = {
 
     try {
       const response = await fetch(
-        `${
-          process.env.NEXT_PUBLIC_API_BASE_URL ||
-          "https://answer24.laravel.cloud/api/v1"
-        }/auth/validate`,
+        getApiUrl("/validate"),
         {
           method: "GET",
           headers: {
@@ -99,15 +98,10 @@ export const apiRequest = async (
   endpoint: string,
   options: RequestInit = {}
 ) => {
-  const baseUrl =
-    process.env.NEXT_PUBLIC_API_BASE_URL ||
-    "https://answer24.laravel.cloud/api/v1";
   const token = tokenUtils.getToken();
 
   const defaultHeaders: HeadersInit = {
-    "Content-Type": "application/json",
-    Accept: "application/json",
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    ...getApiHeaders(token),
   };
 
   const config: RequestInit = {
@@ -119,7 +113,7 @@ export const apiRequest = async (
   };
 
   try {
-    const response = await fetch(`${baseUrl}${endpoint}`, config);
+    const response = await fetch(getApiUrl(endpoint), config);
     const data = await response.json();
 
     if (!response.ok) {
@@ -137,7 +131,7 @@ export const apiRequest = async (
 export const authAPI = {
   // Login
   login: async (email: string, password: string, remember: boolean) => {
-    return apiRequest("/auth/login", {
+    return apiRequest("/login", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -160,8 +154,8 @@ export const authAPI = {
     referral_token?: string;
   }) => {
     const endpoint = data.referral_token
-      ? `/auth/register/${data.referral_token}`
-      : "/auth/register";
+      ? `/register/${data.referral_token}`
+      : "/register";
 
     return apiRequest(endpoint, {
       method: "POST",

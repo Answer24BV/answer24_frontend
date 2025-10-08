@@ -19,7 +19,7 @@ export const authService = {
    */
   async register(data: RegisterRequest): Promise<RegisterResponse> {
     try {
-      const response = await api.post("/auth/register", data);
+      const response = await api.post("/register", data);
       return response.data;
     } catch (error) {
       throw handleApiError(error);
@@ -32,7 +32,7 @@ export const authService = {
    */
   async login(credentials: LoginRequest): Promise<LoginResponse> {
     try {
-      const response = await api.post("/auth/login", credentials);
+      const response = await api.post("/login", credentials);
       return response.data;
     } catch (error) {
       throw handleApiError(error);
@@ -47,7 +47,7 @@ export const authService = {
     data: ForgotPasswordRequest
   ): Promise<ForgotPasswordResponse> {
     try {
-      const response = await api.post("/auth/forgot-password", data);
+      const response = await api.post("/forgot-password", data);
       return response.data;
     } catch (error) {
       throw handleApiError(error);
@@ -62,7 +62,7 @@ export const authService = {
     data: VerifyResetTokenRequest
   ): Promise<VerifyResetTokenResponse> {
     try {
-      const response = await api.post("/auth/verify-reset-token", data);
+      const response = await api.post("/verify-reset-token", data);
       return response.data;
     } catch (error) {
       throw handleApiError(error);
@@ -77,7 +77,7 @@ export const authService = {
     data: ResetPasswordRequest
   ): Promise<ResetPasswordResponse> {
     try {
-      const response = await api.post("/auth/reset-password", data);
+      const response = await api.post("/reset-password", data);
       return response.data;
     } catch (error) {
       throw handleApiError(error);

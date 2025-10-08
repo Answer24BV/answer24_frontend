@@ -1,8 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-
-const API_BASE_URL = "https://answer24.laravel.cloud/api/v1";
+import { API_CONFIG, getApiUrl, getApiHeaders } from "@/lib/api-config";
 
 export type ApiResponse<T> = {
   success: boolean;
@@ -24,11 +23,9 @@ export type Avatar = {
 
 export async function getAvatars(): Promise<Avatar[]> {
   try {
-    const response = await fetch(`${API_BASE_URL}/avatar`, {
+    const response = await fetch(getApiUrl(API_CONFIG.ENDPOINTS.AVATAR.LIST), {
       method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: getApiHeaders(),
       cache: "no-store", // Ensure we always get fresh data
     });
 
@@ -51,11 +48,9 @@ export async function getAvatars(): Promise<Avatar[]> {
 
 export async function getAvatarById(id: string): Promise<Avatar | null> {
   try {
-    const response = await fetch(`${API_BASE_URL}/avatar/${id}`, {
+    const response = await fetch(getApiUrl(API_CONFIG.ENDPOINTS.AVATAR.BY_ID(id)), {
       method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: getApiHeaders(),
     });
 
     if (response.status === 404) {
@@ -86,15 +81,15 @@ export async function createAvatar(
   try {
     const isFormData = avatarData instanceof FormData;
 
-    const headers: HeadersInit = {
-      Authorization: `Bearer ${token}`,
+    const headers: Record<string, string> = {
+      ...getApiHeaders(token),
     };
 
     if (!isFormData) {
       headers["Content-Type"] = "application/json";
     }
 
-    const response = await fetch(`${API_BASE_URL}/admin/avatars`, {
+    const response = await fetch(getApiUrl(API_CONFIG.ENDPOINTS.AVATAR.ADMIN_LIST), {
       method: "POST",
       headers,
       body: isFormData ? avatarData : JSON.stringify(avatarData),
@@ -143,15 +138,15 @@ export async function updateAvatar(
   try {
     const isFormData = avatarData instanceof FormData;
 
-    const headers: HeadersInit = {
-      Authorization: `Bearer ${token}`,
+    const headers: Record<string, string> = {
+      ...getApiHeaders(token),
     };
 
     if (!isFormData) {
       headers["Content-Type"] = "application/json";
     }
 
-    const response = await fetch(`${API_BASE_URL}/admin/avatars/${id}`, {
+    const response = await fetch(getApiUrl(API_CONFIG.ENDPOINTS.AVATAR.ADMIN_BY_ID(id)), {
       method: "PATCH",
       headers,
       body: isFormData ? avatarData : JSON.stringify(avatarData),
@@ -195,11 +190,9 @@ export async function deleteAvatar(
   token: string
 ): Promise<boolean> {
   try {
-    const response = await fetch(`${API_BASE_URL}/admin/avatars/${id}`, {
+    const response = await fetch(getApiUrl(API_CONFIG.ENDPOINTS.AVATAR.ADMIN_BY_ID(id)), {
       method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+      headers: getApiHeaders(token),
     });
 
     if (response.status === 404) {
