@@ -1,5 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+export const dynamic = 'force-static';
+
+export async function generateStaticParams() {
+  return [
+    { companyId: 'company1' },
+    { companyId: 'company2' },
+    { companyId: 'company3' },
+  ];
+}
+
 interface WidgetSettings {
   id: string;
   company_id: string;

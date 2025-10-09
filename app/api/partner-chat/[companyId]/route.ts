@@ -1,6 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { aiService, ChatMessage } from '@/lib/ai-service';
 
+export const dynamic = 'force-static';
+
+export async function generateStaticParams() {
+  return [
+    { companyId: 'company1' },
+    { companyId: 'company2' },
+    { companyId: 'company3' },
+  ];
+}
+
 interface PineconeConfig {
   apiKey: string;
   environment: string;

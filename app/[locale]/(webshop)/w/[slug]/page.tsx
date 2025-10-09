@@ -5,25 +5,59 @@ import type { ClientHomepageData } from "@/types/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
+export async function generateStaticParams() {
+  return [
+    { slug: 'client1' },
+    { slug: 'client2' },
+    { slug: 'client3' },
+    { slug: 'client4' },
+    { slug: 'client5' },
+  ];
+}
+
 interface ClientHomepageProps {
   params: any;
 }
 
 async function getClientData(slug: string): Promise<ClientHomepageData | null> {
-  // In a real application, this would be a fetch to your actual backend API
-  // For this demo, we're fetching from our mock API route handler
-  const res = await fetch(
-    `${process.env.NEXT_PUBLIC_VERCEL_URL}/api/client-landing/${slug}`,
-    {
-      cache: "no-store", // Ensure fresh data for demo purposes
+  // For static export, we'll return mock data instead of fetching
+  // In a real application, you would fetch from your actual backend API
+  const mockData: ClientHomepageData = {
+    id: slug,
+    name: `Client ${slug}`,
+    logoUrl: "/placeholder.svg",
+    introText: `Welcome to ${slug} - your trusted partner`,
+    whatsappLink: `https://wa.me/1234567890`,
+    seoTitle: `${slug} - Professional Services`,
+    seoDescription: `Professional services by ${slug}`,
+    aiGeneratedContent: {
+      title: "About Our Services",
+      paragraphs: [
+        "We provide excellent services to our clients.",
+        "Our team is dedicated to delivering quality results.",
+        "Contact us today to learn more about our offerings."
+      ]
+    },
+    pages: [
+      {
+        slug: "services",
+        title: "Our Services",
+        aiText: "Learn about our comprehensive service offerings."
+      },
+      {
+        slug: "about",
+        title: "About Us",
+        aiText: "Discover more about our company and mission."
+      }
+    ],
+    contactInfo: {
+      email: `contact@${slug}.com`,
+      phone: "+31 123 456 789",
+      address: "Amsterdam, Netherlands"
     }
-  );
+  };
 
-  if (!res.ok) {
-    return null;
-  }
-
-  return res.json();
+  return mockData;
 }
 
 export async function generateMetadata({

@@ -81,12 +81,12 @@ export async function createAvatar(
   try {
     const isFormData = avatarData instanceof FormData;
 
-    const headers: Record<string, string> = {
+    const headers: HeadersInit = {
       ...getApiHeaders(token),
     };
 
     if (!isFormData) {
-      headers["Content-Type"] = "application/json";
+      (headers as Record<string, string>)["Content-Type"] = "application/json";
     }
 
     const response = await fetch(getApiUrl(API_CONFIG.ENDPOINTS.AVATAR.ADMIN_LIST), {
@@ -138,12 +138,12 @@ export async function updateAvatar(
   try {
     const isFormData = avatarData instanceof FormData;
 
-    const headers: Record<string, string> = {
+    const headers: HeadersInit = {
       ...getApiHeaders(token),
     };
 
     if (!isFormData) {
-      headers["Content-Type"] = "application/json";
+      (headers as Record<string, string>)["Content-Type"] = "application/json";
     }
 
     const response = await fetch(getApiUrl(API_CONFIG.ENDPOINTS.AVATAR.ADMIN_BY_ID(id)), {

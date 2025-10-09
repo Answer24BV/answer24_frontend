@@ -8,17 +8,17 @@ import Head from "./head";
 import ClientLayout from "./ClientLayout";
 import { Toaster } from "@/components/ui/sonner";
 
-export const geistSans = Geist({
+const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
 });
 
-export const geistMono = Geist_Mono({
+const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
 });
 
-export const poppins = Poppins({
+const poppins = Poppins({
   variable: "--font-poppins",
   subsets: ["latin"],
   weight: "400",

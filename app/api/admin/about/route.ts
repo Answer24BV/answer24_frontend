@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import fs from 'fs/promises';
 import path from 'path';
 
+export const dynamic = 'force-static';
+
 // Path to translation files
 const translationsPath = path.join(process.cwd(), 'messages');
 

@@ -1,5 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+export const dynamic = 'force-static';
+
+export async function generateStaticParams() {
+  return [
+    { slug: 'privacy-policy' },
+    { slug: 'terms-of-service' },
+    { slug: 'cookie-policy' },
+  ];
+}
+
 // Import the mock data from the main route (in a real app, this would be in a shared location)
 const legalPages = {
   en: [

@@ -160,7 +160,7 @@ class AIService {
   }
 
   isConfigured(): boolean {
-    return this.config.apiKey && this.config.apiKey !== 'your_openai_api_key_here';
+    return !!(this.config.apiKey && this.config.apiKey !== 'your_openai_api_key_here');
   }
 
   getServiceName(): string {

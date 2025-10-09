@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { aiService, ChatMessage } from '@/lib/ai-service';
 
+export const dynamic = 'force-static';
+
 export async function POST(request: NextRequest) {
   try {
     const { message, history = [] } = await request.json();

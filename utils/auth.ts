@@ -101,7 +101,7 @@ export const apiRequest = async (
   const token = tokenUtils.getToken();
 
   const defaultHeaders: HeadersInit = {
-    ...getApiHeaders(token),
+    ...getApiHeaders(token || undefined),
   };
 
   const config: RequestInit = {
