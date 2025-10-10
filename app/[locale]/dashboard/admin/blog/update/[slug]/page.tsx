@@ -3,11 +3,16 @@ import UpdateBlogClient from './UpdateBlogClient';
 
 export async function generateStaticParams() {
   return [
-    { slug: 'blog-post-1' },
-    { slug: 'blog-post-2' },
-    { slug: 'blog-post-3' },
-    { slug: 'blog-post-4' },
-    { slug: 'blog-post-5' },
+    { locale: 'en', slug: 'blog-post-1' },
+    { locale: 'en', slug: 'blog-post-2' },
+    { locale: 'en', slug: 'blog-post-3' },
+    { locale: 'en', slug: 'blog-post-4' },
+    { locale: 'en', slug: 'blog-post-5' },
+    { locale: 'nl', slug: 'blog-post-1' },
+    { locale: 'nl', slug: 'blog-post-2' },
+    { locale: 'nl', slug: 'blog-post-3' },
+    { locale: 'nl', slug: 'blog-post-4' },
+    { locale: 'nl', slug: 'blog-post-5' },
   ];
 }
 

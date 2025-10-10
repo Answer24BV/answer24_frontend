@@ -1,4 +1,11 @@
 import { FaqAdmin } from "@/components/faq/FaqAdmin";
+
+export async function generateStaticParams() {
+  return [
+    { locale: 'en' },
+    { locale: 'nl' },
+  ];
+}
 import { Metadata } from "next";
 export const metadata: Metadata = {
   title: "FAQ Management | Admin Dashboard",

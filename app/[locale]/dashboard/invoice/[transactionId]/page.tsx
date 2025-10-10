@@ -3,11 +3,16 @@ import React from "react";
 
 export async function generateStaticParams() {
   return [
-    { transactionId: 'txn-1' },
-    { transactionId: 'txn-2' },
-    { transactionId: 'txn-3' },
-    { transactionId: 'txn-4' },
-    { transactionId: 'txn-5' },
+    { locale: 'en', transactionId: 'txn-1' },
+    { locale: 'en', transactionId: 'txn-2' },
+    { locale: 'en', transactionId: 'txn-3' },
+    { locale: 'en', transactionId: 'txn-4' },
+    { locale: 'en', transactionId: 'txn-5' },
+    { locale: 'nl', transactionId: 'txn-1' },
+    { locale: 'nl', transactionId: 'txn-2' },
+    { locale: 'nl', transactionId: 'txn-3' },
+    { locale: 'nl', transactionId: 'txn-4' },
+    { locale: 'nl', transactionId: 'txn-5' },
   ];
 }
 

@@ -3,6 +3,13 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { mockDomainStatuses } from "@/lib/mockClientData"
 import { Badge } from "@/components/ui/badge"
 
+export async function generateStaticParams() {
+  return [
+    { locale: 'en' },
+    { locale: 'nl' },
+  ];
+}
+
 export default function AdminDomainsPage() {
   return (
     <div className="container mx-auto pt-30">

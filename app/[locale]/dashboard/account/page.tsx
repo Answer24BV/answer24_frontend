@@ -1,8 +1,14 @@
-"use client";
-import { Profile } from "@/components/dashboard/account/Profile";
+import React from 'react';
+import AccountPageClient from './AccountPageClient';
 
-const AccountPage = () => {
-  return <Profile />;
-};
 
-export default AccountPage;
+export async function generateStaticParams() {
+  return [
+    { locale: 'en' },
+    { locale: 'nl' },
+  ];
+}
+
+export default function AccountPage() {
+  return <AccountPageClient />;
+}

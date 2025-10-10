@@ -1,5 +1,12 @@
 import { DashboardTabs } from '@/components/dashboard/DashboardTabs';
 
+export async function generateStaticParams() {
+  return [
+    { locale: 'en' },
+    { locale: 'nl' },
+  ];
+}
+
 export default function MorePage() {
   return (
     <div className="min-h-screen bg-gray-50">

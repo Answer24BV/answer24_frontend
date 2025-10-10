@@ -1,13 +1,13 @@
-'use client';
-import AvatarForm from '@/components/admin/avatar/AvatarForm';
+import React from 'react';
+import CreateAvatarPageClient from './CreateAvatarPageClient';
 
-const CreateAvatarPage = () => {
-  return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold text-slate-900 mb-8">Create New Avatar</h1>
-      <AvatarForm />
-    </div>
-  );
-};
+export async function generateStaticParams() {
+  return [
+    { locale: 'en' },
+    { locale: 'nl' },
+  ];
+}
 
-export default CreateAvatarPage;
+export default function CreateAvatarPage() {
+  return <CreateAvatarPageClient />;
+}

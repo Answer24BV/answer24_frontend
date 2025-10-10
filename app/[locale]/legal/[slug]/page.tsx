@@ -3,9 +3,12 @@ import LegalPageClient from './LegalPageClient';
 
 export async function generateStaticParams() {
   return [
-    { slug: 'privacy-policy' },
-    { slug: 'terms-of-service' },
-    { slug: 'cookie-policy' },
+    { locale: 'en', slug: 'privacy-policy' },
+    { locale: 'en', slug: 'terms-of-service' },
+    { locale: 'en', slug: 'cookie-policy' },
+    { locale: 'nl', slug: 'privacy-policy' },
+    { locale: 'nl', slug: 'terms-of-service' },
+    { locale: 'nl', slug: 'cookie-policy' },
   ];
 }
 

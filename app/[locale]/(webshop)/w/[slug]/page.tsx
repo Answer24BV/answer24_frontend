@@ -7,11 +7,16 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export async function generateStaticParams() {
   return [
-    { slug: 'client1' },
-    { slug: 'client2' },
-    { slug: 'client3' },
-    { slug: 'client4' },
-    { slug: 'client5' },
+    { locale: 'en', slug: 'client1' },
+    { locale: 'en', slug: 'client2' },
+    { locale: 'en', slug: 'client3' },
+    { locale: 'en', slug: 'client4' },
+    { locale: 'en', slug: 'client5' },
+    { locale: 'nl', slug: 'client1' },
+    { locale: 'nl', slug: 'client2' },
+    { locale: 'nl', slug: 'client3' },
+    { locale: 'nl', slug: 'client4' },
+    { locale: 'nl', slug: 'client5' },
   ];
 }
 

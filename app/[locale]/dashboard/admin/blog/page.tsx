@@ -1,5 +1,12 @@
 import BlogManagement from "@/components/admin/blog/BlogManagement";
 
+export async function generateStaticParams() {
+  return [
+    { locale: 'en' },
+    { locale: 'nl' },
+  ];
+}
+
 const AdminBlogPage = () => {
   // Assuming user role is available in a context or session
   const user = { role: "admin" }; // Mock user with admin role
