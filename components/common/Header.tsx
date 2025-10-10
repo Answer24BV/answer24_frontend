@@ -1,36 +1,63 @@
 "use client";
 
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 import { Navbar } from "./Navbar";
 import { PrivateNavbar } from "./PrivateNavbar";
+import { tokenUtils } from "@/utils/auth";
 
 const Header = () => {
   const pathname = usePathname();
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Define routes that should have the private navbar
-  const privateRoutes = [
-    "/account",
-    "/account/chat",
-    "/wallet",
-    "/dashboard",
-    "/client/avatar",
-    "/client/autoservicejanssen",
-    "/admin",
-    "/admin/blog",
-    "/admin/client-domain-management",
-    "/pricing",
-    "/webshop",
-  ];
+  useEffect(() => {
+    // Check authentication status
+    const checkAuth = () => {
+      const token = tokenUtils.getToken();
+      const user = tokenUtils.getUser();
+      const authenticated = !!(token && user);
+      setIsAuthenticated(authenticated);
+      setIsLoading(false);
+    };
 
-  // Check if the current route is a private route
+    checkAuth();
+
+    // Listen for auth changes (login/logout)
+    const handleStorageChange = () => {
+      checkAuth();
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    
+    // Also check periodically in case of in-memory changes
+    const interval = setInterval(checkAuth, 1000);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      clearInterval(interval);
+    };
+  }, []);
+
   // Handle internationalized routes by removing locale prefix
   const normalizedPathname = pathname.replace(/^\/[a-z]{2}/, "") || "/";
-  const isPrivateRoute = privateRoutes.some(
-    (route) =>
-      normalizedPathname.startsWith(route) || normalizedPathname.includes(route)
-  );
+  
+  // Define public routes that should always show public header
+  const publicRoutes = ["/signin", "/signup", "/forgot-password", "/reset-password", "/unauthorized"];
+  const isPublicRoute = publicRoutes.some(route => normalizedPathname.startsWith(route));
 
-  return isPrivateRoute ? <PrivateNavbar /> : <Navbar />;
+  // Show loading state briefly
+  if (isLoading) {
+    return <Navbar />; // Default to public navbar while loading
+  }
+
+  // Always show public navbar for public routes
+  if (isPublicRoute) {
+    return <Navbar />;
+  }
+
+  // Show private navbar for authenticated users, public navbar for non-authenticated
+  return isAuthenticated ? <PrivateNavbar /> : <Navbar />;
 };
 
 export default Header;

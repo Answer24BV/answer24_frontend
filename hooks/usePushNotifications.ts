@@ -25,6 +25,7 @@ const loadPusherBeams = async () => {
 export function usePushNotifications(userId?: string) {
   const beamsClient = useRef<PusherBeamsClient | null>(null);
   const isInitialized = useRef(false);
+  const permissionRequested = useRef(false);
 
   useEffect(() => {
     if (!userId || isInitialized.current) return;
@@ -43,9 +44,21 @@ export function usePushNotifications(userId?: string) {
           }
         }
 
-        // Check notification permission (don't auto-request here, let banner handle it)
+        // Check notification permission - only initialize if granted
         if ('Notification' in window && Notification.permission !== 'granted') {
-          // Don't return here, still initialize Pusher Beams for when permission is granted
+          console.log('Notification permission not granted, skipping Pusher initialization');
+          
+          // If permission was denied, don't ask again
+          if (Notification.permission === 'denied') {
+            console.log('Notification permission permanently denied');
+            return;
+          }
+          
+          // If permission was not requested yet and user hasn't been asked
+          if (Notification.permission === 'default' && !permissionRequested.current) {
+            console.log('Will not auto-request notification permission');
+            return;
+          }
         }
 
         // Load Pusher Beams dynamically

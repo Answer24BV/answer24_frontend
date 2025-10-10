@@ -45,6 +45,12 @@ export default function Faq() {
     const fetchFAQs = async () => {
       try {
         const data = await getFAQs();
+        console.log("FAQ data received:", data);
+        
+        if (!data || !Array.isArray(data)) {
+          throw new Error("Invalid FAQ data received from server");
+        }
+        
         const transformedData: FAQCategory[] = data.map(category => ({
           ...category,
           icon: HelpCircle, // You can map icons based on category name or add it to the API
@@ -52,9 +58,10 @@ export default function Faq() {
           bgColor: "bg-blue-50 hover:bg-blue-100",
         }));
         setCategories(transformedData);
+        setFilteredCategories(transformedData);
       } catch (err) {
-        setError("Failed to load FAQs. Please try again later.");
-        console.error(err);
+        console.error("FAQ fetch error:", err);
+        setError(`Failed to load FAQs: ${err instanceof Error ? err.message : 'Unknown error'}`);
       } finally {
         setIsLoading(false);
       }
