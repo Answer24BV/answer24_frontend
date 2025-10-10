@@ -49,7 +49,7 @@ export const API_CONFIG = {
       BY_ID: (id: string) => `/blog/${id}`,
     },
     FAQ: {
-      LIST: "/faq",
+      LIST: "/faqs",
     },
     DAISYCON: {
       CATEGORY: "/daisycon/category",
