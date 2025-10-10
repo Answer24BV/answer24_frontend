@@ -24,7 +24,17 @@ export interface FAQCategory {
 export interface FAQResponse {
   success: boolean;
   message: string;
-  data: FAQCategory[];
+  data: {
+    data: FAQCategory[];
+    pagination: {
+      total: number;
+      per_page: number;
+      current_page: number;
+      last_page: number;
+      from: number;
+      to: number;
+    };
+  };
 }
 
 export interface AdminFAQResponse {
