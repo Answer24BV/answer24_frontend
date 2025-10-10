@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import SignupClient from './SignupClient';
 
 export async function generateStaticParams() {
@@ -9,5 +9,9 @@ export async function generateStaticParams() {
 }
 
 export default function Signup() {
-  return <SignupClient />;
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <SignupClient />
+    </Suspense>
+  );
 }
