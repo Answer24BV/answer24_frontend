@@ -49,8 +49,8 @@ export default function Faq() {
         console.log("FAQ response received:", response);
         
         // Handle the new API structure: response.data.data
-        const faqItems = response?.data?.data || response;
-        
+        const faqItems = response?.data?.data || response?.data || response;
+
         if (!faqItems || !Array.isArray(faqItems)) {
           throw new Error("Invalid FAQ data received from server");
         }
