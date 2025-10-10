@@ -47,7 +47,7 @@ export async function getFAQs(): Promise<FAQCategory[]> {
   try {
     const response = await fetch(getApiUrl(API_CONFIG.ENDPOINTS.FAQ.LIST));
     const result: FAQResponse = await handleResponse<FAQResponse>(response);
-    return result.data;
+    return result.data.data;
   } catch (error) {
     console.error("Error fetching FAQs:", error);
     throw error;

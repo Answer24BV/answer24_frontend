@@ -48,8 +48,8 @@ export default function Faq() {
         const response = await getFAQs();
         console.log("FAQ response received:", response);
         
-        // Handle the new API structure: response.data.data
-        const faqItems = response?.data?.data || response?.data || response;
+        // getFAQs() already returns the array, no need to access .data
+        const faqItems = response;
 
         if (!faqItems || !Array.isArray(faqItems)) {
           throw new Error("Invalid FAQ data received from server");
