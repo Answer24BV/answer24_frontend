@@ -44,6 +44,7 @@ export default function Faq() {
   useEffect(() => {
     const fetchFAQs = async () => {
       try {
+        console.log("Starting FAQ fetch...");
         const response = await getFAQs();
         console.log("FAQ response received:", response);
         
@@ -107,6 +108,7 @@ export default function Faq() {
         
       } catch (err) {
         console.error("FAQ fetch error:", err);
+        console.log("Error details:", err);
         
         // Fallback to mock data when API fails
         console.log("Using fallback FAQ data due to API error");
