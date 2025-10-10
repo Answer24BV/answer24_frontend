@@ -44,21 +44,67 @@ export default function Faq() {
   useEffect(() => {
     const fetchFAQs = async () => {
       try {
-        const data = await getFAQs();
-        console.log("FAQ data received:", data);
+        const response = await getFAQs();
+        console.log("FAQ response received:", response);
         
-        if (!data || !Array.isArray(data)) {
+        // Handle the new API structure: response.data.data
+        const faqItems = response?.data?.data || response;
+        
+        if (!faqItems || !Array.isArray(faqItems)) {
           throw new Error("Invalid FAQ data received from server");
         }
         
-        const transformedData: FAQCategory[] = data.map(category => ({
-          ...category,
-          icon: HelpCircle, // You can map icons based on category name or add it to the API
-          color: "text-blue-600",
-          bgColor: "bg-blue-50 hover:bg-blue-100",
-        }));
+        // Transform the flat FAQ items into categorized structure
+        const categoriesMap = new Map<string, FAQCategory>();
+        
+        faqItems.forEach((item: any) => {
+          // Get the first category or use "General" as default
+          const categoryName = item.categories?.[0] || "General";
+          const categoryId = categoryName.toLowerCase().replace(/[^a-z0-9]/g, '-');
+          
+          // Get the first subcategory or use "General" as default
+          const subcategoryName = item.subcategories?.[0] || "General";
+          const subcategoryId = subcategoryName.toLowerCase().replace(/[^a-z0-9]/g, '-');
+          
+          // Create category if it doesn't exist
+          if (!categoriesMap.has(categoryId)) {
+            categoriesMap.set(categoryId, {
+              id: categoryId,
+              name: categoryName,
+              icon: HelpCircle,
+              color: "text-blue-600",
+              bgColor: "bg-blue-50 hover:bg-blue-100",
+              subcategories: []
+            });
+          }
+          
+          const category = categoriesMap.get(categoryId)!;
+          
+          // Find or create subcategory
+          let subcategory = category.subcategories.find(sub => sub.id === subcategoryId);
+          if (!subcategory) {
+            subcategory = {
+              id: subcategoryId,
+              name: subcategoryName,
+              items: []
+            };
+            category.subcategories.push(subcategory);
+          }
+          
+          // Add FAQ item to subcategory
+          subcategory.items.push({
+            id: item.id,
+            question: item.question,
+            answer: item.answer,
+            viewCount: item.view_count || 0,
+            tags: item.tags || []
+          });
+        });
+        
+        const transformedData = Array.from(categoriesMap.values());
         setCategories(transformedData);
         setFilteredCategories(transformedData);
+        
       } catch (err) {
         console.error("FAQ fetch error:", err);
         
