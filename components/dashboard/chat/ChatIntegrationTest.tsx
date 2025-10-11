@@ -92,6 +92,9 @@ export function ChatIntegrationTest() {
       addTestResult('Token Persistence', 'error', `Token persistence test failed: ${error}`)
     }
 
+    // Declare variables for the tests
+    let helpdeskChat = null
+
     try {
       // Test 1: Manual Token Test in Chat Actions
       addTestResult('Manual Token Test', 'pending', 'Testing tokenUtils.getToken() directly...')
@@ -114,8 +117,31 @@ export function ChatIntegrationTest() {
 
       // Test 3: Create Helpdesk Chat
       addTestResult('Create Helpdesk Chat', 'pending', 'Creating helpdesk chat...')
-      const helpdeskChat = await createHelpdeskChat()
-      addTestResult('Create Helpdesk Chat', 'success', 'Helpdesk chat created successfully', helpdeskChat)
+      
+      // Double-check token right before calling createHelpdeskChat
+      const tokenBeforeCreate = tokenUtils.getToken()
+      if (!tokenBeforeCreate) {
+        addTestResult('Create Helpdesk Chat', 'error', 'Token became null before createHelpdeskChat call')
+      } else {
+        console.log('=== BEFORE createHelpdeskChat ===')
+        console.log('Token before create:', tokenBeforeCreate.substring(0, 20) + '...')
+        console.log('User before create:', tokenUtils.getUser())
+        console.log('==============================')
+        
+        try {
+          helpdeskChat = await createHelpdeskChat()
+          addTestResult('Create Helpdesk Chat', 'success', 'Helpdesk chat created successfully', helpdeskChat)
+        } catch (error) {
+          addTestResult('Create Helpdesk Chat', 'error', `createHelpdeskChat failed: ${error}`)
+          
+          // Check token after the error
+          const tokenAfterError = tokenUtils.getToken()
+          console.log('=== AFTER createHelpdeskChat ERROR ===')
+          console.log('Token after error:', tokenAfterError ? tokenAfterError.substring(0, 20) + '...' : 'NULL')
+          console.log('User after error:', tokenUtils.getUser())
+          console.log('===================================')
+        }
+      }
 
       // Test 4: Send Message
       if (helpdeskChat) {
