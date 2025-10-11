@@ -73,18 +73,51 @@ export function ChatIntegrationTest() {
       addTestResult('Backend Connectivity', 'error', `Cannot reach backend: ${error}`)
     }
 
+    // Test 0.5: Token Persistence Test
+    addTestResult('Token Persistence', 'pending', 'Testing if token persists across function calls...')
     try {
-      // Test 1: Get Chats
+      // Test token multiple times to see if it's consistent
+      const token1 = tokenUtils.getToken()
+      await new Promise(resolve => setTimeout(resolve, 100))
+      const token2 = tokenUtils.getToken()
+      await new Promise(resolve => setTimeout(resolve, 100))
+      const token3 = tokenUtils.getToken()
+      
+      if (token1 && token2 && token3 && token1 === token2 && token2 === token3) {
+        addTestResult('Token Persistence', 'success', `Token is consistent across calls`)
+      } else {
+        addTestResult('Token Persistence', 'error', `Token inconsistency detected: ${token1 ? 'exists' : 'null'} -> ${token2 ? 'exists' : 'null'} -> ${token3 ? 'exists' : 'null'}`)
+      }
+    } catch (error) {
+      addTestResult('Token Persistence', 'error', `Token persistence test failed: ${error}`)
+    }
+
+    try {
+      // Test 1: Manual Token Test in Chat Actions
+      addTestResult('Manual Token Test', 'pending', 'Testing tokenUtils.getToken() directly...')
+      try {
+        const directToken = tokenUtils.getToken()
+        const directUser = tokenUtils.getUser()
+        if (directToken && directUser) {
+          addTestResult('Manual Token Test', 'success', `Direct token access works: ${directToken.substring(0, 20)}...`)
+        } else {
+          addTestResult('Manual Token Test', 'error', `Direct token access failed: token=${!!directToken}, user=${!!directUser}`)
+        }
+      } catch (error) {
+        addTestResult('Manual Token Test', 'error', `Direct token access error: ${error}`)
+      }
+
+      // Test 2: Get Chats
       addTestResult('Get Chats', 'pending', 'Testing chat list endpoint...')
       const chats = await getChats()
       addTestResult('Get Chats', 'success', `Found ${chats.length} chats`, chats)
 
-      // Test 2: Create Helpdesk Chat
+      // Test 3: Create Helpdesk Chat
       addTestResult('Create Helpdesk Chat', 'pending', 'Creating helpdesk chat...')
       const helpdeskChat = await createHelpdeskChat()
       addTestResult('Create Helpdesk Chat', 'success', 'Helpdesk chat created successfully', helpdeskChat)
 
-      // Test 3: Send Message
+      // Test 4: Send Message
       if (helpdeskChat) {
         addTestResult('Send Message', 'pending', 'Sending test message...')
         const message = await sendMessage(
@@ -94,7 +127,7 @@ export function ChatIntegrationTest() {
         )
         addTestResult('Send Message', 'success', 'Message sent successfully', message)
 
-        // Test 4: AI Response (if enabled)
+        // Test 5: AI Response (if enabled)
         if (helpdeskChat.aiEnabled) {
           addTestResult('AI Response', 'pending', 'Testing AI response generation...')
           try {

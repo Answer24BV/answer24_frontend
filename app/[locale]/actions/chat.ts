@@ -145,8 +145,18 @@ export async function createHelpdeskChat(): Promise<Chat> {
   try {
     const token = tokenUtils.getToken()
     if (!token) {
+      console.error("createHelpdeskChat: No authentication token found")
       throw new Error("No authentication token found")
     }
+
+    console.log("createHelpdeskChat: Making request to:", getApiUrl("/api/v1/chats"))
+    console.log("createHelpdeskChat: Using token:", token.substring(0, 20) + "...")
+
+    const requestBody = {
+      type: "helpdesk",
+      title: "Helpdesk Support"
+    }
+    console.log("createHelpdeskChat: Request body:", requestBody)
 
     const response = await fetch(getApiUrl("/api/v1/chats"), {
       method: "POST",
@@ -154,17 +164,20 @@ export async function createHelpdeskChat(): Promise<Chat> {
         ...getApiHeaders(token),
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        type: "helpdesk",
-        title: "Helpdesk Support"
-      }),
+      body: JSON.stringify(requestBody),
     })
 
+    console.log("createHelpdeskChat: Response status:", response.status)
+    console.log("createHelpdeskChat: Response headers:", Object.fromEntries(response.headers.entries()))
+
     if (!response.ok) {
-      throw new Error(`Failed to create helpdesk chat: ${response.status}`)
+      const errorText = await response.text()
+      console.error("createHelpdeskChat: Error response:", errorText)
+      throw new Error(`Failed to create helpdesk chat: ${response.status} - ${errorText}`)
     }
 
     const data = await response.json()
+    console.log("createHelpdeskChat: Response data:", data)
     return data.chat
   } catch (error) {
     console.error("Error creating helpdesk chat:", error)
