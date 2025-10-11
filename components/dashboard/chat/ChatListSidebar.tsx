@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { Plus, MoreHorizontal, SlidersHorizontal } from "lucide-react"
 import type { Chat } from "@/types/chat"
-import { getChats } from "@/app/[locale]/actions/chat"
+import { getChats } from "@/lib/chat-service"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"

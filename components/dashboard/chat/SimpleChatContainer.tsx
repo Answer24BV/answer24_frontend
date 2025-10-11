@@ -5,14 +5,15 @@ import type { Chat } from "@/types/chat"
 import { ChatListSidebar } from "./ChatListSidebar"
 import { ChatDetailView } from "./ChatDetailsView"
 import { EmptyChatState } from "./EmptyChatState"
+import { tokenUtils } from "@/utils/auth"
 import { cn } from "@/lib/utils"
 
 export function SimpleChatContainer() {
   const [selectedChat, setSelectedChat] = useState<Chat | null>(null)
   const [isChatListVisible, setIsChatListVisible] = useState(true)
 
-  // This would come from your auth system
-  const currentUserId = "2" // Mock current user ID
+  // Get current user from auth system
+  const currentUserId = tokenUtils.getUser()?.id || "190"
 
   const handleChatSelect = (chat: Chat) => {
     setSelectedChat(chat)
