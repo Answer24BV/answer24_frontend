@@ -14,11 +14,22 @@ export interface User {
     content: string
     senderId: string
     timestamp: Date
-    type: "text"
+    type: "text" | "image" | "file" | "ai_response"
     isRead?: boolean
     isLoading?: boolean
     role?: string
     receiverId?: string
+    attachments?: Attachment[]
+    isAiGenerated?: boolean
+  }
+
+  export interface Attachment {
+    id: string
+    name: string
+    type: string
+    size: number
+    url: string
+    thumbnail?: string
   }
   
   export interface Chat {
@@ -28,5 +39,9 @@ export interface User {
     unreadCount?: number
     updatedAt: Date
     createdAt?: Date
+    type: "user_to_user" | "helpdesk" | "ai_assistant"
+    title?: string
+    isActive?: boolean
+    aiEnabled?: boolean
   }
   
