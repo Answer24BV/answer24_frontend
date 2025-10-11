@@ -11,7 +11,7 @@ export async function generateStaticParams() {
 export default function MessagesPage() {
   return (
     <div className="space-y-6">
-      <ChatIntegrationTest />
+      {/* <ChatIntegrationTest /> */}
       <SimpleChatContainer />
     </div>
   );
