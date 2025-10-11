@@ -133,20 +133,47 @@ const createPin = async (data: {
       );
 
       const responseData = await response.json();
-      console.log("Create PIN response:", responseData);
+      console.log("Create PIN response (fallback):", responseData);
+      console.log("Response structure check (fallback):");
+      console.log("- responseData.data:", responseData.data);
+      console.log("- responseData.data?.pin:", responseData.data?.pin);
+      console.log("- responseData.pin:", responseData.pin);
+      console.log("- Full response keys:", Object.keys(responseData));
 
       if (!response.ok) {
         throw new Error(responseData.message || "Failed to create PIN");
       }
       
-      // Update user data with new PIN
+      // Update user data with new PIN - try multiple possible structures
+      let pinToStore = null;
       if (responseData.data && responseData.data.pin) {
+        pinToStore = responseData.data.pin;
+      } else if (responseData.pin) {
+        pinToStore = responseData.pin;
+      } else {
+        // Fallback: If API doesn't return PIN, use the PIN that was just created
+        pinToStore = data.pin;
+        console.log("Using fallback PIN from request data (fallback):", pinToStore);
+      }
+      
+      console.log("PIN to store (fallback):", pinToStore);
+      
+      if (pinToStore) {
         const currentUser = tokenUtils.getUser();
+        console.log("Current user before update (fallback):", currentUser);
         const updatedUser = {
           ...currentUser,
-          pin: responseData.data.pin,
+          pin: pinToStore,
         };
+        console.log("Updated user with PIN (fallback):", updatedUser);
         tokenUtils.setUser(updatedUser);
+        
+        // Verify the PIN was stored
+        const verifyUser = tokenUtils.getUser();
+        console.log("Verification - User data after PIN storage (fallback):", verifyUser);
+        console.log("Verification - PIN in stored user (fallback):", verifyUser?.pin);
+      } else {
+        console.error("No PIN found in API response or request data (fallback)!");
       }
       
       return { success: true, message: "PIN created successfully!" };
@@ -163,19 +190,46 @@ const createPin = async (data: {
 
     const responseData = await response.json();
     console.log("Create PIN response:", responseData);
+    console.log("Response structure check:");
+    console.log("- responseData.data:", responseData.data);
+    console.log("- responseData.data?.pin:", responseData.data?.pin);
+    console.log("- responseData.pin:", responseData.pin);
+    console.log("- Full response keys:", Object.keys(responseData));
 
     if (!response.ok) {
       throw new Error(responseData.message || "Failed to create PIN");
     }
     
-    // Update user data with new PIN
+    // Update user data with new PIN - try multiple possible structures
+    let pinToStore = null;
     if (responseData.data && responseData.data.pin) {
+      pinToStore = responseData.data.pin;
+    } else if (responseData.pin) {
+      pinToStore = responseData.pin;
+    } else {
+      // Fallback: If API doesn't return PIN, use the PIN that was just created
+      pinToStore = data.pin;
+      console.log("Using fallback PIN from request data:", pinToStore);
+    }
+    
+    console.log("PIN to store:", pinToStore);
+    
+    if (pinToStore) {
       const currentUser = tokenUtils.getUser();
+      console.log("Current user before update:", currentUser);
       const updatedUser = {
         ...currentUser,
-        pin: responseData.data.pin,
+        pin: pinToStore,
       };
+      console.log("Updated user with PIN:", updatedUser);
       tokenUtils.setUser(updatedUser);
+      
+      // Verify the PIN was stored
+      const verifyUser = tokenUtils.getUser();
+      console.log("Verification - User data after PIN storage:", verifyUser);
+      console.log("Verification - PIN in stored user:", verifyUser?.pin);
+    } else {
+      console.error("No PIN found in API response or request data!");
     }
     
     return { success: true, message: "PIN created successfully!" };

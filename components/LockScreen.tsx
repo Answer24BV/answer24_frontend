@@ -22,11 +22,31 @@ const LockScreen: React.FC<LockScreenProps> = ({ onUnlock, show }) => {
 
       // Get user's PIN from stored user data
       const userData = tokenUtils.getUser();
+      console.log("=== LOCKSCREEN PIN DEBUG ===");
       console.log("LockScreen - User data:", userData);
       console.log("LockScreen - User PIN:", userData?.pin);
+      console.log("LockScreen - User PIN type:", typeof userData?.pin);
+      console.log("LockScreen - User PIN length:", userData?.pin?.length);
+      console.log("LockScreen - Full localStorage user_data:", localStorage.getItem("user_data"));
+      
+      // Try to parse localStorage directly
+      try {
+        const rawUserData = localStorage.getItem("user_data");
+        if (rawUserData) {
+          const parsedUserData = JSON.parse(rawUserData);
+          console.log("LockScreen - Parsed localStorage user data:", parsedUserData);
+          console.log("LockScreen - Parsed PIN:", parsedUserData?.pin);
+        }
+      } catch (e) {
+        console.error("LockScreen - Error parsing localStorage user_data:", e);
+      }
+      
+      console.log("LockScreen - All localStorage keys:", Object.keys(localStorage));
+      console.log("==================================");
       
       if (userData && userData.pin) {
         setUserPin(userData.pin);
+        setError(""); // Clear any previous error
       } else {
         // If no PIN is set, show error
         setError(
