@@ -23,16 +23,13 @@ const LockScreen: React.FC<LockScreenProps> = ({ onUnlock, show }) => {
   const [isCreatingPin, setIsCreatingPin] = useState(false);
   const [isClient, setIsClient] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const pinRef = useRef<string | null>(null);
 
   // Debug: Log when userPin state changes
   useEffect(() => {
     console.log("LockScreen - userPin state changed to:", userPin);
   }, [userPin]);
 
-  // Initialize client-side rendering
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
 
   // Listen for user data updates
   useEffect(() => {
@@ -53,100 +50,119 @@ const LockScreen: React.FC<LockScreenProps> = ({ onUnlock, show }) => {
     };
   }, []);
 
+  // Separate useEffect for client initialization
   useEffect(() => {
-    if (!show) {
-      // Reset state when lock screen is hidden
-      setUserPin(null);
-      setError("");
-      setInput("");
+    console.log("LockScreen - Client initialization useEffect");
+    setIsClient(true);
+  }, []);
+
+  // Separate useEffect for PIN detection when lock screen shows
+  useEffect(() => {
+    console.log("LockScreen - PIN detection useEffect triggered with show:", show, "isClient:", isClient);
+    
+    if (!show || !isClient) {
+      if (!show) {
+        console.log("LockScreen - Resetting state (lock screen hidden)");
+        pinRef.current = null;
+        setUserPin(null);
+        setError("");
+        setInput("");
+      }
       return;
     }
 
-    if (show && inputRef.current && isClient) {
+    console.log("LockScreen - Starting PIN detection");
+    
+    if (inputRef.current) {
       inputRef.current.focus();
-
-      // Get user's PIN from stored user data with retry mechanism
-      const getUserPin = () => {
-        const userData = tokenUtils.getUser();
-        console.log("=== LOCKSCREEN PIN DEBUG ===");
-        console.log("LockScreen - User data:", userData);
-        console.log("LockScreen - User PIN:", userData?.pin);
-        console.log("LockScreen - User PIN type:", typeof userData?.pin);
-        console.log("LockScreen - User PIN length:", userData?.pin?.length);
-        console.log("LockScreen - Full localStorage user_data:", localStorage.getItem("user_data"));
-        
-        // Try to parse localStorage directly as backup
-        let backupPin = null;
-        try {
-          const rawUserData = localStorage.getItem("user_data");
-          if (rawUserData) {
-            const parsedUserData = JSON.parse(rawUserData);
-            console.log("LockScreen - Parsed localStorage user data:", parsedUserData);
-            console.log("LockScreen - Parsed PIN:", parsedUserData?.pin);
-            backupPin = parsedUserData?.pin;
-          }
-        } catch (e) {
-          console.error("LockScreen - Error parsing localStorage user_data:", e);
-        }
-        
-        console.log("LockScreen - All localStorage keys:", Object.keys(localStorage));
-        
-        // Debug: Check all localStorage values
-        Object.keys(localStorage).forEach(key => {
-          if (key.includes('user') || key.includes('auth') || key.includes('token')) {
-            console.log(`LockScreen - ${key}:`, localStorage.getItem(key));
-          }
-        });
-        console.log("==================================");
-        
-        // Use primary PIN or fallback to backup PIN
-        const pin = userData?.pin || backupPin;
-        
-        console.log("LockScreen - Final PIN check:");
-        console.log("LockScreen - userData?.pin:", userData?.pin);
-        console.log("LockScreen - backupPin:", backupPin);
-        console.log("LockScreen - final pin:", pin);
-        console.log("LockScreen - pin type:", typeof pin);
-        console.log("LockScreen - pin length:", pin?.length);
-        
-        if (pin && typeof pin === 'string' && pin.length > 0) {
-          console.log("LockScreen - Setting PIN and clearing error");
-          setUserPin(pin);
-          setError(""); // Clear any previous error
-          console.log("LockScreen - PIN found and set:", pin);
-        } else {
-          // If no PIN is set, show error
-          console.log("LockScreen - No valid PIN found, setting error");
-          setError(
-            "No PIN configured. Please set one in Security settings."
-          );
-          console.log("LockScreen - No PIN found");
-        }
-      };
-
-      // Try immediately
-      getUserPin();
-
-      // Always retry after a short delay (in case localStorage is still loading)
-      setTimeout(() => {
-        getUserPin();
-      }, 100);
     }
+
+    // Get user's PIN from stored user data
+    const getUserPin = () => {
+      const userData = tokenUtils.getUser();
+      console.log("=== LOCKSCREEN PIN DEBUG ===");
+      console.log("LockScreen - User data:", userData);
+      console.log("LockScreen - User PIN:", userData?.pin);
+      console.log("LockScreen - User PIN type:", typeof userData?.pin);
+      console.log("LockScreen - User PIN length:", userData?.pin?.length);
+      console.log("LockScreen - Full localStorage user_data:", localStorage.getItem("user_data"));
+      
+      // Try to parse localStorage directly as backup
+      let backupPin = null;
+      try {
+        const rawUserData = localStorage.getItem("user_data");
+        if (rawUserData) {
+          const parsedUserData = JSON.parse(rawUserData);
+          console.log("LockScreen - Parsed localStorage user data:", parsedUserData);
+          console.log("LockScreen - Parsed PIN:", parsedUserData?.pin);
+          backupPin = parsedUserData?.pin;
+        }
+      } catch (e) {
+        console.error("LockScreen - Error parsing localStorage user_data:", e);
+      }
+      
+      console.log("LockScreen - All localStorage keys:", Object.keys(localStorage));
+      
+      // Debug: Check all localStorage values
+      Object.keys(localStorage).forEach(key => {
+        if (key.includes('user') || key.includes('auth') || key.includes('token')) {
+          console.log(`LockScreen - ${key}:`, localStorage.getItem(key));
+        }
+      });
+      console.log("==================================");
+      
+      // Use primary PIN or fallback to backup PIN
+      const pin = userData?.pin || backupPin;
+      
+      console.log("LockScreen - Final PIN check:");
+      console.log("LockScreen - userData?.pin:", userData?.pin);
+      console.log("LockScreen - backupPin:", backupPin);
+      console.log("LockScreen - final pin:", pin);
+      console.log("LockScreen - pin type:", typeof pin);
+      console.log("LockScreen - pin length:", pin?.length);
+      
+      if (pin && typeof pin === 'string' && pin.length > 0) {
+        console.log("LockScreen - Setting PIN and clearing error");
+        pinRef.current = pin; // Store in ref for persistence
+        setUserPin(pin);
+        setError(""); // Clear any previous error
+        console.log("LockScreen - PIN found and set:", pin);
+      } else {
+        // If no PIN is set, show error
+        console.log("LockScreen - No valid PIN found, setting error");
+        pinRef.current = null;
+        setError(
+          "No PIN configured. Please set one in Security settings."
+        );
+        console.log("LockScreen - No PIN found");
+      }
+    };
+
+    // Try immediately
+    getUserPin();
+
+    // Always retry after a short delay (in case localStorage is still loading)
+    setTimeout(() => {
+      getUserPin();
+    }, 100);
+    
+    console.log("LockScreen - PIN detection setup complete");
   }, [show, isClient]);
 
   const handleUnlock = (e: React.FormEvent) => {
     e.preventDefault();
 
     // Check if user has a PIN configured
-    if (!userPin) {
+    const pinToUse = userPin || pinRef.current;
+    if (!pinToUse) {
       setError("No PIN configured. Please set one in Security settings.");
       return;
     }
 
     console.log("Attempting unlock with PIN:", input);
-    console.log("Expected PIN:", userPin);
+    console.log("Expected PIN:", pinToUse);
 
-    if (input === userPin) {
+    if (input === pinToUse) {
       setError("");
       setInput("");
       onUnlock();
@@ -265,7 +281,9 @@ const LockScreen: React.FC<LockScreenProps> = ({ onUnlock, show }) => {
 
   if (!show || !isClient) return null;
 
-  console.log("LockScreen - Rendering with userPin:", userPin, "show:", show, "isClient:", isClient);
+  // Use ref value as fallback if state is null but ref has value
+  const currentPin = userPin || pinRef.current;
+  console.log("LockScreen - Rendering with userPin:", userPin, "pinRef.current:", pinRef.current, "currentPin:", currentPin, "show:", show, "isClient:", isClient);
 
   return (
     <AnimatePresence>
@@ -377,10 +395,10 @@ const LockScreen: React.FC<LockScreenProps> = ({ onUnlock, show }) => {
                 Secure Access
               </h2>
               <p className="mb-6 text-gray-500 text-sm text-center">
-                {userPin ? "Enter your 6-digit PIN to unlock the application." : "Set up a PIN to secure your application."}
+                {currentPin ? "Enter your 6-digit PIN to unlock the application." : "Set up a PIN to secure your application."}
               </p>
               
-              {userPin && (
+              {currentPin && (
                 <Input
                   ref={inputRef}
                   type="password"
@@ -407,15 +425,15 @@ const LockScreen: React.FC<LockScreenProps> = ({ onUnlock, show }) => {
               )}
               
               <Button
-                type={userPin ? "submit" : "button"}
-                onClick={!userPin ? handleSetupPin : undefined}
+                type={currentPin ? "submit" : "button"}
+                onClick={!currentPin ? handleSetupPin : undefined}
                 className="w-full bg-blue-900 hover:bg-blue-800 text-white font-medium py-2 rounded-lg transition-colors duration-200"
-                disabled={userPin ? (input.length !== 6) : false}
+                disabled={currentPin ? (input.length !== 6) : false}
               >
-                {!userPin ? "Set Up PIN" : "Unlock"}
+                {!currentPin ? "Set Up PIN" : "Unlock"}
               </Button>
 
-              {!userPin && (
+              {!currentPin && (
                 <p className="text-xs text-gray-500 mt-4 text-center">
                   Click "Set Up PIN" to create a secure PIN for your application.
                 </p>
