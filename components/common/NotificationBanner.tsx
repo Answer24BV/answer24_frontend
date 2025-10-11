@@ -23,29 +23,43 @@ export const NotificationBanner: React.FC = () => {
       console.log('- Notification support:', 'Notification' in window);
       console.log('- Current permission:', Notification.permission);
       console.log('- Previously dismissed:', localStorage.getItem('notification-banner-dismissed'));
+      console.log('- Permission already asked:', localStorage.getItem('notification-permission-asked'));
+      console.log('- Previous result:', localStorage.getItem('notification-permission-result'));
       
       if (!('Notification' in window)) {
         console.log('❌ Browser does not support notifications');
         return false;
       }
+      
+      // Don't show if permission is already granted or denied
       if (Notification.permission !== 'default') {
         console.log('❌ Permission already granted/denied:', Notification.permission);
         return false;
       }
+      
+      // Don't show if user previously dismissed the banner
       if (localStorage.getItem('notification-banner-dismissed') === 'true') {
         console.log('❌ Banner was previously dismissed');
         return false;
       }
+      
+      // Don't show if we already asked for permission (regardless of result)
+      if (localStorage.getItem('notification-permission-asked') === 'true') {
+        console.log('❌ Permission was already requested');
+        return false;
+      }
+      
       console.log('✅ Should show banner');
       return true;
     };
 
-    if (shouldShow() ) {
+    if (shouldShow()) {
       console.log('⏰ Setting timer to show banner in 2 seconds');
       const timer = setTimeout(() => {
         console.log('🔔 Showing notification banner');
         setShowBanner(true);
       }, 2000);
+      
       return () => clearTimeout(timer);
     }
   }, []);
@@ -54,6 +68,11 @@ export const NotificationBanner: React.FC = () => {
     setIsRequesting(true);
     try {
       const permission = await Notification.requestPermission();
+      
+      // Always save the user's choice to localStorage
+      localStorage.setItem('notification-permission-asked', 'true');
+      localStorage.setItem('notification-permission-result', permission);
+      
       if (permission === 'granted') {
         toast.success('Notifications enabled!');
         setTimeout(() => {
@@ -62,12 +81,19 @@ export const NotificationBanner: React.FC = () => {
             icon: '/answerLogobgRemover-removebg-preview.png',
           });
         }, 1000);
+      } else if (permission === 'denied') {
+        toast.error('Notifications disabled. You can enable them later in your browser settings.');
       } else {
-        toast.error('Notifications disabled');
+        toast.error('Notification permission not granted');
       }
+      
       setShowBanner(false);
     } catch (error) {
+      console.error('Error requesting notification permission:', error);
       toast.error('Failed to request notification permission');
+      // Even if there's an error, mark that we asked
+      localStorage.setItem('notification-permission-asked', 'true');
+      setShowBanner(false);
     } finally {
       setIsRequesting(false);
     }
@@ -77,6 +103,19 @@ export const NotificationBanner: React.FC = () => {
     setShowBanner(false);
     localStorage.setItem('notification-banner-dismissed', 'true');
   };
+
+  // Function to reset notification permission state (useful for testing)
+  const resetNotificationState = () => {
+    localStorage.removeItem('notification-banner-dismissed');
+    localStorage.removeItem('notification-permission-asked');
+    localStorage.removeItem('notification-permission-result');
+    console.log('Notification permission state reset');
+  };
+
+  // Make reset function available globally for testing
+  if (typeof window !== 'undefined') {
+    (window as any).resetNotificationState = resetNotificationState;
+  }
 
   return (
     <AnimatePresence>
