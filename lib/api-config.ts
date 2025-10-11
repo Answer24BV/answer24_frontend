@@ -40,10 +40,6 @@ export const API_CONFIG = {
       TRANSACTIONS: "/wallet/transactions",
       DEPOSIT: "/wallet/deposit",
     },
-    ADMIN: {
-      USERS: "/admin/users",
-      USER_STATUS: (userId: string) => `/admin/users/${userId}/status`,
-    },
     BLOG: {
       LIST: "/blog",
       BY_ID: (id: string) => `/blog/${id}`,
@@ -58,6 +54,19 @@ export const API_CONFIG = {
     },
     NOTIFICATIONS: {
       LIST: "/notifications",
+    },
+    CHAT: {
+      CHATS: "/chats",
+      CHAT_BY_ID: (id: string) => `/chats/${id}`,
+      MESSAGES: (chatId: string) => `/chats/${chatId}/messages`,
+      MESSAGE_READ: (messageId: string) => `/messages/${messageId}/read`,
+      AI_RESPONSE: (chatId: string) => `/chats/${chatId}/ai`,
+    },
+    ADMIN: {
+      USERS: "/admin/users",
+      USER_STATUS: (userId: string) => `/admin/users/${userId}/status`,
+      USER_AI_TOGGLE: (userId: string) => `/admin/users/${userId}/ai-toggle`,
+      CHAT_ANALYTICS: "/admin/chat-analytics",
     },
   },
 } as const;

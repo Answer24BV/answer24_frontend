@@ -12,7 +12,7 @@ export async function getChats(): Promise<Chat[]> {
       throw new Error("No authentication token found")
     }
 
-    const response = await fetch(getApiUrl("/chats"), {
+    const response = await fetch(getApiUrl("/api/v1/chats"), {
       method: "GET",
       headers: getApiHeaders(token),
     })
@@ -37,7 +37,7 @@ export async function getChatMessages(chatId: string): Promise<Message[]> {
       throw new Error("No authentication token found")
     }
 
-    const response = await fetch(getApiUrl(`/chats/${chatId}/messages`), {
+    const response = await fetch(getApiUrl(`/api/v1/chats/${chatId}/messages`), {
       method: "GET",
       headers: getApiHeaders(token),
     })
@@ -78,7 +78,7 @@ export async function sendMessage(
       })
     }
 
-    const response = await fetch(getApiUrl(`/chats/${chatId}/messages`), {
+    const response = await fetch(getApiUrl(`/api/v1/chats/${chatId}/messages`), {
       method: "POST",
       headers: {
         ...getApiHeaders(token),
@@ -106,7 +106,7 @@ export async function createChat(participantIds: string[], title?: string): Prom
       throw new Error("No authentication token found")
     }
 
-    const response = await fetch(getApiUrl("/chats"), {
+    const response = await fetch(getApiUrl("/api/v1/chats"), {
       method: "POST",
       headers: {
         ...getApiHeaders(token),
@@ -138,7 +138,7 @@ export async function createHelpdeskChat(): Promise<Chat> {
       throw new Error("No authentication token found")
     }
 
-    const response = await fetch(getApiUrl("/chats"), {
+    const response = await fetch(getApiUrl("/api/v1/chats"), {
       method: "POST",
       headers: {
         ...getApiHeaders(token),
@@ -169,7 +169,7 @@ export async function generateAIResponse(chatId: string, message: string): Promi
       throw new Error("No authentication token found")
     }
 
-    const response = await fetch(getApiUrl(`/chats/${chatId}/ai`), {
+    const response = await fetch(getApiUrl(`/api/v1/chats/${chatId}/ai`), {
       method: "POST",
       headers: {
         ...getApiHeaders(token),
@@ -199,7 +199,7 @@ export async function toggleAIForChat(chatId: string, enabled: boolean): Promise
       throw new Error("No authentication token found")
     }
 
-    const response = await fetch(getApiUrl(`/chats/${chatId}`), {
+    const response = await fetch(getApiUrl(`/api/v1/chats/${chatId}`), {
       method: "PUT",
       headers: {
         ...getApiHeaders(token),
@@ -226,7 +226,7 @@ export async function markMessageAsRead(messageId: string): Promise<void> {
       throw new Error("No authentication token found")
     }
 
-    const response = await fetch(getApiUrl(`/messages/${messageId}/read`), {
+    const response = await fetch(getApiUrl(`/api/v1/messages/${messageId}/read`), {
       method: "POST",
       headers: getApiHeaders(token),
     })
