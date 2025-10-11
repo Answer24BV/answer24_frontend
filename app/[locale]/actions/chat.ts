@@ -1,4 +1,4 @@
-"use server"
+"use client"
 
 import { User, Chat, Message } from "@/types/chat"
 import { tokenUtils } from "@/utils/auth"

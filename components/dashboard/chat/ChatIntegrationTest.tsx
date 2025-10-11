@@ -10,7 +10,7 @@ import {
   createHelpdeskChat, 
   sendMessage, 
   generateAIResponse 
-} from "@/app/[locale]/actions/chat"
+} from "@/lib/chat-service"
 import { tokenUtils } from "@/utils/auth"
 
 export function ChatIntegrationTest() {
