@@ -7,6 +7,7 @@ import { Switch } from "@/components/ui/switch";
 import React, { useState } from "react";
 import { toast } from "react-toastify";
 import { tokenUtils } from "@/utils/auth";
+import { getApiUrl, getApiHeaders } from "@/lib/api-config";
 
 // API call to update lock settings
 const updateLockSettings = async (data: {
@@ -15,16 +16,10 @@ const updateLockSettings = async (data: {
 }) => {
   try {
     const response = await fetch(
-      `${
-        process.env.NEXT_PUBLIC_API_BASE_URL ||
-        "https://answer24.laravel.cloud/api/v1"
-      }/profile`,
+      getApiUrl("/profile"),
       {
         method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${tokenUtils.getToken()}`,
-        },
+        headers: getApiHeaders(tokenUtils.getToken() || undefined),
         body: JSON.stringify(data),
       }
     );
@@ -60,11 +55,73 @@ const updateLockSettings = async (data: {
   }
 };
 
-// Mock API call for password (keep existing)
-const updateUserPassword = async (data: any) => {
-  console.log("Updating password with:", data);
-  await new Promise((resolve) => setTimeout(resolve, 1000));
-  return { success: true, message: "Password updated successfully!" };
+// API call to change password
+const updateUserPassword = async (data: {
+  current_password: string;
+  new_password: string;
+  confirm_password: string;
+}) => {
+  try {
+    const response = await fetch(
+      getApiUrl("/change-password"),
+      {
+        method: "POST",
+        headers: getApiHeaders(tokenUtils.getToken() || undefined),
+        body: JSON.stringify(data),
+      }
+    );
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || "Failed to change password");
+    }
+
+    const responseData = await response.json();
+    return { success: true, message: "Password updated successfully!" };
+  } catch (error) {
+    console.error("Error changing password:", error);
+    return {
+      success: false,
+      message:
+        error instanceof Error
+          ? error.message
+          : "Failed to change password. Please try again.",
+    };
+  }
+};
+
+// API call to create PIN
+const createPin = async (data: {
+  pin: string;
+  confirm_pin: string;
+}) => {
+  try {
+    const response = await fetch(
+      getApiUrl("/create-pin"),
+      {
+        method: "POST",
+        headers: getApiHeaders(tokenUtils.getToken() || undefined),
+        body: JSON.stringify(data),
+      }
+    );
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || "Failed to create PIN");
+    }
+
+    const responseData = await response.json();
+    return { success: true, message: "PIN created successfully!" };
+  } catch (error) {
+    console.error("Error creating PIN:", error);
+    return {
+      success: false,
+      message:
+        error instanceof Error
+          ? error.message
+          : "Failed to create PIN. Please try again.",
+    };
+  }
 };
 
 export function Security() {
@@ -76,6 +133,14 @@ export function Security() {
   const [lockKey, setLockKey] = useState("");
   const [lockTimeout, setLockTimeout] = useState(1);
   const [isUpdatingLock, setIsUpdatingLock] = useState(false);
+
+  // Password change state
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
+
+  // PIN creation state
+  const [pin, setPin] = useState("");
+  const [confirmPin, setConfirmPin] = useState("");
+  const [isCreatingPin, setIsCreatingPin] = useState(false);
 
   // Load current user data on mount
   React.useEffect(() => {
@@ -143,19 +208,113 @@ export function Security() {
     text: string;
   } | null>(null);
 
+  const [pinMsg, setPinMsg] = useState<{
+    type: "error" | "success";
+    text: string;
+  } | null>(null);
+
   const handlePasswordSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setPasswordMsg(null);
+
+    // Validation
+    if (!currentPassword.trim()) {
+      setPasswordMsg({ type: "error", text: "Current password is required." });
+      return;
+    }
+
+    if (!newPassword.trim()) {
+      setPasswordMsg({ type: "error", text: "New password is required." });
+      return;
+    }
+
+    if (newPassword.length < 8) {
+      setPasswordMsg({ type: "error", text: "New password must be at least 8 characters long." });
+      return;
+    }
+
     if (newPassword !== confirmPassword) {
       setPasswordMsg({ type: "error", text: "New passwords do not match." });
       return;
     }
-    const response = await updateUserPassword({ currentPassword, newPassword });
-    if (response.success) {
-      setPasswordMsg({ type: "success", text: response.message });
-      setCurrentPassword("");
-      setNewPassword("");
-      setConfirmPassword("");
+
+    if (currentPassword === newPassword) {
+      setPasswordMsg({ type: "error", text: "New password must be different from current password." });
+      return;
+    }
+
+    setIsChangingPassword(true);
+
+    try {
+      const response = await updateUserPassword({
+        current_password: currentPassword,
+        new_password: newPassword,
+        confirm_password: confirmPassword,
+      });
+
+      if (response.success) {
+        setPasswordMsg({ type: "success", text: response.message });
+        setCurrentPassword("");
+        setNewPassword("");
+        setConfirmPassword("");
+        toast.success(response.message);
+      } else {
+        setPasswordMsg({ type: "error", text: response.message });
+        toast.error(response.message);
+      }
+    } catch (error) {
+      const errorMsg = "Failed to change password. Please try again.";
+      setPasswordMsg({ type: "error", text: errorMsg });
+      toast.error(errorMsg);
+    } finally {
+      setIsChangingPassword(false);
+    }
+  };
+
+  const handlePinSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPinMsg(null);
+
+    // Validation
+    if (!pin.trim()) {
+      setPinMsg({ type: "error", text: "PIN is required." });
+      return;
+    }
+
+    if (pin.length < 4) {
+      setPinMsg({ type: "error", text: "PIN must be at least 4 characters long." });
+      return;
+    }
+
+    if (pin !== confirmPin) {
+      setPinMsg({ type: "error", text: "PINs do not match." });
+      return;
+    }
+
+    setIsCreatingPin(true);
+
+    try {
+      const response = await createPin({
+        pin: pin,
+        confirm_pin: confirmPin,
+      });
+
+      if (response.success) {
+        setPinMsg({ type: "success", text: response.message });
+        setPin("");
+        setConfirmPin("");
+        toast.success(response.message);
+      } else {
+        setPinMsg({ type: "error", text: response.message });
+        toast.error(response.message);
+      }
+    } catch (error) {
+      const errorMsg = "Failed to create PIN. Please try again.";
+      setPinMsg({ type: "error", text: errorMsg });
+      toast.error(errorMsg);
+    } finally {
+      // Always revert button state regardless of success or error
+      setIsCreatingPin(false);
     }
   };
 
@@ -179,6 +338,60 @@ export function Security() {
           </div>
         </div>
 
+        {/* Create PIN */}
+        <div>
+          <h3 className="text-lg font-medium text-gray-900">Create PIN</h3>
+          <p className="mt-1 text-sm text-gray-500">
+            Create a secure PIN for additional account protection.
+          </p>
+          <form className="mt-4 space-y-4" onSubmit={handlePinSubmit}>
+            <div>
+              <Label htmlFor="pin">PIN</Label>
+              <Input
+                id="pin"
+                type="password"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                placeholder="Enter PIN"
+                value={pin}
+                onChange={(e) => setPin(e.target.value.replace(/[^0-9]/g, ""))}
+                disabled={isCreatingPin}
+                autoComplete="off"
+              />
+            </div>
+            <div>
+              <Label htmlFor="confirm-pin">Confirm PIN</Label>
+              <Input
+                id="confirm-pin"
+                type="password"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                placeholder="Confirm PIN"
+                value={confirmPin}
+                onChange={(e) => setConfirmPin(e.target.value.replace(/[^0-9]/g, ""))}
+                disabled={isCreatingPin}
+                autoComplete="off"
+              />
+            </div>
+            <div className="flex justify-end">
+              <Button type="submit" disabled={isCreatingPin}>
+                {isCreatingPin ? "Creating..." : "Create PIN"}
+              </Button>
+            </div>
+            {pinMsg && (
+              <div
+                className={`mt-2 text-sm ${
+                  pinMsg.type === "error"
+                    ? "text-red-600"
+                    : "text-green-600"
+                }`}
+              >
+                {pinMsg.text}
+              </div>
+            )}
+          </form>
+        </div>
+
         {/* Password Change */}
         <div>
           <h3 className="text-lg font-medium text-gray-900">Change Password</h3>
@@ -191,6 +404,7 @@ export function Security() {
                 placeholder="Enter current password"
                 value={currentPassword}
                 onChange={(e) => setCurrentPassword(e.target.value)}
+                disabled={isChangingPassword}
               />
             </div>
             <div>
@@ -201,6 +415,7 @@ export function Security() {
                 placeholder="Enter new password"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
+                disabled={isChangingPassword}
               />
             </div>
             <div>
@@ -211,10 +426,13 @@ export function Security() {
                 placeholder="Confirm new password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
+                disabled={isChangingPassword}
               />
             </div>
             <div className="flex justify-end">
-              <Button type="submit">Update Password</Button>
+              <Button type="submit" disabled={isChangingPassword}>
+                {isChangingPassword ? "Updating..." : "Update Password"}
+              </Button>
             </div>
             {passwordMsg && (
               <div
