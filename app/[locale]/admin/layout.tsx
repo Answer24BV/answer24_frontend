@@ -1,4 +1,5 @@
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
+import { AuthGuard } from "@/components/AuthGuard";
 
 export default function AdminLayout({
   children,
@@ -6,9 +7,11 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen bg-gray-50">
-      <DashboardHeader />
-      <main className="">{children}</main>
-    </div>
+    <AuthGuard requireAuth={true}>
+      <div className="min-h-screen bg-gray-50">
+        <DashboardHeader />
+        <main className="">{children}</main>
+      </div>
+    </AuthGuard>
   );
 }

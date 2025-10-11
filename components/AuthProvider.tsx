@@ -39,6 +39,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     "/forgot-password",
     "/reset-password",
     "/partner-signup",
+    "/about",
+    "/contact",
+    "/pricing",
+    "/faq",
+    "/blog",
+    "/legal",
+    "/unauthorized",
     "/",
   ];
 
@@ -57,6 +64,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         const currentIsPublicRoute = publicRoutes.some((route) =>
           pathname.startsWith(route)
         );
+
+        console.log("=== AUTH PROVIDER DEBUG ===");
+        console.log("Current pathname:", pathname);
+        console.log("Token exists:", !!token);
+        console.log("User data exists:", !!userData);
+        console.log("Is public route:", currentIsPublicRoute);
+        console.log("Public routes:", publicRoutes);
+        console.log("===========================");
 
         if (token && userData) {
           setIsAuthenticated(true);
