@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { Plus, MoreHorizontal, SlidersHorizontal } from "lucide-react"
 import type { Chat } from "@/types/chat"
-import { getChats } from "@/lib/chat-service"
+import { getChats, createChat, createHelpdeskChat } from "@/lib/chat-service"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
@@ -17,6 +17,7 @@ interface ChatListSidebarProps {
 export function ChatListSidebar({ onChatSelect, selectedChatId, currentUserId }: ChatListSidebarProps) {
   const [chats, setChats] = useState<Chat[]>([])
   const [searchQuery, setSearchQuery] = useState("")
+  const [isCreating, setIsCreating] = useState(false)
 
   useEffect(() => {
     const loadChats = async () => {
@@ -25,6 +26,25 @@ export function ChatListSidebar({ onChatSelect, selectedChatId, currentUserId }:
     }
     loadChats()
   }, [])
+
+  const handleCreateHelpdeskChat = async () => {
+    setIsCreating(true)
+    try {
+      const newChat = await createHelpdeskChat()
+      setChats(prev => [newChat, ...prev])
+      onChatSelect(newChat)
+    } catch (error) {
+      console.error("Failed to create helpdesk chat:", error)
+      alert("Failed to create helpdesk chat. Please try again.")
+    } finally {
+      setIsCreating(false)
+    }
+  }
+
+  const refreshChats = async () => {
+    const chatData = await getChats()
+    setChats(chatData)
+  }
 
   const formatDate = (date: Date) => {
     return date.toLocaleDateString("en-US", { day: "2-digit", month: "short" })
@@ -42,10 +62,23 @@ export function ChatListSidebar({ onChatSelect, selectedChatId, currentUserId }:
         <div className="flex items-center justify-between mb-4">
           <h1 className="text-lg font-semibold text-gray-900">Message</h1>
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="sm" className="p-1.5 h-8 w-8">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="p-1.5 h-8 w-8"
+              onClick={handleCreateHelpdeskChat}
+              disabled={isCreating}
+              title="Start Helpdesk Chat"
+            >
               <Plus className="h-4 w-4" />
             </Button>
-            <Button variant="ghost" size="sm" className="p-1.5 h-8 w-8">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="p-1.5 h-8 w-8"
+              onClick={refreshChats}
+              title="Refresh Chats"
+            >
               <MoreHorizontal className="h-4 w-4" />
             </Button>
           </div>
@@ -54,7 +87,14 @@ export function ChatListSidebar({ onChatSelect, selectedChatId, currentUserId }:
         {/* Search */}
         <div className="relative">
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="sm" className="p-1.5 h-8 w-8 flex-shrink-0">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="p-1.5 h-8 w-8 flex-shrink-0"
+              onClick={handleCreateHelpdeskChat}
+              disabled={isCreating}
+              title="Start New Chat"
+            >
               <Plus className="h-4 w-4" />
             </Button>
             <div className="relative flex-1">
