@@ -98,30 +98,45 @@ export class ChatService {
     try {
       const token = this.ensureAuth()
 
+      console.log("ChatService.sendMessage: Making request to:", getApiUrl(`/chats/${chatId}/messages`))
+      console.log("ChatService.sendMessage: Using token:", token.substring(0, 20) + "...")
+
       const formData = new FormData()
       formData.append("content", content)
       formData.append("type", type)
 
-      if (attachments) {
+      if (attachments && attachments.length > 0) {
         attachments.forEach((file) => {
           formData.append("attachments[]", file)
         })
       }
 
+      console.log("ChatService.sendMessage: FormData contents:")
+      for (let [key, value] of formData.entries()) {
+        console.log(`${key}:`, value)
+      }
+
       const response = await fetch(getApiUrl(`/chats/${chatId}/messages`), {
         method: "POST",
         headers: {
-          ...getApiHeaders(token),
+          'Accept': 'application/json',
+          'Authorization': `Bearer ${token}`,
           // Don't set Content-Type for FormData, let browser set it with boundary
         },
         body: formData,
       })
 
+      console.log("ChatService.sendMessage: Response status:", response.status)
+      console.log("ChatService.sendMessage: Response headers:", Object.fromEntries(response.headers.entries()))
+
       if (!response.ok) {
-        throw new Error(`Failed to send message: ${response.status}`)
+        const errorText = await response.text()
+        console.error("ChatService.sendMessage: Error response:", errorText)
+        throw new Error(`Failed to send message: ${response.status} - ${errorText}`)
       }
 
       const data = await response.json()
+      console.log("ChatService.sendMessage: Response data:", data)
       return data.message
     } catch (error) {
       console.error("ChatService.sendMessage: Error:", error)
@@ -178,7 +193,8 @@ export class ChatService {
 
       const requestBody = {
         type: "helpdesk",
-        title: "Helpdesk Support"
+        title: "Helpdesk Support",
+        participants: [this.user?.id || "1"] // Include current user as participant
       }
       console.log("ChatService.createHelpdeskChat: Request body:", requestBody)
 
