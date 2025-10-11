@@ -31,8 +31,25 @@ export default function SignIn() {
       const response = await authAPI.login(email, password, rememberMe);
 
       // Store token and user data
+      console.log("=== LOGIN RESPONSE DEBUG ===");
+      console.log("Full response:", response);
+      console.log("Response token:", response.token);
+      console.log("Response data token:", response.data?.token);
+      console.log("=============================");
+      
+      // Handle token from different possible locations
+      let tokenToStore = null;
       if (response.token) {
-        tokenUtils.setToken(response.token);
+        tokenToStore = response.token;
+      } else if (response.data && response.data.token) {
+        tokenToStore = response.data.token;
+      }
+      
+      if (tokenToStore) {
+        console.log("Storing token:", tokenToStore);
+        tokenUtils.setToken(tokenToStore);
+      } else {
+        console.error("No token found in response:", response);
       }
       
       // Handle different possible response structures
@@ -50,6 +67,16 @@ export default function SignIn() {
           profile_picture: response.data.profile_picture,
         };
       }
+      
+      // Add PIN to user data if available
+      if (response.data && response.data.pin) {
+        userData = {
+          ...userData,
+          pin: response.data.pin,
+        };
+      }
+      
+      console.log("Final user data to store:", userData);
       
       if (userData && userData.email) {
         tokenUtils.setUser(userData);

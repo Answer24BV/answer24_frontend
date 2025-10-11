@@ -57,13 +57,47 @@ export default function GoogleCallbackClient() {
 
       setStatus("Storing authentication data...");
 
-      // Store the token and user data
+      console.log("=== GOOGLE CALLBACK DEBUG ===");
+      console.log("Full tokenData:", tokenData);
+      console.log("TokenData token:", tokenData.token);
+      console.log("TokenData data token:", tokenData.data?.token);
+      console.log("===============================");
+
+      // Handle token from different possible locations
+      let tokenToStore = null;
       if (tokenData.token) {
-        tokenUtils.setToken(tokenData.token);
+        tokenToStore = tokenData.token;
+      } else if (tokenData.data && tokenData.data.token) {
+        tokenToStore = tokenData.data.token;
+      }
+      
+      if (tokenToStore) {
+        console.log("Storing Google token:", tokenToStore);
+        tokenUtils.setToken(tokenToStore);
+      } else {
+        console.error("No token found in Google callback response:", tokenData);
       }
 
+      // Handle user data and PIN
+      let userData = null;
       if (tokenData.user) {
-        tokenUtils.setUser(tokenData.user);
+        userData = tokenData.user;
+      } else if (tokenData.data && tokenData.data.user) {
+        userData = tokenData.data.user;
+      }
+      
+      // Add PIN to user data if available
+      if (tokenData.data && tokenData.data.pin) {
+        userData = {
+          ...userData,
+          pin: tokenData.data.pin,
+        };
+      }
+      
+      console.log("Final Google user data to store:", userData);
+
+      if (userData) {
+        tokenUtils.setUser(userData);
       }
 
       setStatus("Authentication successful! Redirecting...");
