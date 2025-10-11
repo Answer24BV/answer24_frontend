@@ -21,47 +21,96 @@ const LockScreen: React.FC<LockScreenProps> = ({ onUnlock, show }) => {
   });
   const [pinSetupError, setPinSetupError] = useState("");
   const [isCreatingPin, setIsCreatingPin] = useState(false);
+  const [isClient, setIsClient] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  // Initialize client-side rendering
   useEffect(() => {
-    if (show && inputRef.current) {
-      inputRef.current.focus();
+    setIsClient(true);
+  }, []);
 
-      // Get user's PIN from stored user data
-      const userData = tokenUtils.getUser();
-      console.log("=== LOCKSCREEN PIN DEBUG ===");
-      console.log("LockScreen - User data:", userData);
-      console.log("LockScreen - User PIN:", userData?.pin);
-      console.log("LockScreen - User PIN type:", typeof userData?.pin);
-      console.log("LockScreen - User PIN length:", userData?.pin?.length);
-      console.log("LockScreen - Full localStorage user_data:", localStorage.getItem("user_data"));
-      
-      // Try to parse localStorage directly
-      try {
-        const rawUserData = localStorage.getItem("user_data");
-        if (rawUserData) {
-          const parsedUserData = JSON.parse(rawUserData);
-          console.log("LockScreen - Parsed localStorage user data:", parsedUserData);
-          console.log("LockScreen - Parsed PIN:", parsedUserData?.pin);
-        }
-      } catch (e) {
-        console.error("LockScreen - Error parsing localStorage user_data:", e);
-      }
-      
-      console.log("LockScreen - All localStorage keys:", Object.keys(localStorage));
-      console.log("==================================");
-      
+  // Listen for user data updates
+  useEffect(() => {
+    const handleUserDataUpdate = (event: CustomEvent) => {
+      const userData = event.detail;
+      console.log("LockScreen - User data updated:", userData);
       if (userData && userData.pin) {
         setUserPin(userData.pin);
-        setError(""); // Clear any previous error
-      } else {
-        // If no PIN is set, show error
-        setError(
-          "No PIN configured. Please set one in Security settings."
-        );
+        setError("");
+        console.log("LockScreen - PIN updated from event:", userData.pin);
       }
+    };
+
+    window.addEventListener('userDataUpdated', handleUserDataUpdate as EventListener);
+    
+    return () => {
+      window.removeEventListener('userDataUpdated', handleUserDataUpdate as EventListener);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (show && inputRef.current && isClient) {
+      inputRef.current.focus();
+
+      // Get user's PIN from stored user data with retry mechanism
+      const getUserPin = () => {
+        const userData = tokenUtils.getUser();
+        console.log("=== LOCKSCREEN PIN DEBUG ===");
+        console.log("LockScreen - User data:", userData);
+        console.log("LockScreen - User PIN:", userData?.pin);
+        console.log("LockScreen - User PIN type:", typeof userData?.pin);
+        console.log("LockScreen - User PIN length:", userData?.pin?.length);
+        console.log("LockScreen - Full localStorage user_data:", localStorage.getItem("user_data"));
+        
+        // Try to parse localStorage directly as backup
+        let backupPin = null;
+        try {
+          const rawUserData = localStorage.getItem("user_data");
+          if (rawUserData) {
+            const parsedUserData = JSON.parse(rawUserData);
+            console.log("LockScreen - Parsed localStorage user data:", parsedUserData);
+            console.log("LockScreen - Parsed PIN:", parsedUserData?.pin);
+            backupPin = parsedUserData?.pin;
+          }
+        } catch (e) {
+          console.error("LockScreen - Error parsing localStorage user_data:", e);
+        }
+        
+        console.log("LockScreen - All localStorage keys:", Object.keys(localStorage));
+        
+        // Debug: Check all localStorage values
+        Object.keys(localStorage).forEach(key => {
+          if (key.includes('user') || key.includes('auth') || key.includes('token')) {
+            console.log(`LockScreen - ${key}:`, localStorage.getItem(key));
+          }
+        });
+        console.log("==================================");
+        
+        // Use primary PIN or fallback to backup PIN
+        const pin = userData?.pin || backupPin;
+        
+        if (pin && typeof pin === 'string' && pin.length > 0) {
+          setUserPin(pin);
+          setError(""); // Clear any previous error
+          console.log("LockScreen - PIN found and set:", pin);
+        } else {
+          // If no PIN is set, show error
+          setError(
+            "No PIN configured. Please set one in Security settings."
+          );
+          console.log("LockScreen - No PIN found");
+        }
+      };
+
+      // Try immediately
+      getUserPin();
+
+      // Always retry after a short delay (in case localStorage is still loading)
+      setTimeout(() => {
+        getUserPin();
+      }, 100);
     }
-  }, [show]);
+  }, [show, isClient]);
 
   const handleUnlock = (e: React.FormEvent) => {
     e.preventDefault();
@@ -192,7 +241,7 @@ const LockScreen: React.FC<LockScreenProps> = ({ onUnlock, show }) => {
     setPinSetupError("");
   };
 
-  if (!show) return null;
+  if (!show || !isClient) return null;
 
   return (
     <AnimatePresence>
