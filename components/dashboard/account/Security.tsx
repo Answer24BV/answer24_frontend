@@ -90,39 +90,6 @@ const updateUserPassword = async (data: {
   }
 };
 
-// API call to create PIN
-const createPin = async (data: {
-  pin: string;
-  confirm_pin: string;
-}) => {
-  try {
-    const response = await fetch(
-      getApiUrl("/create-pin"),
-      {
-        method: "POST",
-        headers: getApiHeaders(tokenUtils.getToken() || undefined),
-        body: JSON.stringify(data),
-      }
-    );
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || "Failed to create PIN");
-    }
-
-    const responseData = await response.json();
-    return { success: true, message: "PIN created successfully!" };
-  } catch (error) {
-    console.error("Error creating PIN:", error);
-    return {
-      success: false,
-      message:
-        error instanceof Error
-          ? error.message
-          : "Failed to create PIN. Please try again.",
-    };
-  }
-};
 
 export function Security() {
   const [currentPassword, setCurrentPassword] = useState("");
@@ -137,10 +104,6 @@ export function Security() {
   // Password change state
   const [isChangingPassword, setIsChangingPassword] = useState(false);
 
-  // PIN creation state
-  const [pin, setPin] = useState("");
-  const [confirmPin, setConfirmPin] = useState("");
-  const [isCreatingPin, setIsCreatingPin] = useState(false);
 
   // Load current user data on mount
   React.useEffect(() => {
@@ -208,10 +171,6 @@ export function Security() {
     text: string;
   } | null>(null);
 
-  const [pinMsg, setPinMsg] = useState<{
-    type: "error" | "success";
-    text: string;
-  } | null>(null);
 
   const handlePasswordSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -271,52 +230,6 @@ export function Security() {
     }
   };
 
-  const handlePinSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setPinMsg(null);
-
-    // Validation
-    if (!pin.trim()) {
-      setPinMsg({ type: "error", text: "PIN is required." });
-      return;
-    }
-
-    if (pin.length < 4) {
-      setPinMsg({ type: "error", text: "PIN must be at least 4 characters long." });
-      return;
-    }
-
-    if (pin !== confirmPin) {
-      setPinMsg({ type: "error", text: "PINs do not match." });
-      return;
-    }
-
-    setIsCreatingPin(true);
-
-    try {
-      const response = await createPin({
-        pin: pin,
-        confirm_pin: confirmPin,
-      });
-
-      if (response.success) {
-        setPinMsg({ type: "success", text: response.message });
-        setPin("");
-        setConfirmPin("");
-        toast.success(response.message);
-      } else {
-        setPinMsg({ type: "error", text: response.message });
-        toast.error(response.message);
-      }
-    } catch (error) {
-      const errorMsg = "Failed to create PIN. Please try again.";
-      setPinMsg({ type: "error", text: errorMsg });
-      toast.error(errorMsg);
-    } finally {
-      // Always revert button state regardless of success or error
-      setIsCreatingPin(false);
-    }
-  };
 
   return (
     <div className="p-2">
@@ -338,59 +251,6 @@ export function Security() {
           </div>
         </div>
 
-        {/* Create PIN */}
-        <div>
-          <h3 className="text-lg font-medium text-gray-900">Create PIN</h3>
-          <p className="mt-1 text-sm text-gray-500">
-            Create a secure PIN for additional account protection.
-          </p>
-          <form className="mt-4 space-y-4" onSubmit={handlePinSubmit}>
-            <div>
-              <Label htmlFor="pin">PIN</Label>
-              <Input
-                id="pin"
-                type="password"
-                inputMode="numeric"
-                pattern="[0-9]*"
-                placeholder="Enter PIN"
-                value={pin}
-                onChange={(e) => setPin(e.target.value.replace(/[^0-9]/g, ""))}
-                disabled={isCreatingPin}
-                autoComplete="off"
-              />
-            </div>
-            <div>
-              <Label htmlFor="confirm-pin">Confirm PIN</Label>
-              <Input
-                id="confirm-pin"
-                type="password"
-                inputMode="numeric"
-                pattern="[0-9]*"
-                placeholder="Confirm PIN"
-                value={confirmPin}
-                onChange={(e) => setConfirmPin(e.target.value.replace(/[^0-9]/g, ""))}
-                disabled={isCreatingPin}
-                autoComplete="off"
-              />
-            </div>
-            <div className="flex justify-end">
-              <Button type="submit" disabled={isCreatingPin}>
-                {isCreatingPin ? "Creating..." : "Create PIN"}
-              </Button>
-            </div>
-            {pinMsg && (
-              <div
-                className={`mt-2 text-sm ${
-                  pinMsg.type === "error"
-                    ? "text-red-600"
-                    : "text-green-600"
-                }`}
-              >
-                {pinMsg.text}
-              </div>
-            )}
-          </form>
-        </div>
 
         {/* Password Change */}
         <div>
