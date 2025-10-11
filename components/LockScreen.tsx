@@ -24,6 +24,11 @@ const LockScreen: React.FC<LockScreenProps> = ({ onUnlock, show }) => {
   const [isClient, setIsClient] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  // Debug: Log when userPin state changes
+  useEffect(() => {
+    console.log("LockScreen - userPin state changed to:", userPin);
+  }, [userPin]);
+
   // Initialize client-side rendering
   useEffect(() => {
     setIsClient(true);
@@ -49,6 +54,14 @@ const LockScreen: React.FC<LockScreenProps> = ({ onUnlock, show }) => {
   }, []);
 
   useEffect(() => {
+    if (!show) {
+      // Reset state when lock screen is hidden
+      setUserPin(null);
+      setError("");
+      setInput("");
+      return;
+    }
+
     if (show && inputRef.current && isClient) {
       inputRef.current.focus();
 
@@ -89,12 +102,21 @@ const LockScreen: React.FC<LockScreenProps> = ({ onUnlock, show }) => {
         // Use primary PIN or fallback to backup PIN
         const pin = userData?.pin || backupPin;
         
+        console.log("LockScreen - Final PIN check:");
+        console.log("LockScreen - userData?.pin:", userData?.pin);
+        console.log("LockScreen - backupPin:", backupPin);
+        console.log("LockScreen - final pin:", pin);
+        console.log("LockScreen - pin type:", typeof pin);
+        console.log("LockScreen - pin length:", pin?.length);
+        
         if (pin && typeof pin === 'string' && pin.length > 0) {
+          console.log("LockScreen - Setting PIN and clearing error");
           setUserPin(pin);
           setError(""); // Clear any previous error
           console.log("LockScreen - PIN found and set:", pin);
         } else {
           // If no PIN is set, show error
+          console.log("LockScreen - No valid PIN found, setting error");
           setError(
             "No PIN configured. Please set one in Security settings."
           );
@@ -242,6 +264,8 @@ const LockScreen: React.FC<LockScreenProps> = ({ onUnlock, show }) => {
   };
 
   if (!show || !isClient) return null;
+
+  console.log("LockScreen - Rendering with userPin:", userPin, "show:", show, "isClient:", isClient);
 
   return (
     <AnimatePresence>
