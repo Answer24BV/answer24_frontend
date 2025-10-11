@@ -13,21 +13,24 @@ interface LockScreenProps {
 const LockScreen: React.FC<LockScreenProps> = ({ onUnlock, show }) => {
   const [input, setInput] = useState("");
   const [error, setError] = useState("");
-  const [userLockKey, setUserLockKey] = useState<string | null>(null);
+  const [userPin, setUserPin] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (show && inputRef.current) {
       inputRef.current.focus();
 
-      // Get user's lock key from stored user data
+      // Get user's PIN from stored user data
       const userData = tokenUtils.getUser();
-      if (userData && userData.lock_key) {
-        setUserLockKey(userData.lock_key);
+      console.log("LockScreen - User data:", userData);
+      console.log("LockScreen - User PIN:", userData?.pin);
+      
+      if (userData && userData.pin) {
+        setUserPin(userData.pin);
       } else {
-        // If no lock key is set, show error
+        // If no PIN is set, show error
         setError(
-          "No lock key configured. Please set one in Security settings."
+          "No PIN configured. Please set one in Security settings."
         );
       }
     }
@@ -36,18 +39,21 @@ const LockScreen: React.FC<LockScreenProps> = ({ onUnlock, show }) => {
   const handleUnlock = (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Check if user has a lock key configured
-    if (!userLockKey) {
-      setError("No lock key configured. Please set one in Security settings.");
+    // Check if user has a PIN configured
+    if (!userPin) {
+      setError("No PIN configured. Please set one in Security settings.");
       return;
     }
 
-    if (input === userLockKey) {
+    console.log("Attempting unlock with PIN:", input);
+    console.log("Expected PIN:", userPin);
+
+    if (input === userPin) {
       setError("");
       setInput("");
       onUnlock();
     } else {
-      setError("Incorrect key. Please try again.");
+      setError("Incorrect PIN. Please try again.");
       setInput("");
       inputRef.current?.focus();
     }
@@ -87,7 +93,7 @@ const LockScreen: React.FC<LockScreenProps> = ({ onUnlock, show }) => {
               Secure Access
             </h2>
             <p className="mb-6 text-gray-500 text-sm text-center">
-              Enter your 6-digit lock key to unlock the application.
+              Enter your 6-digit PIN to unlock the application.
             </p>
             <Input
               ref={inputRef}
@@ -100,8 +106,8 @@ const LockScreen: React.FC<LockScreenProps> = ({ onUnlock, show }) => {
               onChange={handleInputChange}
               className="mb-4 text-center text-lg tracking-wider border-gray-300 focus:border-blue-500 focus:ring-blue-500 transition-colors duration-200"
               placeholder="••••••"
-              aria-label="6-digit lock key"
-              disabled={!userLockKey}
+              aria-label="6-digit PIN"
+              disabled={!userPin}
             />
             {error && (
               <motion.div
@@ -115,14 +121,14 @@ const LockScreen: React.FC<LockScreenProps> = ({ onUnlock, show }) => {
             <Button
               type="submit"
               className="w-full bg-blue-900 hover:bg-blue-800 text-white font-medium py-2 rounded-lg transition-colors duration-200"
-              disabled={input.length !== 6 || !userLockKey}
+              disabled={input.length !== 6 || !userPin}
             >
-              {!userLockKey ? "No Lock Key Set" : "Unlock"}
+              {!userPin ? "No PIN Set" : "Unlock"}
             </Button>
 
-            {!userLockKey && (
+            {!userPin && (
               <p className="text-xs text-gray-500 mt-4 text-center">
-                Please configure your lock key in Security settings first.
+                Please configure your PIN in Security settings first.
               </p>
             )}
           </motion.form>
