@@ -36,6 +36,8 @@ export const tokenUtils = {
   setUser: (user: any) => {
     if (typeof window !== "undefined") {
       localStorage.setItem(USER_KEY, JSON.stringify(user));
+      // Dispatch a custom event to notify all components
+      window.dispatchEvent(new CustomEvent('userDataUpdated', { detail: user }));
     }
   },
 
@@ -113,7 +115,8 @@ export const apiRequest = async (
   };
 
   try {
-    const response = await fetch(getApiUrl(endpoint), config);
+    const fullUrl = getApiUrl(endpoint);
+    const response = await fetch(fullUrl, config);
     const data = await response.json();
 
     if (!response.ok) {

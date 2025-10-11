@@ -208,23 +208,62 @@ export function Profile() {
 
   // Fetch user data on component mount
   useEffect(() => {
-    const fetchUserData = () => {
-      try {
-        const userData = tokenUtils.getUser();
-        if (userData) {
-          setUser(userData);
-          setFullName(userData.name || "");
-          setEmail(userData.email || "");
-          setProfilePicturePreview(userData.profile_picture || "");
-        }
-      } catch (error) {
-        console.error("Error fetching user data:", error);
-      } finally {
+    const handleUserDataUpdate = (event: CustomEvent) => {
+      const userData = event.detail;
+      if (userData && userData.email && userData.email !== "user@example.com") {
+        setUser(userData);
+        setFullName(userData.name || "");
+        setEmail(userData.email || "");
+        setProfilePicturePreview(userData.profile_picture || "");
         setIsLoading(false);
       }
     };
 
-    fetchUserData();
+    window.addEventListener("userDataUpdated", handleUserDataUpdate as EventListener);
+
+    const fetchUserData = () => {
+      try {
+        const userData = tokenUtils.getUser();
+        if (userData && userData.email && userData.email !== "user@example.com") {
+          setUser(userData);
+          setFullName(userData.name || "");
+          setEmail(userData.email || "");
+          setProfilePicturePreview(userData.profile_picture || "");
+          setIsLoading(false);
+          return true;
+        }
+        return false;
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+        return false;
+      }
+    };
+
+    // Try to load user data immediately
+    if (!fetchUserData()) {
+      // If no user data found, retry with exponential backoff
+      let retryCount = 0;
+      const maxRetries = 15;
+      
+      const retryInterval = setInterval(() => {
+        retryCount++;
+        if (fetchUserData() || retryCount >= maxRetries) {
+          if (retryCount >= maxRetries) {
+            setIsLoading(false);
+          }
+          clearInterval(retryInterval);
+        }
+      }, 200 * retryCount); // Exponential backoff
+
+      return () => {
+        window.removeEventListener("userDataUpdated", handleUserDataUpdate as EventListener);
+        clearInterval(retryInterval);
+      };
+    }
+
+    return () => {
+      window.removeEventListener("userDataUpdated", handleUserDataUpdate as EventListener);
+    };
   }, []);
 
   const handleProfilePictureChange = (

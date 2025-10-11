@@ -38,10 +38,51 @@ export function PrivateNavbar() {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 20);
     };
+    
+    const handleUserDataUpdate = (event: CustomEvent) => {
+      const userData = event.detail;
+      if (userData && userData.email && userData.email !== "user@example.com") {
+        setUser(userData);
+      }
+    };
+
     window.addEventListener("scroll", handleScroll);
-    const userData = tokenUtils.getUser();
-    setUser(userData);
-    return () => window.removeEventListener("scroll", handleScroll);
+    window.addEventListener("userDataUpdated", handleUserDataUpdate as EventListener);
+
+    // Initialize user data with retry mechanism
+    const loadUserData = () => {
+      const userData = tokenUtils.getUser();
+      if (userData && userData.email && userData.email !== "user@example.com") {
+        setUser(userData);
+        return true;
+      }
+      return false;
+    };
+
+    // Try to load user data immediately
+    if (!loadUserData()) {
+      // If no user data found, retry with exponential backoff
+      let retryCount = 0;
+      const maxRetries = 10;
+      
+      const retryInterval = setInterval(() => {
+        retryCount++;
+        if (loadUserData() || retryCount >= maxRetries) {
+          clearInterval(retryInterval);
+        }
+      }, 200 * retryCount); // Exponential backoff
+
+      return () => {
+        window.removeEventListener("scroll", handleScroll);
+        window.removeEventListener("userDataUpdated", handleUserDataUpdate as EventListener);
+        clearInterval(retryInterval);
+      };
+    }
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("userDataUpdated", handleUserDataUpdate as EventListener);
+    };
   }, []);
 
   const t = useTranslations("Navigation");

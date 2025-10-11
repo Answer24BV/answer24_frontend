@@ -32,12 +32,30 @@ export default function SignIn() {
 
       // Store token and user data
       if (response.token) {
-        console.log("Storing token:", response.token);
         tokenUtils.setToken(response.token);
       }
+      
+      // Handle different possible response structures
+      let userData = null;
       if (response.user) {
-        console.log("Storing user data:", response.user);
-        tokenUtils.setUser(response.user);
+        userData = response.user;
+      } else if (response.data && response.data.user) {
+        userData = response.data.user;
+      } else if (response.data && !response.data.user && response.data.email) {
+        // If user object is not separate, create it from the response data
+        userData = {
+          id: response.data.id,
+          name: response.data.name,
+          email: response.data.email,
+          profile_picture: response.data.profile_picture,
+        };
+      }
+      
+      if (userData && userData.email) {
+        tokenUtils.setUser(userData);
+      } else {
+        console.error("No valid user data in response:", response);
+        throw new Error("Invalid user data received from server");
       }
 
       // Show success message

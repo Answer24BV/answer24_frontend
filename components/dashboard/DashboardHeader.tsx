@@ -71,27 +71,50 @@ export function DashboardHeader() {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 20);
     };
-    window.addEventListener("scroll", handleScroll);
-
-    // Initialize user data
-    const userData = tokenUtils.getUser();
-    setUser(userData);
-
-    // Retry fetching user until it loads
-    const userCheckInterval = setInterval(() => {
-      const currentUserData = tokenUtils.getUser();
-      if (currentUserData && (!user || user.id !== currentUserData.id)) {
-        setUser(currentUserData);
-        clearInterval(userCheckInterval);
+    
+    const handleUserDataUpdate = (event: CustomEvent) => {
+      const userData = event.detail;
+      if (userData && userData.email && userData.email !== "user@example.com") {
+        setUser(userData);
       }
-    }, 100);
+    };
 
-    // Clear interval after 5 seconds
-    setTimeout(() => clearInterval(userCheckInterval), 5000);
+    window.addEventListener("scroll", handleScroll);
+    window.addEventListener("userDataUpdated", handleUserDataUpdate as EventListener);
+
+    // Initialize user data with retry mechanism
+    const loadUserData = () => {
+      const userData = tokenUtils.getUser();
+      if (userData && userData.email && userData.email !== "user@example.com") {
+        setUser(userData);
+        return true;
+      }
+      return false;
+    };
+
+    // Try to load user data immediately
+    if (!loadUserData()) {
+      // If no user data found, retry with exponential backoff
+      let retryCount = 0;
+      const maxRetries = 10;
+      
+      const retryInterval = setInterval(() => {
+        retryCount++;
+        if (loadUserData() || retryCount >= maxRetries) {
+          clearInterval(retryInterval);
+        }
+      }, 200 * retryCount); // Exponential backoff: 200ms, 400ms, 600ms, etc.
+
+      return () => {
+        window.removeEventListener("scroll", handleScroll);
+        window.removeEventListener("userDataUpdated", handleUserDataUpdate as EventListener);
+        clearInterval(retryInterval);
+      };
+    }
 
     return () => {
       window.removeEventListener("scroll", handleScroll);
-      clearInterval(userCheckInterval);
+      window.removeEventListener("userDataUpdated", handleUserDataUpdate as EventListener);
     };
   }, []);
 
