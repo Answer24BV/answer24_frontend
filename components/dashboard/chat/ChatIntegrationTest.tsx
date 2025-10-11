@@ -30,11 +30,47 @@ export function ChatIntegrationTest() {
     setIsRunning(true)
     setTestResults([])
 
+    // Wait a moment for authentication to be fully ready
+    await new Promise(resolve => setTimeout(resolve, 500))
+
     const token = tokenUtils.getToken()
+    const user = tokenUtils.getUser()
+    
     if (!token) {
       addTestResult('Authentication', 'error', 'No authentication token found')
       setIsRunning(false)
       return
+    }
+
+    if (!user) {
+      addTestResult('Authentication', 'error', 'No user data found')
+      setIsRunning(false)
+      return
+    }
+
+    addTestResult('Authentication', 'success', `Authenticated as ${user.name} (ID: ${user.id})`)
+    addTestResult('Token Check', 'success', `Token: ${token.substring(0, 20)}...`)
+
+    // Test 0: Backend Connectivity
+    addTestResult('Backend Connectivity', 'pending', 'Testing if Laravel backend is reachable...')
+    try {
+      const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:8000/api/v1'
+      const response = await fetch(`${baseUrl}/chats`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        }
+      })
+      
+      if (response.ok) {
+        addTestResult('Backend Connectivity', 'success', `Backend is reachable (Status: ${response.status})`)
+      } else {
+        addTestResult('Backend Connectivity', 'error', `Backend returned status: ${response.status}`)
+      }
+    } catch (error) {
+      addTestResult('Backend Connectivity', 'error', `Cannot reach backend: ${error}`)
     }
 
     try {
@@ -109,6 +145,28 @@ export function ChatIntegrationTest() {
             disabled={isRunning}
           >
             Clear Results
+          </Button>
+        </div>
+
+        {/* Manual Token Test */}
+        <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+          <h4 className="font-medium text-yellow-800 mb-2">Debug Token Test:</h4>
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => {
+              const token = tokenUtils.getToken()
+              const user = tokenUtils.getUser()
+              console.log("=== DEBUG TOKEN INFO ===")
+              console.log("Token:", token)
+              console.log("User:", user)
+              console.log("API Base URL:", process.env.NEXT_PUBLIC_API_BASE_URL)
+              console.log("=========================")
+              alert(`Token: ${token ? token.substring(0, 20) + '...' : 'None'}\nUser: ${user ? user.name : 'None'}`)
+            }}
+            className="text-yellow-800 border-yellow-300"
+          >
+            Log Token Info to Console
           </Button>
         </div>
 

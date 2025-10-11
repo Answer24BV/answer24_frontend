@@ -9,19 +9,29 @@ export async function getChats(): Promise<Chat[]> {
   try {
     const token = tokenUtils.getToken()
     if (!token) {
+      console.error("getChats: No authentication token found")
       throw new Error("No authentication token found")
     }
+
+    console.log("getChats: Making request to:", getApiUrl("/api/v1/chats"))
+    console.log("getChats: Using token:", token.substring(0, 20) + "...")
 
     const response = await fetch(getApiUrl("/api/v1/chats"), {
       method: "GET",
       headers: getApiHeaders(token),
     })
 
+    console.log("getChats: Response status:", response.status)
+    console.log("getChats: Response headers:", Object.fromEntries(response.headers.entries()))
+
     if (!response.ok) {
-      throw new Error(`Failed to fetch chats: ${response.status}`)
+      const errorText = await response.text()
+      console.error("getChats: Error response:", errorText)
+      throw new Error(`Failed to fetch chats: ${response.status} - ${errorText}`)
     }
 
     const data = await response.json()
+    console.log("getChats: Response data:", data)
     return data.chats || []
   } catch (error) {
     console.error("Error fetching chats:", error)
