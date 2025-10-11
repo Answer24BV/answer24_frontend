@@ -42,6 +42,7 @@ export default function PartnerSignUp() {
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState(false);
   const [subscriptionPlans, setSubscriptionPlans] = useState<
     SubscriptionPlan[]
   >([]);
@@ -184,24 +185,14 @@ export default function PartnerSignUp() {
 
       console.log("Partner registration API response:", response);
 
-      // Store token and user data
-      if (response.token) {
-        console.log("Storing partner token:", response.token);
-        tokenUtils.setToken(response.token);
-      } else {
-        console.error("No token in partner registration response");
-      }
-      if (response.user) {
-        console.log("Storing partner user data:", response.user);
-        tokenUtils.setUser(response.user);
-      }
-
-      // Verify token was stored
-      const storedToken = tokenUtils.getToken();
-      console.log("Partner token after storage:", storedToken);
-
-      // Skip plan selection and go directly to dashboard
-      router.push("/dashboard");
+      // Registration successful - show inline success message
+      setSuccess(true);
+      setError("");
+      
+      // Redirect to signin page after 5 seconds
+      setTimeout(() => {
+        router.push("/signin");
+      }, 5000);
     } catch (err: any) {
       setError(err.message || "Partner registration failed. Please try again.");
     } finally {
@@ -461,6 +452,12 @@ export default function PartnerSignUp() {
                   </div>
                 )}
 
+                {success && (
+                  <div className="bg-green-50 border border-green-200 text-green-600 px-4 py-3 rounded-lg text-sm">
+                    Partner registration successful! You will be redirected to the sign-in page in 5 seconds...
+                  </div>
+                )}
+
                 <div className="space-y-2">
                   <input
                     id="fullName"
@@ -580,11 +577,13 @@ export default function PartnerSignUp() {
 
                 <Button
                   type="submit"
-                  disabled={isLoading}
+                  disabled={isLoading || success}
                   className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg mt-8 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isLoading
                     ? "Creating Partner Account..."
+                    : success 
+                    ? "Registration Successful!"
                     : "Sign Up as Partner"}
                 </Button>
 

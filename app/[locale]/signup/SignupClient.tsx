@@ -48,6 +48,7 @@ export default function SignUp() {
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState(false);
   const [subscriptionPlans, setSubscriptionPlans] = useState<
     SubscriptionPlan[]
   >([]);
@@ -193,24 +194,14 @@ export default function SignUp() {
 
       console.log("Registration API response:", response);
 
-      // Store token and user data
-      if (response.token) {
-        console.log("Storing token:", response.token);
-        tokenUtils.setToken(response.token);
-      } else {
-        console.error("No token in registration response");
-      }
-      if (response.user) {
-        console.log("Storing user data:", response.user);
-        tokenUtils.setUser(response.user);
-      }
-
-      // Verify token was stored
-      const storedToken = tokenUtils.getToken();
-      console.log("Token after storage:", storedToken);
-
-      // Skip plan selection and go directly to dashboard
-      router.push("/dashboard");
+      // Registration successful - show inline success message
+      setSuccess(true);
+      setError("");
+      
+      // Redirect to signin page after 5 seconds
+      setTimeout(() => {
+        router.push("/signin");
+      }, 5000);
     } catch (err: any) {
       setError(err.message || "Registration failed. Please try again.");
     } finally {
@@ -562,6 +553,12 @@ export default function SignUp() {
                     </div>
                   )}
 
+                  {success && (
+                    <div className="bg-green-50 border border-green-200 text-green-600 px-4 py-3 rounded-lg text-sm">
+                      Registration successful! You will be redirected to the sign-in page in 5 seconds...
+                    </div>
+                  )}
+
                   <div className="space-y-2">
                     <input
                       id="fullName"
@@ -684,10 +681,10 @@ export default function SignUp() {
 
                   <Button
                     type="submit"
-                    disabled={isLoading}
+                    disabled={isLoading || success}
                     className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg mt-8 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {isLoading ? "Processing..." : t("signUp.continueButton")}
+                    {isLoading ? "Processing..." : success ? "Registration Successful!" : t("signUp.continueButton")}
                   </Button>
 
                   <div className="text-center text-sm text-gray-600 mt-6">

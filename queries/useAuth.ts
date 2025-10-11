@@ -35,9 +35,10 @@ export const useAuth = () => {
     mutationFn: (credentials: RegisterRequest) =>
       authService.register(credentials),
     onSuccess: (data: RegisterResponse) => {
-      toast.success(data.message);
-      setAuth(data.data.user, data.data.token);
-      queryClient.invalidateQueries({ queryKey: ["user"] });
+      toast.success(data.message || "Registration successful! Please sign in.");
+      // Don't automatically log in - user should sign in manually
+      // setAuth(data.data.user, data.data.token);
+      // queryClient.invalidateQueries({ queryKey: ["user"] });
     },
     onError: (error: Error) => {
       toast.error(error.message);
