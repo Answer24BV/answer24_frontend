@@ -40,10 +40,10 @@ export class ChatService {
     try {
       const token = this.ensureAuth()
       
-      console.log("ChatService.getChats: Making request to:", getApiUrl("/api/v1/chats"))
+      console.log("ChatService.getChats: Making request to:", getApiUrl("/chats"))
       console.log("ChatService.getChats: Using token:", token.substring(0, 20) + "...")
 
-      const response = await fetch(getApiUrl("/api/v1/chats"), {
+      const response = await fetch(getApiUrl("/chats"), {
         method: "GET",
         headers: getApiHeaders(token),
       })
@@ -69,9 +69,9 @@ export class ChatService {
     try {
       const token = this.ensureAuth()
 
-      console.log("ChatService.getChatMessages: Making request to:", getApiUrl(`/api/v1/chats/${chatId}/messages`))
+      console.log("ChatService.getChatMessages: Making request to:", getApiUrl(`/chats/${chatId}/messages`))
 
-      const response = await fetch(getApiUrl(`/api/v1/chats/${chatId}/messages`), {
+      const response = await fetch(getApiUrl(`/chats/${chatId}/messages`), {
         method: "GET",
         headers: getApiHeaders(token),
       })
@@ -108,7 +108,7 @@ export class ChatService {
         })
       }
 
-      const response = await fetch(getApiUrl(`/api/v1/chats/${chatId}/messages`), {
+      const response = await fetch(getApiUrl(`/chats/${chatId}/messages`), {
         method: "POST",
         headers: {
           ...getApiHeaders(token),
@@ -133,7 +133,7 @@ export class ChatService {
     try {
       const token = this.ensureAuth()
 
-      console.log("ChatService.createChat: Making request to:", getApiUrl("/api/v1/chats"))
+      console.log("ChatService.createChat: Making request to:", getApiUrl("/chats"))
       console.log("ChatService.createChat: Using token:", token.substring(0, 20) + "...")
 
       const requestBody = {
@@ -143,7 +143,7 @@ export class ChatService {
       }
       console.log("ChatService.createChat: Request body:", requestBody)
 
-      const response = await fetch(getApiUrl("/api/v1/chats"), {
+      const response = await fetch(getApiUrl("/chats"), {
         method: "POST",
         headers: {
           ...getApiHeaders(token),
@@ -173,7 +173,7 @@ export class ChatService {
     try {
       const token = this.ensureAuth()
 
-      console.log("ChatService.createHelpdeskChat: Making request to:", getApiUrl("/api/v1/chats"))
+      console.log("ChatService.createHelpdeskChat: Making request to:", getApiUrl("/chats"))
       console.log("ChatService.createHelpdeskChat: Using token:", token.substring(0, 20) + "...")
 
       const requestBody = {
@@ -182,7 +182,7 @@ export class ChatService {
       }
       console.log("ChatService.createHelpdeskChat: Request body:", requestBody)
 
-      const response = await fetch(getApiUrl("/api/v1/chats"), {
+      const response = await fetch(getApiUrl("/chats"), {
         method: "POST",
         headers: {
           ...getApiHeaders(token),
@@ -213,7 +213,7 @@ export class ChatService {
     try {
       const token = this.ensureAuth()
 
-      const response = await fetch(getApiUrl(`/api/v1/chats/${chatId}/ai`), {
+      const response = await fetch(getApiUrl(`/chats/${chatId}/ai`), {
         method: "POST",
         headers: {
           ...getApiHeaders(token),
@@ -238,7 +238,7 @@ export class ChatService {
     try {
       const token = this.ensureAuth()
 
-      const response = await fetch(getApiUrl(`/api/v1/chats/${chatId}`), {
+      const response = await fetch(getApiUrl(`/chats/${chatId}`), {
         method: "PUT",
         headers: {
           ...getApiHeaders(token),
@@ -260,7 +260,7 @@ export class ChatService {
     try {
       const token = this.ensureAuth()
 
-      const response = await fetch(getApiUrl(`/api/v1/messages/${messageId}/read`), {
+      const response = await fetch(getApiUrl(`/messages/${messageId}/read`), {
         method: "POST",
         headers: getApiHeaders(token),
       })
