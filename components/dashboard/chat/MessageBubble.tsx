@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState } from "react"
-import { Download, Eye, Bot, User } from "lucide-react"
+import { Download, Eye, Bot, User, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import type { Message, Attachment } from "@/types/chat"
