@@ -1,11 +1,12 @@
 "use client"
 
 import React, { useState, useEffect } from "react"
-import { Switch, Settings, Bot, Users, MessageSquare, BarChart3 } from "lucide-react"
+import { Settings, Bot, Users, MessageSquare, BarChart3 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { Switch } from "@/components/ui/switch"
 import { cn } from "@/lib/utils"
 
 interface User {
