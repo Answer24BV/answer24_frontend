@@ -27,14 +27,27 @@ export function usePushNotifications(userId?: string) {
   const isInitialized = useRef(false);
   const permissionRequested = useRef(false);
 
-  useEffect(() => {
+  // Function to initialize or reinitialize push notifications
+  const initializePushNotifications = async () => {
     if (!userId || isInitialized.current) return;
-
-    // Only run in browser
     if (typeof window === 'undefined') return;
 
     const initializePusherBeams = async () => {
       try {
+        // Check if user has enabled push notifications
+        const userDataStr = localStorage.getItem('user_data');
+        if (userDataStr) {
+          try {
+            const userData = JSON.parse(userDataStr);
+            if (userData.push_notifications === false) {
+              console.log('User has disabled push notifications');
+              return;
+            }
+          } catch (error) {
+            console.error('Error parsing user data:', error);
+          }
+        }
+
         // Register service worker for push notifications
         if ('serviceWorker' in navigator) {
           try {
@@ -97,8 +110,26 @@ export function usePushNotifications(userId?: string) {
     };
 
     initializePusherBeams();
+  };
+
+  // Listen for user data updates to reinitialize if needed
+  useEffect(() => {
+    if (!userId) return;
+
+    const handleUserDataUpdate = () => {
+      // Reset initialization flag to allow reinitialization
+      isInitialized.current = false;
+      initializePushNotifications();
+    };
+
+    window.addEventListener('userDataUpdated', handleUserDataUpdate);
+
+    // Initial initialization
+    initializePushNotifications();
 
     return () => {
+      window.removeEventListener('userDataUpdated', handleUserDataUpdate);
+      
       // Cleanup on unmount
       if (beamsClient.current && isInitialized.current) {
         try {
