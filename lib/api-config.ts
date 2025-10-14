@@ -31,9 +31,21 @@ export const API_CONFIG = {
       ADMIN_BY_ID: (id: string) => `/admin/avatars/${id}`,
     },
     PLAN: {
-      LIST: "/plan",
+      LIST: "/plans",
       SUBSCRIBE: "/subscription/subscribe",
       DETAILS: "/subscription/details",
+    },
+    SUBSCRIPTION: {
+      DETAILS: "/subscriptions/details",
+      CANCEL: "/subscriptions/cancel",
+      RENEW: "/subscriptions/renew",
+      EXTEND: "/subscriptions/extend",
+      TRIAL: "/subscriptions/trial",
+      UPDATE_PAYMENT: "/subscriptions/payment-method",
+    },
+    INVOICE: {
+      LIST: "/invoices",
+      DOWNLOAD: (invoiceId: string) => `/invoices/${invoiceId}/download`,
     },
     WALLET: {
       BALANCE: "/wallet/balance",

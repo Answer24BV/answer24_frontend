@@ -12,8 +12,10 @@ import {
 } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { tokenUtils } from "@/utils/auth";
-import { Loader2, CreditCard, Plus } from "lucide-react";
+import { Loader2, CreditCard, Plus, RefreshCw, AlertCircle, Download } from "lucide-react";
 import { Link } from "@/i18n/navigation";
+import { getApiUrl, getApiHeaders, API_CONFIG } from "@/lib/api-config";
+import { toast } from "react-toastify";
 
 interface SubscriptionData {
   plan_name?: string;
@@ -22,6 +24,24 @@ interface SubscriptionData {
   renewal_date?: string;
   status?: string;
   is_active?: boolean;
+  plan_id?: string;
+  trial_ends_at?: string;
+  is_trial?: boolean;
+}
+
+interface Invoice {
+  id: string;
+  invoice_number?: string;
+  amount?: number;
+  date?: string;
+  status?: string;
+  created_at?: string;
+}
+
+interface TrialData {
+  is_trial?: boolean;
+  trial_ends_at?: string;
+  trial_days_remaining?: number;
 }
 
 export function Billing() {
@@ -30,9 +50,10 @@ export function Billing() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [hasActivePlan, setHasActivePlan] = useState(false);
-
-  const subscriptionEndpoint =
-    "https://answer24.laravel.cloud/api/v1/subscription/details";
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const [trialData, setTrialData] = useState<TrialData | null>(null);
+  const [isLoadingInvoices, setIsLoadingInvoices] = useState(false);
 
   const fetchSubscriptionData = async () => {
     try {
@@ -45,13 +66,13 @@ export function Billing() {
         throw new Error("No authentication token found");
       }
 
-      const response = await fetch(subscriptionEndpoint, {
-        method: "GET",
-        headers: {
-          Accept: "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await fetch(
+        getApiUrl(API_CONFIG.ENDPOINTS.SUBSCRIPTION.DETAILS),
+        {
+          method: "GET",
+          headers: getApiHeaders(token),
+        }
+      );
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -76,8 +97,220 @@ export function Billing() {
     }
   };
 
+  const fetchInvoices = async () => {
+    try {
+      setIsLoadingInvoices(true);
+      const token = tokenUtils.getToken();
+
+      if (!token) {
+        return;
+      }
+
+      const response = await fetch(
+        getApiUrl(API_CONFIG.ENDPOINTS.INVOICE.LIST),
+        {
+          method: "GET",
+          headers: getApiHeaders(token),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch invoices");
+      }
+
+      const data = await response.json();
+      setInvoices(data.data || data || []);
+    } catch (error) {
+      console.error("Error fetching invoices:", error);
+    } finally {
+      setIsLoadingInvoices(false);
+    }
+  };
+
+  const fetchTrialData = async () => {
+    try {
+      const token = tokenUtils.getToken();
+
+      if (!token) {
+        return;
+      }
+
+      const response = await fetch(
+        getApiUrl(API_CONFIG.ENDPOINTS.SUBSCRIPTION.TRIAL),
+        {
+          method: "GET",
+          headers: getApiHeaders(token),
+        }
+      );
+
+      if (!response.ok) {
+        return;
+      }
+
+      const data = await response.json();
+      setTrialData(data.data || data);
+    } catch (error) {
+      console.error("Error fetching trial data:", error);
+    }
+  };
+
+  const handleCancelSubscription = async () => {
+    if (!confirm("Are you sure you want to cancel your subscription? This action cannot be undone.")) {
+      return;
+    }
+
+    try {
+      setIsProcessing(true);
+      const token = tokenUtils.getToken();
+
+      if (!token) {
+        throw new Error("No authentication token found");
+      }
+
+      const response = await fetch(
+        getApiUrl(API_CONFIG.ENDPOINTS.SUBSCRIPTION.CANCEL),
+        {
+          method: "POST",
+          headers: getApiHeaders(token),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to cancel subscription");
+      }
+
+      toast.success("Subscription cancelled successfully");
+      await fetchSubscriptionData();
+    } catch (error) {
+      toast.error("Failed to cancel subscription");
+      console.error("Error cancelling subscription:", error);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleRenewSubscription = async () => {
+    if (!confirm("Are you sure you want to renew your subscription?")) {
+      return;
+    }
+
+    try {
+      setIsProcessing(true);
+      const token = tokenUtils.getToken();
+
+      if (!token) {
+        throw new Error("No authentication token found");
+      }
+
+      const response = await fetch(
+        getApiUrl(API_CONFIG.ENDPOINTS.SUBSCRIPTION.RENEW),
+        {
+          method: "POST",
+          headers: getApiHeaders(token),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to renew subscription");
+      }
+
+      toast.success("Subscription renewed successfully");
+      await fetchSubscriptionData();
+    } catch (error) {
+      toast.error("Failed to renew subscription");
+      console.error("Error renewing subscription:", error);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleExtendSubscription = async () => {
+    if (!confirm("Are you sure you want to extend your subscription?")) {
+      return;
+    }
+
+    try {
+      setIsProcessing(true);
+      const token = tokenUtils.getToken();
+
+      if (!token) {
+        throw new Error("No authentication token found");
+      }
+
+      const response = await fetch(
+        getApiUrl(API_CONFIG.ENDPOINTS.SUBSCRIPTION.EXTEND),
+        {
+          method: "POST",
+          headers: getApiHeaders(token),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to extend subscription");
+      }
+
+      const data = await response.json();
+      toast.success(data.message || "Subscription extended successfully");
+      await fetchSubscriptionData();
+    } catch (error) {
+      toast.error("Failed to extend subscription");
+      console.error("Error extending subscription:", error);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleUpdatePaymentMethod = async () => {
+    toast.info("Payment method update coming soon");
+    // TODO: Implement payment method update flow
+  };
+
+  const handleDownloadInvoice = async (invoiceId: string) => {
+    try {
+      const token = tokenUtils.getToken();
+
+      if (!token) {
+        throw new Error("No authentication token found");
+      }
+
+      const response = await fetch(
+        getApiUrl(API_CONFIG.ENDPOINTS.INVOICE.DOWNLOAD(invoiceId)),
+        {
+          method: "GET",
+          headers: getApiHeaders(token),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to download invoice");
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `invoice-${invoiceId}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+
+      toast.success("Invoice downloaded successfully");
+    } catch (error) {
+      toast.error("Failed to download invoice");
+      console.error("Error downloading invoice:", error);
+    }
+  };
+
+  const handleContactSupport = () => {
+    // Open chat widget or navigate to support
+    window.location.href = "/support";
+  };
+
   useEffect(() => {
     fetchSubscriptionData();
+    fetchInvoices();
+    fetchTrialData();
   }, []);
 
   if (isLoading) {
@@ -134,7 +367,9 @@ export function Billing() {
             </p>
           </CardContent>
           <CardFooter>
-            <Button variant="outline">Contact Support</Button>
+            <Button variant="outline" onClick={handleContactSupport}>
+              Contact Support
+            </Button>
           </CardFooter>
         </Card>
       </div>
@@ -150,6 +385,40 @@ export function Billing() {
   // Active subscription state
   return (
     <div className="space-y-8">
+      {/* Trial Info Card */}
+      {(subscriptionData?.is_trial || trialData?.is_trial) && (
+        <Card className="border-blue-200 bg-blue-50">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <AlertCircle className="h-5 w-5 text-blue-600" />
+              Trial Period
+            </CardTitle>
+            <CardDescription className="text-blue-800">
+              You are currently on a trial period
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              <p className="text-sm">
+                <strong>Trial ends on:</strong>{" "}
+                {trialData?.trial_ends_at || subscriptionData?.trial_ends_at || "N/A"}
+              </p>
+              {trialData?.trial_days_remaining && (
+                <p className="text-sm">
+                  <strong>Days remaining:</strong> {trialData.trial_days_remaining}
+                </p>
+              )}
+            </div>
+          </CardContent>
+          <CardFooter>
+            <Link href="/pricing">
+              <Button>Upgrade Now</Button>
+            </Link>
+          </CardFooter>
+        </Card>
+      )}
+
+      {/* Subscription Plan Card */}
       <Card>
         <CardHeader>
           <CardTitle>Subscription Plan</CardTitle>
@@ -188,14 +457,59 @@ export function Billing() {
             </div>
           )}
         </CardContent>
-        <CardFooter className="flex justify-between">
+        <CardFooter className="flex gap-2 flex-wrap">
           <Link href="/pricing">
             <Button variant="outline">Change Plan</Button>
           </Link>
-          <Button variant="destructive">Cancel Subscription</Button>
+          <Button 
+            variant="outline"
+            onClick={handleExtendSubscription}
+            disabled={isProcessing}
+          >
+            {isProcessing ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Processing...
+              </>
+            ) : (
+              "Extend Subscription"
+            )}
+          </Button>
+          <Button 
+            variant="outline"
+            onClick={handleRenewSubscription}
+            disabled={isProcessing}
+          >
+            {isProcessing ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Processing...
+              </>
+            ) : (
+              <>
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Renew Now
+              </>
+            )}
+          </Button>
+          <Button 
+            variant="destructive"
+            onClick={handleCancelSubscription}
+            disabled={isProcessing}
+          >
+            {isProcessing ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Processing...
+              </>
+            ) : (
+              "Cancel Subscription"
+            )}
+          </Button>
         </CardFooter>
       </Card>
 
+      {/* Payment Method Card */}
       <Card>
         <CardHeader>
           <CardTitle>Payment Method</CardTitle>
@@ -203,40 +517,75 @@ export function Billing() {
         </CardHeader>
         <CardContent>
           <div className="flex items-center space-x-4">
-            <img src="/mastercard.svg" alt="Mastercard" className="h-8" />
+            <CreditCard className="h-8 w-8 text-gray-400" />
             <div>
-              <p className="font-medium">Mastercard **** 4444</p>
-              <p className="text-sm text-gray-500">Expires 12/2028</p>
+              <p className="font-medium">Payment method on file</p>
+              <p className="text-sm text-gray-500">Manage your payment information</p>
             </div>
           </div>
         </CardContent>
         <CardFooter>
-          <Button variant="outline">Update Payment Method</Button>
+          <Button 
+            variant="outline"
+            onClick={handleUpdatePaymentMethod}
+          >
+            Update Payment Method
+          </Button>
         </CardFooter>
       </Card>
 
+      {/* Billing History Card */}
       <Card>
         <CardHeader>
           <CardTitle>Billing History</CardTitle>
           <CardDescription>View your past invoices.</CardDescription>
         </CardHeader>
         <CardContent>
-          <ul className="space-y-4">
-            <li className="flex items-center justify-between">
-              <div>
-                <p className="font-medium">July 2025</p>
-                <p className="text-sm text-gray-500">Invoice #INV-00123</p>
-              </div>
-              <Button variant="outline">Download</Button>
-            </li>
-            <li className="flex items-center justify-between">
-              <div>
-                <p className="font-medium">June 2025</p>
-                <p className="text-sm text-gray-500">Invoice #INV-00122</p>
-              </div>
-              <Button variant="outline">Download</Button>
-            </li>
-          </ul>
+          {isLoadingInvoices ? (
+            <div className="flex items-center justify-center p-4">
+              <Loader2 className="h-6 w-6 animate-spin" />
+              <span className="ml-2">Loading invoices...</span>
+            </div>
+          ) : invoices.length > 0 ? (
+            <ul className="space-y-4">
+              {invoices.map((invoice) => (
+                <li key={invoice.id} className="flex items-center justify-between">
+                  <div>
+                    <p className="font-medium">
+                      {invoice.date || 
+                       (invoice.created_at 
+                         ? new Date(invoice.created_at).toLocaleDateString('en-US', { 
+                             month: 'long', 
+                             year: 'numeric' 
+                           })
+                         : "N/A"
+                       )}
+                    </p>
+                    <p className="text-sm text-gray-500">
+                      Invoice #{invoice.invoice_number || invoice.id}
+                    </p>
+                    {invoice.amount && (
+                      <p className="text-sm text-gray-600">
+                        ${invoice.amount}
+                      </p>
+                    )}
+                  </div>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => handleDownloadInvoice(invoice.id)}
+                  >
+                    <Download className="h-4 w-4 mr-2" />
+                    Download
+                  </Button>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <div className="text-center p-4 text-gray-500">
+              No invoices found
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

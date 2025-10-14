@@ -24,6 +24,7 @@ import { Plan } from "@/services/planService";
 import { motion } from "framer-motion";
 import { tokenUtils } from "@/utils/auth";
 import { toast } from "react-hot-toast";
+import { getApiUrl, API_CONFIG } from "@/lib/api-config";
 
 interface PaymentModalProps {
   isOpen: boolean;
@@ -70,7 +71,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
 
       // Call Answer24 API to create Mollie payment
       const response = await fetch(
-        "https://answer24.laravel.cloud/api/v1/wallet/deposit",
+        getApiUrl(API_CONFIG.ENDPOINTS.WALLET.DEPOSIT),
         {
           method: "POST",
           headers: {

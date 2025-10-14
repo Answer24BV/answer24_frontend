@@ -17,6 +17,7 @@ import { cn } from "@/lib/utils";
 import { useRouter } from "@/i18n/navigation";
 import { tokenUtils } from "@/utils/auth";
 import { PaymentModal } from "@/components/plans/PaymentModal";
+import { getApiUrl, API_CONFIG } from "@/lib/api-config";
 
 interface PricingTier {
   id: string;
@@ -52,14 +53,17 @@ export default function Pricing() {
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const router = useRouter();
 
-  const pricingEndpoint = "https://answer24.laravel.cloud/api/v1/plan";
-
   const fetchPricingData = async () => {
     try {
       setIsLoading(true);
       setError(null);
 
-      const response = await fetch(pricingEndpoint, {
+      const apiUrl = getApiUrl(API_CONFIG.ENDPOINTS.PLAN.LIST);
+      console.log("🔍 Fetching pricing from:", apiUrl);
+      console.log("📍 Base URL:", API_CONFIG.BASE_URL);
+      console.log("📍 Endpoint:", API_CONFIG.ENDPOINTS.PLAN.LIST);
+
+      const response = await fetch(apiUrl, {
         method: "GET",
         headers: {
           Accept: "application/json",
@@ -67,12 +71,16 @@ export default function Pricing() {
         },
       });
 
+      console.log("📥 Response status:", response.status);
+
       if (!response.ok) {
+        const errorText = await response.text();
+        console.error("❌ API Error:", errorText);
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
       const data: ApiResponse = await response.json();
-      console.log("Pricing data:", data);
+      console.log("✅ Pricing data:", data);
 
       if (data.success && data.data) {
         // Map API data to our component format and add UI styling
