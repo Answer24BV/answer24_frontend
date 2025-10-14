@@ -11,6 +11,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, CheckCircle, XCircle, Settings, Bot } from 'lucide-react';
+import { getApiUrl, getApiHeaders, API_CONFIG } from '@/lib/api-config';
+import { tokenUtils } from '@/utils/auth';
 
 interface ChatbotConfig {
   enabled: boolean;
@@ -75,22 +77,46 @@ export function ChatbotConfig() {
     setTestResult(null);
     
     try {
-      const response = await fetch('/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          message: 'Hello, this is a test message.',
-          history: []
-        }),
-      });
+      // Get authentication token
+      const token = tokenUtils.getToken();
+      
+      if (!token) {
+        setTestResult({ 
+          success: false, 
+          message: 'Authentication required. Please log in to test the chatbot.' 
+        });
+        setIsTesting(false);
+        return;
+      }
+
+      // Call backend AI status endpoint
+      const response = await fetch(
+        getApiUrl(API_CONFIG.ENDPOINTS.CHAT.AI_STATUS),
+        {
+          method: 'GET',
+          headers: getApiHeaders(token),
+        }
+      );
 
       if (response.ok) {
-        setTestResult({ success: true, message: 'Chatbot is working correctly!' });
+        const data = await response.json();
+        setTestResult({ 
+          success: true, 
+          message: `Chatbot is working correctly! Service: ${data.service || 'Connected'}` 
+        });
       } else {
-        setTestResult({ success: false, message: 'Chatbot test failed' });
+        const errorData = await response.json().catch(() => ({}));
+        setTestResult({ 
+          success: false, 
+          message: errorData.message || `Chatbot test failed (${response.status})` 
+        });
       }
     } catch (error) {
-      setTestResult({ success: false, message: 'Failed to test chatbot' });
+      console.error('Chatbot test error:', error);
+      setTestResult({ 
+        success: false, 
+        message: `Failed to test chatbot: ${error instanceof Error ? error.message : 'Unknown error'}` 
+      });
     } finally {
       setIsTesting(false);
     }

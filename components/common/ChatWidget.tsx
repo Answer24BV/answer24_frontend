@@ -9,6 +9,7 @@ import {
   VolumeX,
   ArrowLeft,
 } from "lucide-react";
+import { createHelpdeskChat, generateAIResponse } from "@/app/[locale]/actions/chat";
 
 interface Message {
   sender: "user" | "bot";
@@ -37,12 +38,48 @@ const welcomeOptions = [
 const ChatWidget: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [input, setInput] = useState("");
+  const [chatId, setChatId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([
     {
       sender: "bot",
       text: process.env.NEXT_PUBLIC_CHATBOT_WELCOME_MESSAGE || "Hi there! I'm answer24, your assistant. How can I help you today?",
     },
   ]);
+
+  // Create helpdesk chat when widget opens
+  useEffect(() => {
+    const initializeChat = async () => {
+      if (isOpen && !chatId) {
+        try {
+          // Get token and user data from localStorage
+          const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
+          const userDataStr = typeof window !== 'undefined' ? localStorage.getItem('user_data') : null;
+          
+          if (!token) {
+            console.error("No authentication token found");
+            return;
+          }
+          
+          if (!userDataStr) {
+            console.error("No user data found");
+            return;
+          }
+          
+          const userData = JSON.parse(userDataStr);
+          if (!userData.id) {
+            console.error("User ID not found in user data");
+            return;
+          }
+          
+          const chat = await createHelpdeskChat(token, userData.id);
+          setChatId(chat.id);
+        } catch (error) {
+          console.error("Failed to create helpdesk chat:", error);
+        }
+      }
+    };
+    initializeChat();
+  }, [isOpen, chatId]);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const [isTyping, setIsTyping] = useState(false);
   const [activeTab, setActiveTab] = useState<"home" | "chat">("home");
@@ -251,32 +288,20 @@ const ChatWidget: React.FC = () => {
       setIsTyping(true);
 
       try {
-        // Prepare message history for AI service
-        const messageHistory = messages
-          .filter(msg => msg.sender === "user" || msg.sender === "bot")
-          .map(msg => ({
-            role: msg.sender === "user" ? "user" : "assistant",
-            content: msg.text
-          }));
-
-        // Call AI service API
-        const response = await fetch('/api/chat', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            message: input,
-            history: messageHistory
-          }),
-        });
-
-        if (!response.ok) {
-          throw new Error(`API error: ${response.status}`);
+        // Check if we have a chat ID
+        if (!chatId) {
+          throw new Error("Chat not initialized");
         }
 
-        const data = await response.json();
-        setMessages((prev) => [...prev, { sender: "bot", text: data.message }]);
+        // Get token from localStorage
+        const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
+        if (!token) {
+          throw new Error("Authentication required");
+        }
+
+        // Call Laravel backend AI service
+        const aiMessage = await generateAIResponse(chatId, input, token);
+        setMessages((prev) => [...prev, { sender: "bot", text: aiMessage.content }]);
       } catch (error) {
         console.error("Chat error:", error);
         setMessages((prev) => [
@@ -293,7 +318,7 @@ const ChatWidget: React.FC = () => {
       setHasPromptedInactivity(false);
       resetActivityTimer();
     },
-    [input, selectedFile, filePreview, resetActivityTimer]
+    [input, selectedFile, filePreview, resetActivityTimer, chatId]
   );
 
   const handleScrollDown = () => {

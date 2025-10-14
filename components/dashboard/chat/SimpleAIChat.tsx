@@ -5,6 +5,7 @@ import { Send, Bot, User, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
+import { createHelpdeskChat, generateAIResponse } from "@/app/[locale]/actions/chat"
 
 interface Message {
   id: string
@@ -24,6 +25,7 @@ export function SimpleAIChat() {
   ])
   const [input, setInput] = useState("")
   const [isLoading, setIsLoading] = useState(false)
+  const [chatId, setChatId] = useState<string | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   const scrollToBottom = () => {
@@ -33,6 +35,39 @@ export function SimpleAIChat() {
   useEffect(() => {
     scrollToBottom()
   }, [messages])
+
+  // Initialize helpdesk chat
+  useEffect(() => {
+    const initializeChat = async () => {
+      try {
+        // Get token and user data from localStorage
+        const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
+        const userDataStr = typeof window !== 'undefined' ? localStorage.getItem('user_data') : null;
+        
+        if (!token) {
+          console.error("No authentication token found");
+          return;
+        }
+        
+        if (!userDataStr) {
+          console.error("No user data found");
+          return;
+        }
+        
+        const userData = JSON.parse(userDataStr);
+        if (!userData.id) {
+          console.error("User ID not found in user data");
+          return;
+        }
+        
+        const chat = await createHelpdeskChat(token, userData.id)
+        setChatId(chat.id)
+      } catch (error) {
+        console.error("Failed to create helpdesk chat:", error)
+      }
+    }
+    initializeChat()
+  }, [])
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -50,31 +85,24 @@ export function SimpleAIChat() {
     setIsLoading(true)
 
     try {
-      // Call the OpenAI chat API
-      const response = await fetch('/api/chat', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          message: userMessage.content,
-          history: messages.slice(-10).map(msg => ({
-            role: msg.role,
-            content: msg.content
-          }))
-        }),
-      })
-
-      if (!response.ok) {
-        throw new Error(`API error: ${response.status}`)
+      // Check if we have a chat ID
+      if (!chatId) {
+        throw new Error("Chat not initialized")
       }
 
-      const data = await response.json()
+      // Get token from localStorage
+      const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
+      if (!token) {
+        throw new Error("Authentication required")
+      }
+
+      // Call Laravel backend AI service
+      const aiMessage = await generateAIResponse(chatId, userMessage.content, token)
       
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: "assistant",
-        content: data.message || "I'm sorry, I couldn't process that request.",
+        content: aiMessage.content || "I'm sorry, I couldn't process that request.",
         timestamp: new Date()
       }
 

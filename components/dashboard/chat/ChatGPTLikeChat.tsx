@@ -1,10 +1,12 @@
 "use client"
 
 import { useState, useRef, useEffect } from "react"
-import { Send, Bot, User, Loader2, Plus, Menu, X, Trash2, MessageSquare } from "lucide-react"
+import { Send, Bot, User, Loader2, Plus, Menu, X, Trash2, MessageSquare, AlertCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
+import { createHelpdeskChat, generateAIResponse } from "@/app/[locale]/actions/chat"
+import { tokenUtils } from "@/utils/auth"
 
 interface Message {
   id: string
@@ -24,13 +26,16 @@ interface ChatSession {
 export function ChatGPTLikeChat() {
   const [sessions, setSessions] = useState<ChatSession[]>([])
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null)
+  const [chatId, setChatId] = useState<string | null>(null)
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState("")
   const [isLoading, setIsLoading] = useState(false)
+  const [isInitializing, setIsInitializing] = useState(true)
+  const [initError, setInitError] = useState<string | null>(null)
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
-  // Initialize with a default session
+  // Initialize with a default session and create helpdesk chat
   useEffect(() => {
     const newSession: ChatSession = {
       id: Date.now().toString(),
@@ -42,6 +47,37 @@ export function ChatGPTLikeChat() {
     setSessions([newSession])
     setCurrentSessionId(newSession.id)
     setMessages([])
+
+    // Create helpdesk chat for backend
+    const initializeChat = async () => {
+      try {
+        setIsInitializing(true)
+        setInitError(null)
+        
+        // Check if user is authenticated
+        const token = tokenUtils.getToken()
+        const userData = tokenUtils.getUser()
+        
+        if (!token) {
+          throw new Error("Please log in to use the chat feature")
+        }
+        
+        if (!userData || !userData.id) {
+          throw new Error("User data not found. Please log in again.")
+        }
+        
+        // Pass token and user ID to server action
+        const chat = await createHelpdeskChat(token, userData.id)
+        setChatId(chat.id)
+        setIsInitializing(false)
+      } catch (error) {
+        console.error("Failed to create helpdesk chat:", error)
+        const errorMessage = error instanceof Error ? error.message : "Failed to initialize chat"
+        setInitError(errorMessage)
+        setIsInitializing(false)
+      }
+    }
+    initializeChat()
   }, [])
 
   const scrollToBottom = () => {
@@ -110,7 +146,7 @@ export function ChatGPTLikeChat() {
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!input.trim() || isLoading) return
+    if (!input.trim() || isLoading || isInitializing) return
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -131,30 +167,24 @@ export function ChatGPTLikeChat() {
     }
 
     try {
-      const response = await fetch('/api/chat', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          message: userMessage.content,
-          history: messages.slice(-10).map(msg => ({
-            role: msg.role,
-            content: msg.content
-          }))
-        }),
-      })
-
-      if (!response.ok) {
-        throw new Error(`API error: ${response.status}`)
+      // Check if we have a chat ID
+      if (!chatId) {
+        throw new Error("Chat is still initializing. Please wait a moment and try again.")
       }
 
-      const data = await response.json()
+      // Get token for server action
+      const token = tokenUtils.getToken()
+      if (!token) {
+        throw new Error("Authentication required")
+      }
+
+      // Call Laravel backend AI service
+      const aiMessage = await generateAIResponse(chatId, userMessage.content, token)
       
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: "assistant",
-        content: data.message || "I'm sorry, I couldn't process that request.",
+        content: aiMessage.content || "I'm sorry, I couldn't process that request.",
         timestamp: new Date()
       }
 
@@ -302,6 +332,41 @@ export function ChatGPTLikeChat() {
             </div>
           )}
           
+          {isInitializing && (
+            <div className="flex gap-4 max-w-3xl mr-auto">
+              <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0">
+                <Bot className="w-5 h-5 text-white" />
+              </div>
+              <div className="bg-white rounded-2xl px-4 py-3 shadow-sm border border-gray-200">
+                <div className="flex items-center gap-2">
+                  <Loader2 className="w-4 h-4 animate-spin text-gray-400" />
+                  <span className="text-sm text-gray-500">Initializing chat...</span>
+                </div>
+              </div>
+            </div>
+          )}
+          
+          {initError && !isInitializing && (
+            <div className="flex gap-4 max-w-3xl mr-auto">
+              <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
+                <AlertCircle className="w-5 h-5 text-red-600" />
+              </div>
+              <div className="bg-red-50 rounded-2xl px-4 py-3 shadow-sm border border-red-200">
+                <p className="text-sm text-red-800 font-medium mb-1">Unable to initialize chat</p>
+                <p className="text-sm text-red-600">{initError}</p>
+                {initError.includes("log in") && (
+                  <Button
+                    onClick={() => window.location.href = '/nl/signin'}
+                    className="mt-2 h-8 text-xs"
+                    size="sm"
+                  >
+                    Go to Login
+                  </Button>
+                )}
+              </div>
+            </div>
+          )}
+          
           {messages.map((message) => (
             <div
               key={message.id}
@@ -357,17 +422,21 @@ export function ChatGPTLikeChat() {
               <Input
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder="Message answer24..."
+                placeholder={
+                  isInitializing ? "Initializing chat..." : 
+                  initError ? "Chat unavailable" : 
+                  "Message answer24..."
+                }
                 className="pr-12 py-6 text-base border-gray-300 focus:border-blue-500 focus:ring-blue-500 rounded-2xl"
-                disabled={isLoading}
+                disabled={isLoading || isInitializing || !!initError}
               />
               <Button 
                 type="submit" 
-                disabled={!input.trim() || isLoading}
+                disabled={!input.trim() || isLoading || isInitializing || !!initError}
                 className="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-xl"
                 size="sm"
               >
-                {isLoading ? (
+                {isLoading || isInitializing ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
                 ) : (
                   <Send className="w-4 h-4" />
@@ -375,7 +444,9 @@ export function ChatGPTLikeChat() {
               </Button>
             </div>
             <p className="text-xs text-center text-gray-500 mt-2">
-              answer24 can make mistakes. Consider checking important information.
+              {isInitializing ? "Setting up your chat..." : 
+               initError ? "Please resolve the issue above to continue" :
+               "answer24 can make mistakes. Consider checking important information."}
             </p>
           </form>
         </div>

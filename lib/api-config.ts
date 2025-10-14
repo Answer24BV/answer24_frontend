@@ -61,6 +61,7 @@ export const API_CONFIG = {
       MESSAGES: (chatId: string) => `/chats/${chatId}/messages`,
       MESSAGE_READ: (messageId: string) => `/messages/${messageId}/read`,
       AI_RESPONSE: (chatId: string) => `/chats/${chatId}/ai`,
+      AI_STATUS: "/ai/status",
     },
     ADMIN: {
       USERS: "/admin/users",
