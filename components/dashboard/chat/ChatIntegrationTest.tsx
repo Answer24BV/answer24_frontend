@@ -22,7 +22,7 @@ export function ChatIntegrationTest() {
   }>>([])
   const [isRunning, setIsRunning] = useState(false)
 
-  const addTestResult = (test: string, status: 'success' | 'error', message: string, data?: any) => {
+  const addTestResult = (test: string, status: 'success' | 'error' | 'pending', message: string, data?: any) => {
     setTestResults(prev => [...prev, { test, status, message, data }])
   }
 
