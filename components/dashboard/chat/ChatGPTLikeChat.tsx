@@ -333,7 +333,7 @@ export function ChatGPTLikeChat() {
           )}
           
           {isInitializing && (
-            <div className="flex gap-4 max-w-3xl mr-auto">
+            <div className="flex gap-4 w-full justify-start">
               <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0">
                 <Bot className="w-5 h-5 text-white" />
               </div>
@@ -347,7 +347,7 @@ export function ChatGPTLikeChat() {
           )}
           
           {initError && !isInitializing && (
-            <div className="flex gap-4 max-w-3xl mr-auto">
+            <div className="flex gap-4 w-full justify-start">
               <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
                 <AlertCircle className="w-5 h-5 text-red-600" />
               </div>
@@ -371,8 +371,8 @@ export function ChatGPTLikeChat() {
             <div
               key={message.id}
               className={cn(
-                "flex gap-4 max-w-3xl",
-                message.role === "user" ? "ml-auto" : "mr-auto"
+                "flex gap-4 w-full",
+                message.role === "user" ? "justify-end" : "justify-start"
               )}
             >
               {message.role === "assistant" && (
@@ -382,10 +382,10 @@ export function ChatGPTLikeChat() {
               )}
               
               <div className={cn(
-                "rounded-2xl px-4 py-3 max-w-[85%]",
+                "rounded-2xl px-4 py-3",
                 message.role === "user"
-                  ? "bg-blue-600 text-white"
-                  : "bg-white text-gray-900 shadow-sm border border-gray-200"
+                  ? "bg-blue-600 text-white max-w-[70%]"
+                  : "bg-white text-gray-900 shadow-sm border border-gray-200 max-w-[70%]"
               )}>
                 <p className="text-sm whitespace-pre-wrap leading-relaxed">{message.content}</p>
               </div>
@@ -399,7 +399,7 @@ export function ChatGPTLikeChat() {
           ))}
           
           {isLoading && (
-            <div className="flex gap-4 max-w-3xl mr-auto">
+            <div className="flex gap-4 w-full justify-start">
               <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0">
                 <Bot className="w-5 h-5 text-white" />
               </div>
