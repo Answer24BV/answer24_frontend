@@ -8,6 +8,21 @@ interface InactivityLockProviderProps {
 
 const getLockTimeoutMs = () => {
   if (typeof window === "undefined") return 15 * 60 * 1000;
+  
+  // Try to get from user data first
+  const userDataStr = localStorage.getItem("user_data");
+  if (userDataStr) {
+    try {
+      const userData = JSON.parse(userDataStr);
+      if (userData.lock_timeout) {
+        return Number(userData.lock_timeout) * 60 * 1000;
+      }
+    } catch (error) {
+      console.error("Error parsing user data:", error);
+    }
+  }
+  
+  // Fallback to direct localStorage key
   const stored = localStorage.getItem("lockTimeout");
   return stored ? Number(stored) * 60 * 1000 : 1 * 60 * 1000;
 };

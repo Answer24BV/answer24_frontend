@@ -470,6 +470,9 @@ export function Security() {
       });
 
       if (lockResponse.success) {
+        // Also save to localStorage for immediate effect
+        localStorage.setItem("lockTimeout", lockTimeout.toString());
+        
         toast.success("Lock screen settings saved successfully!");
         setLockSettingsMsg({ type: "success", text: "Lock screen settings saved successfully!" });
         // Clear the form after successful submission
