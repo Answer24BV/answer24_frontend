@@ -43,60 +43,93 @@ export default function PaymentSuccessPage() {
     processPayment();
   }, []);
 
+  const verifyPayment = async (paymentId: string) => {
+    const token = tokenUtils.getToken();
+    if (!token) {
+      console.warn("⚠️ No auth token found");
+      setError("Please log in to verify your payment.");
+      setPaymentStatus("failed");
+      return;
+    }
+
+    // Step 1: Verify payment with backend
+    console.log("🔍 Verifying payment with backend...");
+    const verifyResponse = await fetch(
+      getApiUrl(`/payment/verify/${paymentId}`),
+      {
+        method: "GET",
+        headers: getApiHeaders(token),
+      }
+    );
+
+    if (!verifyResponse.ok) {
+      throw new Error(`Payment verification failed: ${verifyResponse.status}`);
+    }
+
+    const verifyData = await verifyResponse.json();
+    console.log("✅ Payment verification response:", verifyData);
+    
+    setPaymentData(verifyData);
+
+    // Check if payment is successful
+    if (verifyData.status === "paid") {
+      setPaymentStatus("success");
+      toast.success("Payment successful! Subscription activated! 🎉");
+    } else {
+      setPaymentStatus("failed");
+      setError(`Payment ${verifyData.status}. Please try again.`);
+    }
+  };
+
   const processPayment = async () => {
     try {
       setIsProcessing(true);
 
       // Get payment ID from URL params (Mollie sends this back)
-      const paymentId = searchParams.get("payment_id") || searchParams.get("id");
+      // Mollie typically sends payment ID in various parameter names
+      const paymentId = searchParams.get("payment_id") || 
+                       searchParams.get("id") || 
+                       searchParams.get("paymentId") ||
+                       searchParams.get("payment") ||
+                       searchParams.get("transaction_id") ||
+                       searchParams.get("transactionId");
       
       console.log("🔍 Payment processing params:", {
         paymentId,
         allParams: Object.fromEntries(searchParams.entries()),
+        searchParamsKeys: Array.from(searchParams.keys()),
       });
 
       if (!paymentId) {
-        console.warn("⚠️ No payment ID found in URL params");
-        setError("No payment ID found. Please contact support if you were charged.");
-        setPaymentStatus("failed");
-        return;
-      }
-
-      const token = tokenUtils.getToken();
-      if (!token) {
-        console.warn("⚠️ No auth token found");
-        setError("Please log in to verify your payment.");
-        setPaymentStatus("failed");
-        return;
-      }
-
-      // Step 1: Verify payment with backend
-      console.log("🔍 Verifying payment with backend...");
-      const verifyResponse = await fetch(
-        getApiUrl(`/payment/verify/${paymentId}`),
-        {
-          method: "GET",
-          headers: getApiHeaders(token),
+        // Try to extract payment ID from URL path as fallback
+        const urlPath = window.location.pathname;
+        const pathSegments = urlPath.split('/');
+        const possiblePaymentId = pathSegments.find(segment => 
+          segment.startsWith('tr_') || 
+          segment.startsWith('payment_') ||
+          segment.match(/^[a-zA-Z0-9_]{10,}$/) // Generic ID pattern
+        );
+        
+        console.log("🔍 Trying to extract payment ID from URL path:", {
+          urlPath,
+          pathSegments,
+          possiblePaymentId,
+        });
+        
+        if (possiblePaymentId) {
+          console.log("✅ Found payment ID in URL path:", possiblePaymentId);
+          // Continue with the extracted payment ID
+          await verifyPayment(possiblePaymentId);
+          return;
         }
-      );
-
-      if (!verifyResponse.ok) {
-        throw new Error(`Payment verification failed: ${verifyResponse.status}`);
-      }
-
-      const verifyData = await verifyResponse.json();
-      console.log("✅ Payment verification response:", verifyData);
-      
-      setPaymentData(verifyData);
-
-      // Check if payment is successful
-      if (verifyData.status === "paid") {
-        setPaymentStatus("success");
-        toast.success("Payment successful! Subscription activated! 🎉");
-      } else {
+        
+        console.warn("⚠️ No payment ID found in URL params or path");
+        setError("No payment ID found in the URL. This might be a configuration issue with the payment redirect URL. Please contact support if you were charged.");
         setPaymentStatus("failed");
-        setError(`Payment ${verifyData.status}. Please try again.`);
+        return;
       }
+      
+      await verifyPayment(paymentId);
 
     } catch (err) {
       console.error("❌ Payment processing error:", err);

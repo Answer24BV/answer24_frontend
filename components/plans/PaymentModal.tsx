@@ -41,6 +41,10 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
 }) => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [isRedirecting, setIsRedirecting] = useState(false);
+  
+  // Extract locale from current URL
+  const pathname = typeof window !== 'undefined' ? window.location.pathname : '';
+  const locale = pathname.split('/')[1] || 'en';
 
   if (!plan) return null;
 
@@ -64,7 +68,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
         amount: plan.price,
         description: `Plan: ${plan.display_name}`,
         plan_id: plan.id,
-        redirect_url: `${window.location.origin}/payment/success`,
+        redirect_url: `${window.location.origin}/${locale}/payment/success`,
         webhook_url: `${window.location.origin}/api/payment/webhook`,
       };
 
