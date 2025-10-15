@@ -92,8 +92,8 @@ export function PrivateNavbar() {
     { name: t("chat"), href: "/dashboard/chat", as: "/chat" },
     {
       name: t("wallet"),
-      href: "/dashboard/account/wallet",
-      as: "/account/wallet",
+      href: "/dashboard/wallet",
+      as: "/wallet",
     },
   ];
 
@@ -188,7 +188,7 @@ export function PrivateNavbar() {
                 </DropdownMenuItem>
                 <DropdownMenuItem>
                   <Link
-                    href="/dashboard/account/wallet"
+                    href="/dashboard/wallet"
                     className="flex items-center w-full"
                   >
                     <Wallet className="mr-2 h-4 w-4" />
