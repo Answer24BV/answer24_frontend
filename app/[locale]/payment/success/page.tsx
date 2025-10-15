@@ -32,6 +32,8 @@ interface PaymentData {
 export default function PaymentSuccessPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const pathname = window.location.pathname;
+  const locale = pathname.split('/')[1] || 'en';
   const [isProcessing, setIsProcessing] = useState(true);
   const [paymentStatus, setPaymentStatus] = useState<"success" | "failed" | "pending">("pending");
   const [paymentData, setPaymentData] = useState<PaymentData | null>(null);
@@ -107,10 +109,10 @@ export default function PaymentSuccessPage() {
 
   const handleContinue = () => {
     if (paymentStatus === "success") {
-      // Redirect to billing dashboard
-      router.push("/dashboard/account?tab=billing");
+      // Redirect to billing dashboard with locale
+      router.push(`/${locale}/dashboard/account?tab=billing`);
     } else {
-      router.push("/pricing");
+      router.push(`/${locale}/pricing`);
     }
   };
 
@@ -199,7 +201,7 @@ export default function PaymentSuccessPage() {
             <Button
               variant="outline"
               className="w-full"
-              onClick={() => router.push("/dashboard")}
+              onClick={() => router.push(`/${locale}/dashboard`)}
             >
               Go to Dashboard
             </Button>
@@ -251,7 +253,7 @@ export default function PaymentSuccessPage() {
             <Button
               variant="outline"
               className="w-full"
-              onClick={() => router.push("/dashboard")}
+              onClick={() => router.push(`/${locale}/dashboard`)}
             >
               Back to Dashboard
             </Button>
