@@ -40,6 +40,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
   onProceedToPayment,
 }) => {
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isRedirecting, setIsRedirecting] = useState(false);
 
   if (!plan) return null;
 
@@ -120,10 +121,17 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
         foundUrl: checkoutUrl,
       });
 
+      // Call onProceedToPayment before redirect to prevent React DOM errors
+      await onProceedToPayment(plan);
+
       // Redirect to Mollie checkout URL from API response
       if (checkoutUrl) {
         console.log("🌐 Redirecting to checkout URL:", checkoutUrl);
-        window.location.href = checkoutUrl;
+        setIsRedirecting(true);
+        // Use setTimeout to ensure state updates complete before redirect
+        setTimeout(() => {
+          window.location.href = checkoutUrl;
+        }, 100);
       } else {
         console.error(
           "❌ No checkout URL found in response. Full response:",
@@ -133,16 +141,22 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
           "No checkout URL received from payment service. Please contact support."
         );
       }
-
-      await onProceedToPayment(plan);
     } catch (error: any) {
       console.error("💥 Payment error:", error);
       console.error("💥 Error stack:", error.stack);
-      toast.error(
-        error.message || "Failed to process payment. Please try again."
-      );
+      
+      // Only show error and reset state if we're not redirecting
+      if (!isRedirecting) {
+        toast.error(
+          error.message || "Failed to process payment. Please try again."
+        );
+        setIsProcessing(false);
+      }
     } finally {
-      setIsProcessing(false);
+      // Only reset processing state if we're not redirecting
+      if (!isRedirecting) {
+        setIsProcessing(false);
+      }
     }
   };
 
@@ -220,7 +234,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
               {isProcessing ? (
                 <div className="flex items-center gap-2">
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  Redirecting to Mollie...
+                  {isRedirecting ? "Redirecting..." : "Processing..."}
                 </div>
               ) : (
                 <div className="flex items-center gap-2">
