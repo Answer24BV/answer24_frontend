@@ -16,6 +16,7 @@ import { useRouter } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import AddMoney from "@/components/AddMoney";
 import { tokenUtils } from "@/utils/auth";
+import { useUser } from "@/hooks/useUser";
 
 // --- UI Components (Recreated based on common patterns) ---
 
@@ -321,16 +322,16 @@ export default function WalletPage() {
   const [walletHistoryLoader, setWalletHistoryLoader] = useState<boolean>(true);
   const [isPageLoading, setIsPageLoading] = useState<boolean>(true);
   const [addMoneyModal, setAddMoneyModal] = useState<boolean>(false);
+  const [apiError, setApiError] = useState<boolean>(false);
   const router = useRouter();
   const t = useTranslations("WalletPage");
-
-  // Dummy User Data
-  const user = {
-    name: "John Doe",
-    email: "john.doe@example.com",
-    avatar: "/Image-1.png", // Ensure this path is valid or remove if not needed
-    joinDate: "January 15, 2023", // Replaced moment with a string for simplicity
-  };
+  
+  // Use real user data with the same pattern as Profile component
+  const [user, setUser] = useState<any>(null);
+  const [userLoading, setUserLoading] = useState(true);
+  const [userProfile, setUserProfile] = useState<any>(null);
+  const [userProfileLoading, setUserProfileLoading] = useState(false);
+  const [tokenValid, setTokenValid] = useState<boolean | null>(null);
 
   const wallet = {
     balance: walletData?.balance || 0,
@@ -358,6 +359,158 @@ export default function WalletPage() {
     }).format(amount);
   };
 
+  // Check token validity
+  useEffect(() => {
+    const token = tokenUtils.getToken();
+    if (token) {
+      // Simple token validation - check if it's a valid JWT format
+      const parts = token.split('.');
+      if (parts.length === 3) {
+        try {
+          const payload = JSON.parse(atob(parts[1]));
+          const now = Math.floor(Date.now() / 1000);
+          setTokenValid(payload.exp > now);
+        } catch (e) {
+          setTokenValid(false);
+        }
+      } else {
+        setTokenValid(false);
+      }
+    } else {
+      setTokenValid(false);
+    }
+  }, []);
+
+  // Fetch user data using the same pattern as Profile component
+  useEffect(() => {
+    const handleUserDataUpdate = (event: CustomEvent) => {
+      const userData = event.detail;
+      if (userData && userData.email && userData.email !== "user@example.com") {
+        setUser(userData);
+        setUserLoading(false);
+      }
+    };
+
+    window.addEventListener(
+      "userDataUpdated",
+      handleUserDataUpdate as EventListener
+    );
+
+    const fetchUserData = () => {
+      try {
+        const userData = tokenUtils.getUser();
+        console.log("Wallet: Fetched user data:", userData);
+        if (
+          userData &&
+          userData.email &&
+          userData.email !== "user@example.com"
+        ) {
+          setUser(userData);
+          setUserLoading(false);
+          return true;
+        }
+        console.log("Wallet: User data validation failed:", {
+          hasUserData: !!userData,
+          email: userData?.email,
+          isValidEmail: userData?.email !== "user@example.com"
+        });
+        return false;
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+        return false;
+      }
+    };
+
+    // Try to load user data immediately
+    if (!fetchUserData()) {
+      // If no user data found, retry with exponential backoff
+      let retryCount = 0;
+      const maxRetries = 15;
+
+      const retryInterval = setInterval(() => {
+        retryCount++;
+        if (fetchUserData() || retryCount >= maxRetries) {
+          if (retryCount >= maxRetries) {
+            setUserLoading(false);
+          }
+          clearInterval(retryInterval);
+        }
+      }, 200 * retryCount); // Exponential backoff
+
+      return () => {
+        window.removeEventListener(
+          "userDataUpdated",
+          handleUserDataUpdate as EventListener
+        );
+        clearInterval(retryInterval);
+      };
+    }
+
+    return () => {
+      window.removeEventListener(
+        "userDataUpdated",
+        handleUserDataUpdate as EventListener
+      );
+    };
+  }, []);
+
+  // Fetch additional user profile data if needed
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      if (user && !userProfile) {
+        setUserProfileLoading(true);
+        try {
+          const token = tokenUtils.getToken();
+          if (!token) {
+            console.log("Wallet: No token available, skipping profile fetch");
+            setUserProfileLoading(false);
+            return;
+          }
+
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+          const response = await fetch(
+            `${process.env.NEXT_PUBLIC_API_BASE_URL}/profile`,
+            {
+              method: "GET",
+              headers: {
+                "Content-Type": "application/json",
+                Accept: "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+              signal: controller.signal,
+            }
+          );
+
+          clearTimeout(timeoutId);
+
+          if (response.ok) {
+            const data = await response.json();
+            setUserProfile(data.user || data);
+            console.log("Wallet: Successfully fetched user profile:", data);
+          } else if (response.status === 401) {
+            console.log("Wallet: Unauthorized - token may be invalid or expired");
+            // Don't show error, just use local user data
+            setUserProfile(null);
+          } else {
+            console.error("Wallet: Failed to fetch user profile:", response.status);
+            // Don't show error, just use local user data
+            setUserProfile(null);
+          }
+        } catch (err) {
+          console.error("Wallet: Error fetching user profile:", err);
+          // Don't show error, just use local user data
+          setUserProfile(null);
+        } finally {
+          setUserProfileLoading(false);
+        }
+      }
+    };
+
+    fetchUserProfile();
+  }, [user, userProfile]);
+
   // Fetch wallet balance from API
   useEffect(() => {
     const fetchWallet = async () => {
@@ -367,9 +520,14 @@ export default function WalletPage() {
 
         if (!token) {
           console.error("No authentication token found");
+          setWalletData({ balance: 0 });
           setIsPageLoading(false);
           return;
         }
+
+        // Add timeout to prevent hanging requests
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
 
         const response = await fetch(
           `${process.env.NEXT_PUBLIC_API_BASE_URL}/wallet/balance`,
@@ -380,9 +538,11 @@ export default function WalletPage() {
               Accept: "application/json",
               Authorization: `Bearer ${token}`,
             },
+            signal: controller.signal,
           }
         );
 
+        clearTimeout(timeoutId);
         console.log("Wallet balance API response status:", response.status);
 
         if (response.ok) {
@@ -404,8 +564,9 @@ export default function WalletPage() {
         }
       } catch (err) {
         console.error("Error fetching wallet balance:", err);
-        // Set default balance on error
+        // Set default balance on error - this will show the page with 0 balance
         setWalletData({ balance: 0 });
+        setApiError(true);
       } finally {
         setIsPageLoading(false);
       }
@@ -477,9 +638,76 @@ export default function WalletPage() {
     return <PageLoader />;
   }
 
+  // If user is not authenticated, show error
+  if (!userLoading && !user) {
+    return (
+      <div className="p-4 min-h-screen md:p-6">
+        <div className="mx-auto max-w-6xl">
+          <div className="text-center py-20">
+            <h1 className="text-2xl font-bold text-red-600 mb-4">Authentication Required</h1>
+            <p className="text-muted-foreground mb-6">Please sign in to access your wallet.</p>
+            <div className="space-y-2 mb-6">
+              <p className="text-sm text-gray-600">Debug: Token available: {tokenUtils.getToken() ? "Yes" : "No"}</p>
+              <p className="text-sm text-gray-600">Debug: User loading: {userLoading ? "Yes" : "No"}</p>
+            </div>
+            <button
+              onClick={() => router.push('/signin')}
+              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              Sign In
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="p-4 min-h-screen md:p-6">
       <div className="mx-auto space-y-6 max-w-6xl">
+
+        {/* Token Invalid Banner */}
+        {tokenValid === false && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <h3 className="text-sm font-medium text-red-800">
+                  Authentication Token Invalid
+                </h3>
+                <div className="mt-2 text-sm text-red-700">
+                  <p>Your authentication token is invalid or expired. Please sign in again.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* API Error Banner */}
+        {apiError && (
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <svg className="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <h3 className="text-sm font-medium text-yellow-800">
+                  API Connection Issue
+                </h3>
+                <div className="mt-2 text-sm text-yellow-700">
+                  <p>Unable to connect to the backend server. Showing demo data. Please check your API configuration.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Header */}
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
@@ -498,31 +726,70 @@ export default function WalletPage() {
               <CardTitle className="text-lg">Account Details</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex items-center space-x-3">
-                <Avatar className="w-12 h-12">
-                  <AvatarImage
-                    src={user.avatar || "/placeholder.svg"}
-                    alt={user.name}
-                  />
-                  <AvatarFallback>
-                    {user.name
-                      .split(" ")
-                      .map((n) => n[0])
-                      .join("")}
-                  </AvatarFallback>
-                </Avatar>
-                <div>
-                  <p className="font-medium">{user.name}</p>
-                  <p className="text-sm text-muted-foreground">{user.email}</p>
+              {userLoading || userProfileLoading ? (
+                <div className="flex items-center space-x-3">
+                  <div className="w-12 h-12 bg-gray-200 rounded-full animate-pulse"></div>
+                  <div className="space-y-2">
+                    <div className="h-4 bg-gray-200 rounded animate-pulse w-32"></div>
+                    <div className="h-3 bg-gray-200 rounded animate-pulse w-48"></div>
+                  </div>
                 </div>
-              </div>
-              <Separator />
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Member Since</span>
-                  <span>{user.joinDate}</span>
+              ) : user ? (
+                <>
+                  <div className="flex items-center space-x-3">
+                    <Avatar className="w-12 h-12">
+                      <AvatarImage
+                        src={userProfile?.profile_picture || user.profile_picture || "/Image-1.png"}
+                        alt={userProfile?.name || user.name}
+                      />
+                      <AvatarFallback>
+                        {(() => {
+                          const name = userProfile?.name || user.name;
+                          return name
+                            ?.split(" ")
+                            .map((n: string) => n[0])
+                            .join("") || "U";
+                        })()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <p className="font-medium">{userProfile?.name || user.name || "User"}</p>
+                      <p className="text-sm text-muted-foreground">{userProfile?.email || user.email || "user@example.com"}</p>
+                    </div>
+                  </div>
+                  <Separator />
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Member Since</span>
+                      <span>
+                        {(userProfile?.created_at || user.created_at)
+                          ? new Date(userProfile?.created_at || user.created_at).toLocaleDateString("en-US", {
+                              year: "numeric",
+                              month: "long",
+                              day: "numeric"
+                            })
+                          : "N/A"
+                        }
+                      </span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Account Type</span>
+                      <span className="capitalize">{userProfile?.role?.name || user.role?.name || "client"}</span>
+                    </div>
+                    {userProfile?.phone && (
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Phone</span>
+                        <span>{userProfile.phone}</span>
+                      </div>
+                    )}
+                  </div>
+                </>
+              ) : (
+                <div className="text-center py-4">
+                  <p className="text-sm text-red-500">Error Loading User</p>
+                  <p className="text-xs text-muted-foreground">Please refresh the page</p>
                 </div>
-              </div>
+              )}
             </CardContent>
           </Card>
 
