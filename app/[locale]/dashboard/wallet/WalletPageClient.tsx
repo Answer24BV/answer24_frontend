@@ -301,6 +301,10 @@ interface UserProfile {
   phone?: string;
   created_at?: string;
   updated_at?: string;
+  role?: {
+    id: string;
+    name: string;
+  };
 }
 
 interface Transaction {
