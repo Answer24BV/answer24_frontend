@@ -363,6 +363,12 @@ export function ChatGPTLikeChat() {
                     Go to Login
                   </Button>
                 )}
+                {initError.includes("500") && (
+                  <div className="mt-2 text-xs text-red-600">
+                    <p>Server error detected. Chat will work in offline mode.</p>
+                    <p>Some features may be limited.</p>
+                  </div>
+                )}
               </div>
             </div>
           )}

@@ -172,6 +172,10 @@ export async function createHelpdeskChat(token?: string, userId?: string): Promi
     }
     console.log("createHelpdeskChat: Request body:", requestBody)
 
+    // Add timeout to prevent hanging requests
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 second timeout
+
     const response = await fetch(getApiUrl("/chats"), {
       method: "POST",
       headers: {
@@ -179,14 +183,36 @@ export async function createHelpdeskChat(token?: string, userId?: string): Promi
         "Content-Type": "application/json",
       },
       body: JSON.stringify(requestBody),
+      signal: controller.signal,
     })
 
+    clearTimeout(timeoutId)
     console.log("createHelpdeskChat: Response status:", response.status)
     console.log("createHelpdeskChat: Response headers:", Object.fromEntries(response.headers.entries()))
 
     if (!response.ok) {
       const errorText = await response.text()
       console.error("createHelpdeskChat: Error response:", errorText)
+      
+      // If it's a 500 error, create a fallback chat
+      if (response.status === 500) {
+        console.log("createHelpdeskChat: Server error, creating fallback chat")
+        return {
+          id: `fallback-${Date.now()}`,
+          participants: [{
+            id: userIdValue,
+            name: "User",
+            avatar: "",
+            status: "online" as const
+          }],
+          type: "helpdesk" as const,
+          title: "Helpdesk Support",
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          aiEnabled: true
+        }
+      }
+      
       throw new Error(`Failed to create helpdesk chat: ${response.status} - ${errorText}`)
     }
 
@@ -195,6 +221,27 @@ export async function createHelpdeskChat(token?: string, userId?: string): Promi
     return data.chat
   } catch (error) {
     console.error("Error creating helpdesk chat:", error)
+    
+    // If it's a network error or timeout, create a fallback chat
+    if (error instanceof Error && (error.name === 'AbortError' || error.message.includes('fetch'))) {
+      console.log("createHelpdeskChat: Network error, creating fallback chat")
+      const userData = tokenUtils.getUser()
+      return {
+        id: `fallback-${Date.now()}`,
+        participants: [{
+          id: userData?.id || 'unknown',
+          name: userData?.name || "User",
+          avatar: userData?.profile_picture || "",
+          status: "online" as const
+        }],
+        type: "helpdesk" as const,
+        title: "Helpdesk Support",
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        aiEnabled: true
+      }
+    }
+    
     throw error
   }
 }
@@ -207,6 +254,10 @@ export async function generateAIResponse(chatId: string, message: string, token?
       throw new Error("No authentication token found")
     }
 
+    // Add timeout to prevent hanging requests
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 15000) // 15 second timeout for AI
+
     const response = await fetch(getApiUrl(`/chats/${chatId}/ai`), {
       method: "POST",
       headers: {
@@ -216,9 +267,24 @@ export async function generateAIResponse(chatId: string, message: string, token?
       body: JSON.stringify({
         message
       }),
+      signal: controller.signal,
     })
 
+    clearTimeout(timeoutId)
+
     if (!response.ok) {
+      // If it's a server error, provide a fallback response
+      if (response.status >= 500) {
+        console.log("generateAIResponse: Server error, providing fallback response")
+        return {
+          id: `fallback-${Date.now()}`,
+          senderId: "ai",
+          content: "I'm sorry, I'm having trouble connecting to the AI service right now. Please try again in a moment, or contact support if the issue persists.",
+          type: "text" as const,
+          timestamp: new Date(),
+          isAiGenerated: true
+        }
+      }
       throw new Error(`Failed to generate AI response: ${response.status}`)
     }
 
@@ -226,6 +292,20 @@ export async function generateAIResponse(chatId: string, message: string, token?
     return data.message
   } catch (error) {
     console.error("Error generating AI response:", error)
+    
+    // If it's a network error or timeout, provide a fallback response
+    if (error instanceof Error && (error.name === 'AbortError' || error.message.includes('fetch'))) {
+      console.log("generateAIResponse: Network error, providing fallback response")
+      return {
+        id: `fallback-${Date.now()}`,
+        senderId: "ai",
+        content: "I'm experiencing connectivity issues right now. Please try again in a moment.",
+        type: "text" as const,
+        timestamp: new Date(),
+        isAiGenerated: true
+      }
+    }
+    
     throw error
   }
 }
