@@ -12,10 +12,12 @@ import {
   Bell,
   CreditCard,
   ChevronRight,
+  Building, // <-- added
 } from "lucide-react";
 import { Security } from "./Security";
 import { Notifications } from "./Notifications";
 import { Billing } from "./Billing";
+import { Details } from "./Details"; // <-- added
 import { usePathname } from "next/navigation";
 import { tokenUtils } from "@/utils/auth";
 import { toast } from "react-toastify";
@@ -24,12 +26,14 @@ import { toast } from "react-toastify";
 const updateUserProfile = async (data: {
   name?: string;
   profile_picture?: File | null;
+  phone?: string;
 }) => {
   try {
     const formData = new FormData();
     if (data.name) formData.append("name", data.name);
     if (data.profile_picture)
       formData.append("profile_picture", data.profile_picture);
+    if (data.phone) formData.append("phone", data.phone); // <-- ADD THIS HERE
 
     const response = await fetch(
       `${
@@ -37,7 +41,7 @@ const updateUserProfile = async (data: {
         "https://answer24.laravel.cloud/api/v1"
       }/profile`,
       {
-        method: "PUT", // or 'PUT' depending on backend
+        method: "PUT",
         headers: {
           Authorization: `Bearer ${tokenUtils.getToken()}`,
         },
@@ -70,6 +74,7 @@ interface UserData {
   id?: string;
   name?: string;
   email?: string;
+  phone?: string | null;
   profile_picture?: string | null;
   created_at?: string;
   updated_at?: string;
@@ -79,10 +84,12 @@ interface ProfileContentProps {
   user: Partial<UserData>;
   fullName: string;
   email: string;
+  phone: string;
   profilePicture: string;
   onProfilePictureChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onProfileSubmit: (e: React.FormEvent) => void;
   setFullName: (name: string) => void;
+  setPhone: (phone: string) => void;
 }
 
 const ProfileContent = ({
@@ -93,6 +100,8 @@ const ProfileContent = ({
   onProfilePictureChange,
   onProfileSubmit,
   setFullName,
+  phone,
+  setPhone,
 }: ProfileContentProps) => (
   <div className="space-y-4">
     <div>
@@ -180,6 +189,21 @@ const ProfileContent = ({
                   Contact support to change your email
                 </p>
               </div>
+              <div>
+                <Label
+                  htmlFor="phone"
+                  className="text-sm font-medium text-gray-700 mb-1.5 block"
+                >
+                  Phone Number
+                </Label>
+                <Input
+                  id="phone"
+                  className="w-full"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder="Enter your phone number"
+                />
+              </div>
             </div>
             <div className="pt-4 flex justify-end border-t border-gray-100">
               <Button type="submit" className="px-6 py-2.5 text-sm font-medium">
@@ -205,6 +229,7 @@ export function Profile() {
   const [profilePicturePreview, setProfilePicturePreview] =
     useState<string>("");
   const pathname = usePathname();
+  const [phone, setPhone] = useState("");
 
   // Fetch user data on component mount
   useEffect(() => {
@@ -214,17 +239,25 @@ export function Profile() {
         setUser(userData);
         setFullName(userData.name || "");
         setEmail(userData.email || "");
+        setPhone(userData.phone || "");
         setProfilePicturePreview(userData.profile_picture || "");
         setIsLoading(false);
       }
     };
 
-    window.addEventListener("userDataUpdated", handleUserDataUpdate as EventListener);
+    window.addEventListener(
+      "userDataUpdated",
+      handleUserDataUpdate as EventListener
+    );
 
     const fetchUserData = () => {
       try {
         const userData = tokenUtils.getUser();
-        if (userData && userData.email && userData.email !== "user@example.com") {
+        if (
+          userData &&
+          userData.email &&
+          userData.email !== "user@example.com"
+        ) {
           setUser(userData);
           setFullName(userData.name || "");
           setEmail(userData.email || "");
@@ -244,7 +277,7 @@ export function Profile() {
       // If no user data found, retry with exponential backoff
       let retryCount = 0;
       const maxRetries = 15;
-      
+
       const retryInterval = setInterval(() => {
         retryCount++;
         if (fetchUserData() || retryCount >= maxRetries) {
@@ -256,13 +289,19 @@ export function Profile() {
       }, 200 * retryCount); // Exponential backoff
 
       return () => {
-        window.removeEventListener("userDataUpdated", handleUserDataUpdate as EventListener);
+        window.removeEventListener(
+          "userDataUpdated",
+          handleUserDataUpdate as EventListener
+        );
         clearInterval(retryInterval);
       };
     }
 
     return () => {
-      window.removeEventListener("userDataUpdated", handleUserDataUpdate as EventListener);
+      window.removeEventListener(
+        "userDataUpdated",
+        handleUserDataUpdate as EventListener
+      );
     };
   }, []);
 
@@ -287,10 +326,15 @@ export function Profile() {
       return;
     }
 
-    const payload: { name?: string; profile_picture?: File | null } = {};
+    const payload: {
+      name?: string;
+      profile_picture?: File | null;
+      phone?: string;
+    } = {};
     if (fullName.trim() && fullName !== user?.name)
       payload.name = fullName.trim();
     if (profilePictureFile) payload.profile_picture = profilePictureFile;
+    if (phone.trim() && phone !== user?.phone) payload.phone = phone.trim();
 
     if (!payload.name && !payload.profile_picture) {
       toast.info("No changes to update");
@@ -306,6 +350,7 @@ export function Profile() {
           ...(payload.profile_picture
             ? { profile_picture: profilePicturePreview }
             : {}),
+          ...(payload.phone ? { phone: payload.phone } : {}),
         };
         setUser(updatedUser);
         tokenUtils.setUser(updatedUser);
@@ -327,6 +372,8 @@ export function Profile() {
         return <Notifications />;
       case "billing":
         return <Billing />;
+      case "company": // <-- changed from "Company"
+        return <Details />; // <-- render new component
       default:
         return renderContent();
     }
@@ -356,10 +403,12 @@ export function Profile() {
         user={user}
         fullName={fullName}
         email={email}
+        phone={phone} // <-- ADD THIS
         profilePicture={profilePicturePreview}
         onProfilePictureChange={handleProfilePictureChange}
         onProfileSubmit={handleProfileSubmit}
         setFullName={setFullName}
+        setPhone={setPhone} // <-- ADD THIS
       />
     );
   };
@@ -370,6 +419,7 @@ export function Profile() {
     { id: "security", icon: Shield, label: "Security" },
     { id: "notifications", icon: Bell, label: "Notifications" },
     { id: "billing", icon: CreditCard, label: "Billing" },
+    { id: "company", icon: Building, label: "Company Details" }, // <-- added
   ];
 
   // Determine active tab based on path
@@ -377,6 +427,8 @@ export function Profile() {
     if (pathname?.includes("security")) setActiveTab("security");
     else if (pathname?.includes("notifications")) setActiveTab("notifications");
     else if (pathname?.includes("billing")) setActiveTab("billing");
+    else if (pathname?.includes("company") || pathname?.includes("details"))
+      setActiveTab("company"); // <-- added
     else setActiveTab("profile");
   }, [pathname]);
 

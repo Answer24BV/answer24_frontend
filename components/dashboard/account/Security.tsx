@@ -4,10 +4,28 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import { tokenUtils } from "@/utils/auth";
 import { getApiUrl, getApiHeaders } from "@/lib/api-config";
+import axios from "axios";
+
+// helper: simple relative time formatter (minutes/hours/days ago)
+function formatRelativeTime(dateLike?: string | number | Date | null) {
+  if (!dateLike) return "—";
+  const date = new Date(dateLike);
+  if (isNaN(date.getTime())) return "—";
+  const diffMs = Date.now() - date.getTime();
+  const diffSec = Math.floor(diffMs / 1000);
+  const diffMin = Math.floor(diffSec / 60);
+  const diffHour = Math.floor(diffMin / 60);
+  const diffDay = Math.floor(diffHour / 24);
+
+  if (diffSec < 60) return `${diffSec} seconds ago`;
+  if (diffMin < 60) return `${diffMin} minutes ago`;
+  if (diffHour < 24) return `${diffHour} hours ago`;
+  return `${diffDay} days ago`;
+}
 
 // API call to update lock settings
 const updateLockSettings = async (data: {
@@ -15,14 +33,11 @@ const updateLockSettings = async (data: {
   lock_timeout?: number;
 }) => {
   try {
-    const response = await fetch(
-      getApiUrl("/profile"),
-      {
-        method: "PUT",
-        headers: getApiHeaders(tokenUtils.getToken() || undefined),
-        body: JSON.stringify(data),
-      }
-    );
+    const response = await fetch(getApiUrl("/profile"), {
+      method: "PUT",
+      headers: getApiHeaders(tokenUtils.getToken() || undefined),
+      body: JSON.stringify(data),
+    });
 
     if (!response.ok) {
       const error = await response.json();
@@ -62,14 +77,11 @@ const updateUserPassword = async (data: {
   confirm_password: string;
 }) => {
   try {
-    const response = await fetch(
-      getApiUrl("/change-password"),
-      {
-        method: "POST",
-        headers: getApiHeaders(tokenUtils.getToken() || undefined),
-        body: JSON.stringify(data),
-      }
-    );
+    const response = await fetch(getApiUrl("/change-password"), {
+      method: "POST",
+      headers: getApiHeaders(tokenUtils.getToken() || undefined),
+      body: JSON.stringify(data),
+    });
 
     if (!response.ok) {
       const error = await response.json();
@@ -91,10 +103,7 @@ const updateUserPassword = async (data: {
 };
 
 // API call to create PIN
-const createPin = async (data: {
-  pin: string;
-  confirm_pin: string;
-}) => {
+const createPin = async (data: { pin: string; confirm_pin: string }) => {
   try {
     const token = tokenUtils.getToken();
     console.log("=== CREATE PIN DEBUG ===");
@@ -106,31 +115,28 @@ const createPin = async (data: {
     console.log("LocalStorage auth_token:", localStorage.getItem("auth_token"));
     console.log("All localStorage keys:", Object.keys(localStorage));
     console.log("========================");
-    
-    // Check if token exists
+
+    // Check if token existss
     if (!token) {
       console.error("Token is null or undefined!");
-      
+
       // Try to get token directly from localStorage as fallback
       const directToken = localStorage.getItem("auth_token");
       console.log("Direct localStorage token:", directToken);
-      
+
       if (!directToken) {
         throw new Error("No authentication token found. Please log in again.");
       }
-      
+
       // Use the direct token if available
       const finalToken = directToken;
       console.log("Using fallback token:", finalToken);
-      
-      const response = await fetch(
-        getApiUrl("/create-pin"),
-        {
-          method: "POST",
-          headers: getApiHeaders(finalToken),
-          body: JSON.stringify(data),
-        }
-      );
+
+      const response = await fetch(getApiUrl("/create-pin"), {
+        method: "POST",
+        headers: getApiHeaders(finalToken),
+        body: JSON.stringify(data),
+      });
 
       const responseData = await response.json();
       console.log("Create PIN response (fallback):", responseData);
@@ -143,7 +149,7 @@ const createPin = async (data: {
       if (!response.ok) {
         throw new Error(responseData.message || "Failed to create PIN");
       }
-      
+
       // Update user data with new PIN - try multiple possible structures
       let pinToStore = null;
       if (responseData.data && responseData.data.pin) {
@@ -153,11 +159,14 @@ const createPin = async (data: {
       } else {
         // Fallback: If API doesn't return PIN, use the PIN that was just created
         pinToStore = data.pin;
-        console.log("Using fallback PIN from request data (fallback):", pinToStore);
+        console.log(
+          "Using fallback PIN from request data (fallback):",
+          pinToStore
+        );
       }
-      
+
       console.log("PIN to store (fallback):", pinToStore);
-      
+
       if (pinToStore) {
         const currentUser = tokenUtils.getUser();
         console.log("Current user before update (fallback):", currentUser);
@@ -167,26 +176,31 @@ const createPin = async (data: {
         };
         console.log("Updated user with PIN (fallback):", updatedUser);
         tokenUtils.setUser(updatedUser);
-        
+
         // Verify the PIN was stored
         const verifyUser = tokenUtils.getUser();
-        console.log("Verification - User data after PIN storage (fallback):", verifyUser);
-        console.log("Verification - PIN in stored user (fallback):", verifyUser?.pin);
+        console.log(
+          "Verification - User data after PIN storage (fallback):",
+          verifyUser
+        );
+        console.log(
+          "Verification - PIN in stored user (fallback):",
+          verifyUser?.pin
+        );
       } else {
-        console.error("No PIN found in API response or request data (fallback)!");
+        console.error(
+          "No PIN found in API response or request data (fallback)!"
+        );
       }
-      
+
       return { success: true, message: "PIN created successfully!" };
     }
-    
-    const response = await fetch(
-      getApiUrl("/create-pin"),
-      {
-        method: "POST",
-        headers: getApiHeaders(token),
-        body: JSON.stringify(data),
-      }
-    );
+
+    const response = await fetch(getApiUrl("/create-pin"), {
+      method: "POST",
+      headers: getApiHeaders(token),
+      body: JSON.stringify(data),
+    });
 
     const responseData = await response.json();
     console.log("Create PIN response:", responseData);
@@ -199,7 +213,7 @@ const createPin = async (data: {
     if (!response.ok) {
       throw new Error(responseData.message || "Failed to create PIN");
     }
-    
+
     // Update user data with new PIN - try multiple possible structures
     let pinToStore = null;
     if (responseData.data && responseData.data.pin) {
@@ -211,9 +225,9 @@ const createPin = async (data: {
       pinToStore = data.pin;
       console.log("Using fallback PIN from request data:", pinToStore);
     }
-    
+
     console.log("PIN to store:", pinToStore);
-    
+
     if (pinToStore) {
       const currentUser = tokenUtils.getUser();
       console.log("Current user before update:", currentUser);
@@ -223,7 +237,7 @@ const createPin = async (data: {
       };
       console.log("Updated user with PIN:", updatedUser);
       tokenUtils.setUser(updatedUser);
-      
+
       // Verify the PIN was stored
       const verifyUser = tokenUtils.getUser();
       console.log("Verification - User data after PIN storage:", verifyUser);
@@ -231,7 +245,7 @@ const createPin = async (data: {
     } else {
       console.error("No PIN found in API response or request data!");
     }
-    
+
     return { success: true, message: "PIN created successfully!" };
   } catch (error) {
     console.error("Error creating PIN:", error);
@@ -262,31 +276,28 @@ const changePin = async (data: {
     console.log("LocalStorage auth_token:", localStorage.getItem("auth_token"));
     console.log("All localStorage keys:", Object.keys(localStorage));
     console.log("========================");
-    
+
     // Check if token exists
     if (!token) {
       console.error("Token is null or undefined!");
-      
+
       // Try to get token directly from localStorage as fallback
       const directToken = localStorage.getItem("auth_token");
       console.log("Direct localStorage token:", directToken);
-      
+
       if (!directToken) {
         throw new Error("No authentication token found. Please log in again.");
       }
-      
+
       // Use the direct token if available
       const finalToken = directToken;
       console.log("Using fallback token:", finalToken);
-      
-      const response = await fetch(
-        getApiUrl("/change-pin"),
-        {
-          method: "POST",
-          headers: getApiHeaders(finalToken),
-          body: JSON.stringify(data),
-        }
-      );
+
+      const response = await fetch(getApiUrl("/change-pin"), {
+        method: "POST",
+        headers: getApiHeaders(finalToken),
+        body: JSON.stringify(data),
+      });
 
       const responseData = await response.json();
       console.log("Change PIN response:", responseData);
@@ -294,7 +305,7 @@ const changePin = async (data: {
       if (!response.ok) {
         throw new Error(responseData.message || "Failed to change PIN");
       }
-      
+
       // Update user data with new PIN
       if (responseData.data && responseData.data.pin) {
         const currentUser = tokenUtils.getUser();
@@ -304,18 +315,15 @@ const changePin = async (data: {
         };
         tokenUtils.setUser(updatedUser);
       }
-      
+
       return { success: true, message: "PIN changed successfully!" };
     }
-    
-    const response = await fetch(
-      getApiUrl("/change-pin"),
-      {
-        method: "POST",
-        headers: getApiHeaders(token),
-        body: JSON.stringify(data),
-      }
-    );
+
+    const response = await fetch(getApiUrl("/change-pin"), {
+      method: "POST",
+      headers: getApiHeaders(token),
+      body: JSON.stringify(data),
+    });
 
     const responseData = await response.json();
     console.log("Change PIN response:", responseData);
@@ -323,7 +331,7 @@ const changePin = async (data: {
     if (!response.ok) {
       throw new Error(responseData.message || "Failed to change PIN");
     }
-    
+
     // Update user data with new PIN
     if (responseData.data && responseData.data.pin) {
       const currentUser = tokenUtils.getUser();
@@ -333,7 +341,7 @@ const changePin = async (data: {
       };
       tokenUtils.setUser(updatedUser);
     }
-    
+
     return { success: true, message: "PIN changed successfully!" };
   } catch (error) {
     console.error("Error changing PIN:", error);
@@ -347,10 +355,34 @@ const changePin = async (data: {
   }
 };
 
+// normalize HeadersInit -> plain object for axios
+function normalizeHeaders(h?: HeadersInit | null) {
+  if (!h) return {};
+  // Headers instance
+  if (typeof Headers !== "undefined" && h instanceof Headers) {
+    const out: Record<string, string> = {};
+    h.forEach((value, key) => (out[key] = value));
+    return out;
+  }
+  // Array of tuples
+  if (Array.isArray(h)) {
+    return Object.fromEntries(h as [string, string][]);
+  }
+  // Plain object
+  if (typeof h === "object") {
+    // cast to Record<string,string>
+    return h as Record<string, string>;
+  }
+  return {};
+}
+
 export function Security() {
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  // 2FA state
+  const [twoFAEnabled, setTwoFAEnabled] = useState(false);
+  const [isUpdating2FA, setIsUpdating2FA] = useState(false);
 
   // Lock screen state
   const [lockKey, setLockKey] = useState("");
@@ -361,9 +393,37 @@ export function Security() {
   const [isClient, setIsClient] = useState(false);
   const [hasPin, setHasPin] = useState(false);
 
+  // Active sessions state (added)
+  const [sessions, setSessions] = useState<any[]>([]);
+  const [revokingId, setRevokingId] = useState<string | null>(null);
+
+  // Fetch active sessions when component is client-side
+  useEffect(() => {
+    if (!isClient) return;
+
+    const fetchSessions = async () => {
+      try {
+        const token = tokenUtils.getToken();
+        const res = await axios.get(getApiUrl("/active-sessions"), {
+          headers: normalizeHeaders(getApiHeaders(token || undefined)),
+        });
+
+        // prefer .data.data, fallback to .data
+        const payload = res.data?.data ?? res.data ?? [];
+        const list = Array.isArray(payload) ? payload : payload?.sessions ?? [];
+        setSessions(list);
+      } catch (err: any) {
+        console.error("Failed to fetch active sessions:", err);
+        toast.error("Unable to load active sessions.");
+        setSessions([]);
+      }
+    };
+
+    fetchSessions();
+  }, [isClient]);
+
   // Password change state
   const [isChangingPassword, setIsChangingPassword] = useState(false);
-
 
   // Ensure client-side rendering
   React.useEffect(() => {
@@ -373,10 +433,10 @@ export function Security() {
   // Load current user data on mount
   React.useEffect(() => {
     if (!isClient) return;
-    
+
     const userData = tokenUtils.getUser();
     const token = tokenUtils.getToken();
-    
+
     console.log("=== SECURITY COMPONENT DEBUG ===");
     console.log("Security component - User data:", userData);
     console.log("Security component - Auth token:", token);
@@ -385,13 +445,13 @@ export function Security() {
     console.log("LocalStorage user_data:", localStorage.getItem("user_data"));
     console.log("All localStorage keys:", Object.keys(localStorage));
     console.log("=================================");
-    
+
     if (userData) {
-      // Get lock settings from user data if available
       setLockTimeout(userData.lock_timeout || 1);
-      // Check if user has a PIN
       setHasPin(!!userData.pin);
+      setTwoFAEnabled(!!userData.two_factor_enabled);
       console.log("User has PIN:", !!userData.pin);
+      console.log("2FA Enabled:", !!userData.two_factor_enabled);
     }
   }, [isClient]);
 
@@ -433,7 +493,7 @@ export function Security() {
 
     try {
       let pinResponse;
-      
+
       if (hasPin) {
         // User already has a PIN, use change-pin API
         if (!/^\d{6}$/.test(currentPin)) {
@@ -444,7 +504,7 @@ export function Security() {
           setIsUpdatingLock(false);
           return;
         }
-        
+
         pinResponse = await changePin({
           current_pin: currentPin,
           new_pin: lockKey,
@@ -474,7 +534,10 @@ export function Security() {
         localStorage.setItem("lockTimeout", lockTimeout.toString());
         
         toast.success("Lock screen settings saved successfully!");
-        setLockSettingsMsg({ type: "success", text: "Lock screen settings saved successfully!" });
+        setLockSettingsMsg({
+          type: "success",
+          text: "Lock screen settings saved successfully!",
+        });
         // Clear the form after successful submission
         setLockKey("");
         setConfirmLockKey("");
@@ -501,7 +564,6 @@ export function Security() {
     text: string;
   } | null>(null);
 
-
   const handlePasswordSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setPasswordMsg(null);
@@ -518,7 +580,10 @@ export function Security() {
     }
 
     if (newPassword.length < 8) {
-      setPasswordMsg({ type: "error", text: "New password must be at least 8 characters long." });
+      setPasswordMsg({
+        type: "error",
+        text: "New password must be at least 8 characters long.",
+      });
       return;
     }
 
@@ -528,7 +593,10 @@ export function Security() {
     }
 
     if (currentPassword === newPassword) {
-      setPasswordMsg({ type: "error", text: "New password must be different from current password." });
+      setPasswordMsg({
+        type: "error",
+        text: "New password must be different from current password.",
+      });
       return;
     }
 
@@ -559,7 +627,47 @@ export function Security() {
       setIsChangingPassword(false);
     }
   };
+  const handleToggle2FA = async (checked: boolean) => {
+    setIsUpdating2FA(true);
 
+    try {
+      const token = tokenUtils.getToken();
+      const response = await fetch(getApiUrl("/v1/toggle-2fa"), {
+        method: "POST",
+        headers: getApiHeaders(token || undefined),
+        body: JSON.stringify({ enabled: checked }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data?.message || "Failed to update 2FA setting.");
+      }
+
+      // Update local state
+      setTwoFAEnabled(checked);
+
+      // Update stored user data to reflect new 2FA status
+      const currentUser = tokenUtils.getUser();
+      const updatedUser = {
+        ...currentUser,
+        two_factor_enabled: checked ? 1 : 0,
+      };
+      tokenUtils.setUser(updatedUser);
+
+      // Show success toast
+      toast.success(
+        checked
+          ? "Two-factor authentication has been enabled! A code will now be required during login."
+          : "Two-factor authentication has been disabled."
+      );
+    } catch (err: any) {
+      console.error("2FA Toggle Error:", err);
+      toast.error(err.message || "Something went wrong while updating 2FA.");
+    } finally {
+      setIsUpdating2FA(false);
+    }
+  };
 
   // Don't render until client-side hydration is complete
   if (!isClient) {
@@ -591,10 +699,13 @@ export function Security() {
           </p>
           <div className="mt-4 flex items-center justify-between">
             <p className="text-sm font-medium text-gray-600">Enable 2FA</p>
-            <Switch />
+            <Switch
+              checked={twoFAEnabled}
+              disabled={isUpdating2FA}
+              onCheckedChange={handleToggle2FA}
+            />
           </div>
         </div>
-
 
         {/* Password Change */}
         <div>
@@ -656,10 +767,9 @@ export function Security() {
         <div>
           <h3 className="text-lg font-medium text-gray-900">Lock Screen</h3>
           <p className="mt-1 text-sm text-gray-500">
-            {hasPin 
+            {hasPin
               ? "Update your 6-digit PIN and inactivity timeout. When inactive, your dashboard will be locked."
-              : "Set a 6-digit PIN and inactivity timeout. When inactive, your dashboard will be locked."
-            }
+              : "Set a 6-digit PIN and inactivity timeout. When inactive, your dashboard will be locked."}
           </p>
           <form className="mt-4 space-y-4" onSubmit={handleLockSettingsSubmit}>
             {hasPin && (
@@ -683,7 +793,9 @@ export function Security() {
               </div>
             )}
             <div>
-              <Label htmlFor="lock-key">{hasPin ? "New 6-Digit PIN" : "6-Digit PIN"}</Label>
+              <Label htmlFor="lock-key">
+                {hasPin ? "New 6-Digit PIN" : "6-Digit PIN"}
+              </Label>
               <Input
                 id="lock-key"
                 type="password"
@@ -701,7 +813,9 @@ export function Security() {
               />
             </div>
             <div>
-              <Label htmlFor="confirm-lock-key">{hasPin ? "Confirm New 6-Digit PIN" : "Confirm 6-Digit PIN"}</Label>
+              <Label htmlFor="confirm-lock-key">
+                {hasPin ? "Confirm New 6-Digit PIN" : "Confirm 6-Digit PIN"}
+              </Label>
               <Input
                 id="confirm-lock-key"
                 type="password"
@@ -756,25 +870,65 @@ export function Security() {
             This is a list of devices that have logged into your account. Revoke
             any sessions that you do not recognize.
           </p>
+
           <ul className="mt-4 space-y-4">
-            <li className="flex items-center justify-between">
-              <div>
-                <p className="font-medium">Chrome on macOS</p>
-                <p className="text-sm text-gray-500">
-                  New York, USA - Current session
-                </p>
-              </div>
-              <Button variant="outline">Revoke</Button>
-            </li>
-            <li className="flex items-center justify-between">
-              <div>
-                <p className="font-medium">Safari on iPhone</p>
-                <p className="text-sm text-gray-500">
-                  New York, USA - 2 hours ago
-                </p>
-              </div>
-              <Button variant="outline">Revoke</Button>
-            </li>
+            {sessions.length === 0 ? (
+              <li className="text-sm text-gray-500">No active sessions.</li>
+            ) : (
+              sessions.map((session: any) => {
+                const label = session.is_current_session
+                  ? "Current session"
+                  : session.last_active_at
+                  ? `Last active: ${formatRelativeTime(session.last_active_at)}`
+                  : "Last active: —";
+
+                return (
+                  <li
+                    key={session.id}
+                    className="flex items-center justify-between"
+                  >
+                    <div>
+                      <p className="font-medium">
+                        {session.user_agent || "Unknown device"}
+                      </p>
+                      <p className="text-sm text-gray-500">
+                        {session.ip_address || "—"} — {label}
+                      </p>
+                    </div>
+                    <Button
+                      variant="outline"
+                      onClick={async () => {
+                        if (!session.id) return;
+                        setRevokingId(session.id);
+                        try {
+                          const token = tokenUtils.getToken();
+                          await axios.delete(
+                            getApiUrl(`/active-sessions/${session.id}`),
+                            {
+                              headers: normalizeHeaders(
+                                getApiHeaders(token || undefined)
+                              ),
+                            }
+                          );
+                          setSessions((prev) =>
+                            prev.filter((s) => s.id !== session.id)
+                          );
+                          toast.success("Session revoked");
+                        } catch (err) {
+                          console.error("Failed to revoke session:", err);
+                          toast.error("Failed to revoke session");
+                        } finally {
+                          setRevokingId(null);
+                        }
+                      }}
+                      disabled={revokingId === session.id}
+                    >
+                      {revokingId === session.id ? "Revoking..." : "Revoke"}
+                    </Button>
+                  </li>
+                );
+              })
+            )}
           </ul>
         </div>
       </div>
