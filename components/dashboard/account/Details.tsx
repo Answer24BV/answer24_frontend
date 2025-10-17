@@ -102,16 +102,14 @@ export function Details() {
           return;
         }
 
-        // Use only show endpoint: GET /user-company/{company}
-        const showRes = await fetch(
-          `${API_BASE}/user-company/${fetchedUserId}`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              Accept: "application/json",
-            },
-          }
-        );
+        // Use only show endpoint: GET /user-companies/{company}
+        const showRes = await fetch(`${API_BASE}/user-companies/user/${fetchedUserId}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            Accept: "application/json",
+          },
+        });
+
 
         if (!showRes.ok) {
           if (showRes.status === 404) {
@@ -193,7 +191,7 @@ export function Details() {
     setSaving(true);
     try {
       const token = tokenUtils.getToken();
-      const url = `${API_BASE}/user-company/${userId}`;
+      const url = `${API_BASE}/user-companies/${userId}`;
       const res = await fetch(url, {
         method: "PUT", // use show endpoint for update
         headers: {

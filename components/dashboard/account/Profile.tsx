@@ -198,12 +198,16 @@ const ProfileContent = ({
                 </Label>
                 <Input
                   id="phone"
-                  className="w-full"
+                  className="w-full bg-gray-50"
                   value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  placeholder="Enter your phone number"
+                  disabled
+                  placeholder={phone || "Your phone number"}
                 />
+                <p className="mt-1 text-xs text-gray-500">
+                  Contact support to change your phone number
+                </p>
               </div>
+
             </div>
             <div className="pt-4 flex justify-end border-t border-gray-100">
               <Button type="submit" className="px-6 py-2.5 text-sm font-medium">
@@ -261,6 +265,7 @@ export function Profile() {
           setUser(userData);
           setFullName(userData.name || "");
           setEmail(userData.email || "");
+          setPhone(userData.phone || ""); // ✅ FIXED
           setProfilePicturePreview(userData.profile_picture || "");
           setIsLoading(false);
           return true;
@@ -271,6 +276,7 @@ export function Profile() {
         return false;
       }
     };
+
 
     // Try to load user data immediately
     if (!fetchUserData()) {
@@ -336,7 +342,7 @@ export function Profile() {
     if (profilePictureFile) payload.profile_picture = profilePictureFile;
     if (phone.trim() && phone !== user?.phone) payload.phone = phone.trim();
 
-    if (!payload.name && !payload.profile_picture) {
+    if (!payload.name && !payload.profile_picture && !payload.phone) {
       toast.info("No changes to update");
       return;
     }
