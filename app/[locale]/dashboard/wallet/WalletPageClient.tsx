@@ -16,6 +16,7 @@ import { useRouter } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import AddMoney from "@/components/AddMoney";
 import { tokenUtils } from "@/utils/auth";
+import { useUser } from "@/hooks/useUser";
 
 // --- UI Components (Recreated based on common patterns) ---
 
@@ -300,6 +301,10 @@ interface UserProfile {
   phone?: string;
   created_at?: string;
   updated_at?: string;
+  role?: {
+    id: string;
+    name: string;
+  };
 }
 
 interface Transaction {
@@ -332,8 +337,13 @@ export default function WalletPage() {
   const [walletHistoryLoader, setWalletHistoryLoader] = useState<boolean>(true);
   const [isPageLoading, setIsPageLoading] = useState<boolean>(true);
   const [addMoneyModal, setAddMoneyModal] = useState<boolean>(false);
+  const [apiError, setApiError] = useState<boolean>(false);
 
-  const [user, setUser] = useState("");
+  // Use real user data with the same pattern as Profile component
+  const { user, isLoading: userLoading } = useUser();
+  const [userProfileLoading, setUserProfileLoading] = useState(false);
+  const [tokenValid, setTokenValid] = useState<boolean | null>(null);
+
   const router = useRouter();
   const t = useTranslations("WalletPage");
 
@@ -379,119 +389,102 @@ export default function WalletPage() {
     });
   };
 
-  // Fetch user profile from API
+  // Check token validity
+  useEffect(() => {
+    const token = tokenUtils.getToken();
+    if (token) {
+      // Simple token validation - check if it's a valid JWT format
+      const parts = token.split('.');
+      if (parts.length === 3) {
+        try {
+          const payload = JSON.parse(atob(parts[1]));
+          const now = Math.floor(Date.now() / 1000);
+          setTokenValid(payload.exp > now);
+        } catch (e) {
+          setTokenValid(false);
+        }
+      } else {
+        setTokenValid(false);
+      }
+    } else {
+      setTokenValid(false);
+    }
+  }, []);
+
+  // Fetch additional user profile data if needed
   useEffect(() => {
     const fetchUserProfile = async () => {
-      try {
-        const token =
-          typeof window !== "undefined"
-            ? localStorage.getItem("auth_token")
-            : null;
-
-        if (!token) {
-          console.error("No authentication token found");
-          // Set fallback user data when no token
-          setUserProfile({
-            id: "fallback",
-            name: "Guest User",
-            email: "guest@example.com",
-          });
-          return;
-        }
-
-        console.log(
-          "Fetching profile with token:",
-          token ? "Token exists" : "No token"
-        );
-        console.log(
-          "API URL:",
-          "https://answer24.laravel.cloud/api/v1/profile"
-        );
-
-        const response = await fetch(
-          "https://answer24.laravel.cloud/api/v1/profile",
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-              Accept: "application/json",
-              Authorization: `Bearer ${token}`,
-            },
+      if (user && !userProfile) {
+        setUserProfileLoading(true);
+        try {
+          const token = tokenUtils.getToken();
+          if (!token) {
+            console.log("Dashboard Wallet: No token available, skipping profile fetch");
+            setUserProfileLoading(false);
+            return;
           }
-        );
 
-        console.log("User profile API response status:", response.status);
-        console.log("User profile API response headers:", response.headers);
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 5000);
 
-        // Get response text first to see what we're actually receiving
-        const responseText = await response.text();
-        console.log("Raw response text:", responseText);
-
-        if (response.ok) {
-          try {
-            const data = JSON.parse(responseText);
-            console.log("User profile API response data:", data);
-
-            // Handle different possible response structures
-            const profile = data.data || data.user || data;
-            console.log("Parsed profile:", profile);
-            setUserProfile(profile);
-          } catch (parseError) {
-            console.error("Error parsing JSON response:", parseError);
-            console.log("Response was:", responseText);
-
-            // Set fallback user data on parse error
-            setUserProfile({
-              id: "parse-error",
-              name: "Parse Error",
-              email: "parse@example.com",
-            });
-          }
-        } else {
-          console.error(
-            "Failed to fetch user profile:",
-            response.status,
-            response.statusText,
-            "Response:",
-            responseText
+          const response = await fetch(
+            `${process.env.NEXT_PUBLIC_API_BASE_URL}/profile`,
+            {
+              method: "GET",
+              headers: {
+                "Content-Type": "application/json",
+                Accept: "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+              signal: controller.signal,
+            }
           );
 
-          // Set fallback user data on error
-          setUserProfile({
-            id: "error",
-            name: "Error Loading User",
-            email: "error@example.com",
-          });
-        }
-      } catch (err) {
-        console.error("Error fetching user profile:", err);
+          clearTimeout(timeoutId);
 
-        // Set fallback user data on network error
-        setUserProfile({
-          id: "network-error",
-          name: "Network Error",
-          email: "network@example.com",
-        });
+          if (response.ok) {
+            const data = await response.json();
+            setUserProfile(data.user || data);
+            console.log("Dashboard Wallet: Successfully fetched user profile:", data);
+          } else if (response.status === 401) {
+            console.log("Dashboard Wallet: Unauthorized - token may be invalid or expired");
+            // Don't show error, just use local user data
+            setUserProfile(null);
+          } else {
+            console.error("Dashboard Wallet: Failed to fetch user profile:", response.status);
+            // Don't show error, just use local user data
+            setUserProfile(null);
+          }
+        } catch (err) {
+          console.error("Dashboard Wallet: Error fetching user profile:", err);
+          // Don't show error, just use local user data
+          setUserProfile(null);
+        } finally {
+          setUserProfileLoading(false);
+        }
       }
     };
+
     fetchUserProfile();
-  }, []);
+  }, [user, userProfile]);
 
   // Fetch wallet balance from API
   useEffect(() => {
     const fetchWallet = async () => {
       setIsPageLoading(true);
       try {
-        const token =
-          typeof window !== "undefined"
-            ? localStorage.getItem("auth_token")
-            : null;
+        const token = tokenUtils.getToken();
 
         if (!token) {
           console.error("No authentication token found");
+          setWalletData({ balance: 0 });
           setIsPageLoading(false);
           return;
         }
+
+        // Add timeout to prevent hanging requests
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
 
         const response = await fetch(
           `${process.env.NEXT_PUBLIC_API_BASE_URL}/wallet/balance`,
@@ -502,44 +495,35 @@ export default function WalletPage() {
               Accept: "application/json",
               Authorization: `Bearer ${token}`,
             },
+            signal: controller.signal,
           }
         );
 
-        console.log("Wallet balance API response status:", response.status);
-
-        // Get response text first to see what we're actually receiving
-        const responseText = await response.text();
-        console.log("Raw wallet response text:", responseText);
+        clearTimeout(timeoutId);
+        console.log("Dashboard Wallet balance API response status:", response.status);
 
         if (response.ok) {
-          try {
-            const data = JSON.parse(responseText);
-            console.log("Wallet balance API response:", data);
+          const data = await response.json();
+          console.log("Dashboard Wallet balance API response:", data);
 
-            // Handle different possible response structures
-            const balance = data.balance || data.data?.balance || 0;
-            setWalletData({ balance });
-          } catch (parseError) {
-            console.error("Error parsing wallet JSON response:", parseError);
-            console.log("Wallet response was:", responseText);
-            // Set default balance on parse error
-            setWalletData({ balance: 0 });
-          }
+          // Handle different possible response structures
+          const balance = data.balance || data.data?.balance || 0;
+          setWalletData({ balance });
         } else {
+          const errorData = await response.json().catch(() => ({}));
           console.error(
             "Failed to fetch wallet balance:",
             response.status,
-            response.statusText,
-            "Response:",
-            responseText
+            errorData
           );
           // Set default balance on error
           setWalletData({ balance: 0 });
         }
       } catch (err) {
         console.error("Error fetching wallet balance:", err);
-        // Set default balance on error
+        // Set default balance on error - this will show the page with 0 balance
         setWalletData({ balance: 0 });
+        setApiError(true);
       } finally {
         setIsPageLoading(false);
       }
@@ -626,9 +610,51 @@ export default function WalletPage() {
     return <PageLoader />;
   }
 
+  // If user is not authenticated, show error
+  if (!userLoading && !user) {
+    return (
+      <div className="p-4 min-h-screen md:p-6">
+        <div className="mx-auto max-w-6xl">
+          <div className="text-center py-20">
+            <h1 className="text-2xl font-bold text-red-600 mb-4">Authentication Required</h1>
+            <p className="text-muted-foreground mb-6">Please sign in to access your wallet.</p>
+            <button
+              onClick={() => router.push('/signin')}
+              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              Sign In
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="p-4 min-h-screen md:p-6">
       <div className="mx-auto space-y-6 max-w-6xl">
+
+        {/* API Error Banner */}
+        {apiError && (
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <svg className="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <h3 className="text-sm font-medium text-yellow-800">
+                  API Connection Issue
+                </h3>
+                <div className="mt-2 text-sm text-yellow-700">
+                  <p>Unable to connect to the backend server. Showing demo data. Please check your API configuration.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Header */}
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
@@ -647,49 +673,63 @@ export default function WalletPage() {
               <CardTitle className="text-lg">Account Details</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              {userProfile ? (
+              {userLoading || userProfileLoading ? (
+                <div className="flex items-center space-x-3">
+                  <div className="w-12 h-12 bg-gray-200 rounded-full animate-pulse"></div>
+                  <div className="space-y-2">
+                    <div className="h-4 bg-gray-200 rounded animate-pulse w-32"></div>
+                    <div className="h-3 bg-gray-200 rounded animate-pulse w-48"></div>
+                  </div>
+                </div>
+              ) : user ? (
                 <>
                   <div className="flex items-center space-x-3">
                     <Avatar className="w-12 h-12">
-                      {userProfile.avatar ? (
-                        <AvatarImage
-                          src={userProfile.avatar}
-                          alt={userProfile.name}
-                          onError={(e) => {
-                            // Hide the image if it fails to load
-                            e.currentTarget.style.display = "none";
-                          }}
-                        />
-                      ) : null}
+                      <AvatarImage
+                        src={userProfile?.avatar || user.profile_picture || "/Image-1.png"}
+                        alt={userProfile?.name || user.name}
+                      />
                       <AvatarFallback className="bg-gray-200 text-gray-700 font-semibold text-lg">
-                        {userProfile.name
-                          ? userProfile.name.charAt(0).toUpperCase()
-                          : "U"}
+                        {(userProfile?.name || user.name)
+                          ?.split(" ")
+                          .map((n: string) => n[0])
+                          .join("") || "U"}
                       </AvatarFallback>
                     </Avatar>
                     <div>
-                      <p className="font-medium">{userProfile.name}</p>
+                      <p className="font-medium">{userProfile?.name || user.name || "User"}</p>
                       <p className="text-sm text-muted-foreground">
-                        {userProfile.email}
+                        {userProfile?.email || user.email || "user@example.com"}
                       </p>
                     </div>
                   </div>
                   <Separator />
                   <div className="space-y-2">
                     <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">
-                        Member Since
+                      <span className="text-muted-foreground">Member Since</span>
+                      <span>
+                        {(userProfile?.created_at || user.created_at)
+                          ? formatJoinDate(userProfile?.created_at || user.created_at)
+                          : "N/A"
+                        }
                       </span>
-                      <span>{formatJoinDate(userProfile.created_at)}</span>
                     </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Account Type</span>
+                      <span className="capitalize">{userProfile?.role?.name || user.role?.name || "client"}</span>
+                    </div>
+                    {userProfile?.phone && (
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Phone</span>
+                        <span>{userProfile.phone}</span>
+                      </div>
+                    )}
                   </div>
                 </>
               ) : (
-                <div className="flex items-center justify-center py-8">
-                  <Loader2 className="w-6 h-6 animate-spin text-blue-500" />
-                  <span className="ml-2 text-sm text-muted-foreground">
-                    Loading profile...
-                  </span>
+                <div className="text-center py-4">
+                  <p className="text-sm text-red-500">Error Loading User</p>
+                  <p className="text-xs text-muted-foreground">Please refresh the page</p>
                 </div>
               )}
             </CardContent>
