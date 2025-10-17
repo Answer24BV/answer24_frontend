@@ -4,8 +4,8 @@ import { useEffect, useState } from "react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { tokenUtils } from "@/utils/auth";
 import { toast } from "react-toastify";
+import { tokenUtils } from "@/utils/auth";
 
 interface Address {
   street?: string;
@@ -22,6 +22,12 @@ interface SocialLinks {
   youtube?: string;
 }
 
+interface OpeningHour {
+  day: string;
+  open: string;
+  close: string;
+}
+
 interface Company {
   id?: string;
   user_id?: string;
@@ -31,20 +37,15 @@ interface Company {
   website_url?: string;
   social_links?: SocialLinks;
   serpapi_language?: string;
-  created_at?: string;
-  updated_at?: string;
-  last_updated?: string;
-  company_opening_hours?: any[];
-  company_reviews?: any[];
+  company_opening_hours?: OpeningHour[];
 }
 
 export function Details() {
-  const [company, setCompany] = useState<Company>({});
+  const [company, setCompany] = useState<Company | null>(null);
+  const [initialCompanyData, setInitialCompanyData] = useState<Company | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [userId, setUserId] = useState<string | null>(null);
 
-  // Local editable copies
   const [name, setName] = useState("");
   const [street, setStreet] = useState("");
   const [housenumber, setHousenumber] = useState("");
@@ -58,224 +59,154 @@ export function Details() {
   const [instagram, setInstagram] = useState("");
   const [youtube, setYoutube] = useState("");
   const [serpapiLanguage, setSerpapiLanguage] = useState("");
+  const [openingHours, setOpeningHours] = useState<OpeningHour[]>([]);
 
-  const API_BASE =
-    process.env.NEXT_PUBLIC_API_BASE_URL ||
-    "https://answer24.laravel.cloud/api/v1";
+const API_BASE = "https://answer24.laravel.cloud/api/v1";
 
-  useEffect(() => {
-    const fetchCompany = async () => {
-      setLoading(true);
-      try {
-        const token = tokenUtils.getToken();
-        if (!token) {
-          toast.error("Not authenticated.");
-          setLoading(false);
-          return;
-        }
-
-        // get current user id from /profile
-        let fetchedUserId: string | null = null;
-        try {
-          const profileRes = await fetch(`${API_BASE}/profile`, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              Accept: "application/json",
-            },
-          });
-          if (profileRes.ok) {
-            const profileJson = await profileRes.json().catch(() => null);
-            fetchedUserId = profileJson?.user?.id || profileJson?.id || null;
-            setUserId(fetchedUserId);
-          } else {
-            console.debug("[Details] /profile returned", profileRes.status);
-          }
-        } catch (err) {
-          console.debug("[Details] profile lookup error", err);
-        }
-
-        if (!fetchedUserId) {
-          toast.error(
-            "Could not determine current user. Company show endpoint requires an identifier."
-          );
-          setLoading(false);
-          return;
-        }
-
-        // Use only show endpoint: GET /user-companies/{company}
-        const showRes = await fetch(`${API_BASE}/user-companies/user/${fetchedUserId}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            Accept: "application/json",
-          },
-        });
-
-
-        if (!showRes.ok) {
-          if (showRes.status === 404) {
-            // No company found for this user (expected for new users)
-            setCompany({});
-            setLoading(false);
-            return;
-          }
-          const text = await showRes.text().catch(() => "");
-          console.error("[Details] show fetch failed:", showRes.status, text);
-          toast.error(
-            `Failed to load company: ${showRes.status} ${showRes.statusText}`
-          );
-          setCompany({});
-          setLoading(false);
-          return;
-        }
-
-        const json = await showRes.json().catch(() => ({}));
-        const data = json?.data || json || {};
-        setCompany(data);
-        // populate local fields
-        setName(data.name || "");
-        setStreet(data.address?.street || "");
-        setHousenumber(data.address?.housenumber || "");
-        setZipcode(data.address?.zipcode || "");
-        setCity(data.address?.city || "");
-        setRegion(data.address?.region || "");
-        setCountry(data.address?.country || "");
-        setContact(data.contact || "");
-        setWebsiteUrl(data.website_url || "");
-        setFacebook(data.social_links?.facebook || "");
-        setInstagram(data.social_links?.instagram || "");
-        setYoutube(data.social_links?.youtube || "");
-        setSerpapiLanguage(data.serpapi_language || "");
-      } catch (err) {
-        console.error("[Details] fetchCompany error:", err);
-        toast.error("Unable to reach API. Check API_BASE, network and CORS.");
-        setCompany({});
-      } finally {
+useEffect(() => {
+  const fetchOrCreateCompany = async () => {
+    setLoading(true);
+    try {
+      const currentUser = tokenUtils.getUser();
+      const token = tokenUtils.getToken();
+      if (!currentUser?.id || !token) {
+        toast.error("No user or token found.");
         setLoading(false);
+        return;
       }
-    };
 
-    fetchCompany();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+      // Fetch all companies for the user (backend auto-creates default if none exist)
+      const res = await fetch(`${API_BASE}/user-companies/user/${currentUser.id}`, {
+        headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to fetch companies");
+      }
+
+      const json = await res.json();
+      const companyData = json.data?.[0] ?? null;
+
+      setCompany(companyData);
+      setInitialCompanyData(companyData);
+
+      // Populate fields
+      setName(companyData?.name || "");
+      setStreet(companyData?.address?.street || "");
+      setHousenumber(companyData?.address?.housenumber || "");
+      setZipcode(companyData?.address?.zipcode || "");
+      setCity(companyData?.address?.city || "");
+      setRegion(companyData?.address?.region || "");
+      setCountry(companyData?.address?.country || "");
+      setContact(companyData?.contact || "");
+      setWebsiteUrl(companyData?.website_url || "");
+      setFacebook(companyData?.social_links?.facebook || "");
+      setInstagram(companyData?.social_links?.instagram || "");
+      setYoutube(companyData?.social_links?.youtube || "");
+      setSerpapiLanguage(companyData?.serpapi_language || "");
+      setOpeningHours(companyData?.company_opening_hours || []);
+
+    } catch (err) {
+      console.error("Error fetching/creating company:", err);
+      toast.error("Unable to fetch company data.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchOrCreateCompany();
+}, []);
+
+  const handleOpeningHourChange = (idx: number, field: "day" | "open" | "close", value: string) => {
+    const updated = [...openingHours];
+    updated[idx] = { ...updated[idx], [field]: value };
+    setOpeningHours(updated);
+  };
+
+  const addOpeningHour = () => setOpeningHours([...openingHours, { day: "", open: "", close: "" }]);
+  const removeOpeningHour = (idx: number) => setOpeningHours(openingHours.filter((_, i) => i !== idx));
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (!userId) {
-      toast.error(
-        "Cannot save: missing user identifier for company show endpoint."
-      );
-      return;
-    }
-
-    const payload: Partial<Company> = {
-      name: name || undefined,
-      address: {
-        street: street || undefined,
-        housenumber: housenumber || undefined,
-        zipcode: zipcode || undefined,
-        city: city || undefined,
-        region: region || undefined,
-        country: country || undefined,
-      },
-      contact: contact || undefined,
-      website_url: websiteUrl || undefined,
-      social_links: {
-        facebook: facebook || undefined,
-        instagram: instagram || undefined,
-        youtube: youtube || undefined,
-      },
-      serpapi_language: serpapiLanguage || undefined,
-    };
-
     setSaving(true);
+
     try {
+      const currentUser = tokenUtils.getUser();
       const token = tokenUtils.getToken();
-      const url = `${API_BASE}/user-companies/${userId}`;
+      if (!currentUser?.id || !token) {
+        toast.error("Cannot save: missing user or token.");
+        setSaving(false);
+        return;
+      }
+
+      const payload: Partial<Company> = {
+        name: name || undefined,
+        address: { street, housenumber, zipcode, city, region, country },
+        contact: contact || undefined,
+        website_url: websiteUrl || undefined,
+        social_links: { facebook, instagram, youtube },
+        serpapi_language: serpapiLanguage || undefined,
+        company_opening_hours: openingHours,
+      };
+
+      const method = company?.id ? "PUT" : "POST";
+      const url = company?.id ? `${API_BASE}/user-companies/${company.id}` : `${API_BASE}/user-companies`;
+
       const res = await fetch(url, {
-        method: "PUT", // use show endpoint for update
+        method,
         headers: {
-          Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
           Accept: "application/json",
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(payload),
       });
 
-      const text = await res.text().catch(() => "");
-      let parsed: any = null;
-      try {
-        parsed = text ? JSON.parse(text) : null;
-      } catch {}
-
       if (!res.ok) {
-        if (res.status === 404) {
-          toast.error(
-            "Company not found for this user. This app uses the show endpoint for update. Contact support to create a company."
-          );
-          throw new Error(
-            "Company not found (404) - update via show endpoint not possible."
-          );
-        }
-
-        if (parsed?.errors) {
-          const firstKey = Object.keys(parsed.errors)[0];
-          const firstMsg =
-            Array.isArray(parsed.errors[firstKey]) &&
-            parsed.errors[firstKey].length
-              ? parsed.errors[firstKey][0]
-              : JSON.stringify(parsed.errors[firstKey]);
-          toast.error(firstMsg);
-          throw new Error(firstMsg);
-        }
-
-        const msg =
-          parsed?.message || text || `${res.status} ${res.statusText}`;
-        toast.error(msg);
-        throw new Error(msg);
+        const text = await res.text();
+        console.error("Save failed:", res.status, text);
+        toast.error("Failed to save company details");
+        setSaving(false);
+        return;
       }
 
-      const json = parsed || {};
-      const updated = json?.data || json;
+      const json = await res.json();
+      const updated = json.data || json;
       setCompany(updated);
-      setName(updated.name || "");
-      setStreet(updated.address?.street || "");
-      setHousenumber(updated.address?.housenumber || "");
-      setZipcode(updated.address?.zipcode || "");
-      setCity(updated.address?.city || "");
-      setRegion(updated.address?.region || "");
-      setCountry(updated.address?.country || "");
-      setContact(updated.contact || "");
-      setWebsiteUrl(updated.website_url || "");
-      setFacebook(updated.social_links?.facebook || "");
-      setInstagram(updated.social_links?.instagram || "");
-      setYoutube(updated.social_links?.youtube || "");
-      setSerpapiLanguage(updated.serpapi_language || "");
+      setInitialCompanyData(updated);
+      toast.success("Company details saved successfully");
 
-      toast.success("Company details updated");
-    } catch (error) {
-      console.error("Save company error:", error);
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : "Failed to save company details"
-      );
+    } catch (err) {
+      console.error("Save error:", err);
+      toast.error("Failed to save company details");
     } finally {
       setSaving(false);
     }
   };
 
+  const handleReset = () => {
+    if (!initialCompanyData) return;
+
+    setName(initialCompanyData.name || "");
+    setStreet(initialCompanyData.address?.street || "");
+    setHousenumber(initialCompanyData.address?.housenumber || "");
+    setZipcode(initialCompanyData.address?.zipcode || "");
+    setCity(initialCompanyData.address?.city || "");
+    setRegion(initialCompanyData.address?.region || "");
+    setCountry(initialCompanyData.address?.country || "");
+    setContact(initialCompanyData.contact || "");
+    setWebsiteUrl(initialCompanyData.website_url || "");
+    setFacebook(initialCompanyData.social_links?.facebook || "");
+    setInstagram(initialCompanyData.social_links?.instagram || "");
+    setYoutube(initialCompanyData.social_links?.youtube || "");
+    setSerpapiLanguage(initialCompanyData.serpapi_language || "");
+    setOpeningHours(initialCompanyData.company_opening_hours || []);
+    toast.info("Form reset to last saved values");
+  };
+
   return (
     <div className="space-y-4">
-      <div>
-        <h2 className="text-2xl font-semibold text-gray-900">
-          Company Details
-        </h2>
-        <p className="text-gray-500 mt-1">
-          Edit company information. 
-        </p>
-      </div>
-
+      <h2 className="text-2xl font-semibold text-gray-900">Company Details</h2>
       <div className="border-t border-gray-100 pt-6">
         {loading ? (
           <div className="flex items-center justify-center h-40">
@@ -283,254 +214,40 @@ export function Details() {
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-6">
+            {/* --- Fields Grid --- */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <Label
-                  htmlFor="company-name"
-                  className="text-sm font-medium text-gray-700 mb-1.5 block"
-                >
-                  Company Name
-                </Label>
-                <Input
-                  id="company-name"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Acme Ltd."
-                />
-              </div>
-
-              <div>
-                <Label
-                  htmlFor="contact-person"
-                  className="text-sm font-medium text-gray-700 mb-1.5 block"
-                >
-                  Contact Person / Phone / Email
-                </Label>
-                <Input
-                  id="contact-person"
-                  value={contact}
-                  onChange={(e) => setContact(e.target.value)}
-                  placeholder="Jane Doe, +1 555 555"
-                />
-              </div>
-
-              <div>
-                <Label
-                  htmlFor="company-street"
-                  className="text-sm font-medium text-gray-700 mb-1.5 block"
-                >
-                  Street
-                </Label>
-                <Input
-                  id="company-street"
-                  value={street}
-                  onChange={(e) => setStreet(e.target.value)}
-                  placeholder="123 Main St"
-                />
-              </div>
-
-              <div>
-                <Label
-                  htmlFor="company-housenumber"
-                  className="text-sm font-medium text-gray-700 mb-1.5 block"
-                >
-                  House number
-                </Label>
-                <Input
-                  id="company-housenumber"
-                  value={housenumber}
-                  onChange={(e) => setHousenumber(e.target.value)}
-                  placeholder="1A"
-                />
-              </div>
-
-              <div>
-                <Label
-                  htmlFor="company-zipcode"
-                  className="text-sm font-medium text-gray-700 mb-1.5 block"
-                >
-                  Zipcode
-                </Label>
-                <Input
-                  id="company-zipcode"
-                  value={zipcode}
-                  onChange={(e) => setZipcode(e.target.value)}
-                  placeholder="10001"
-                />
-              </div>
-
-              <div>
-                <Label
-                  htmlFor="company-city"
-                  className="text-sm font-medium text-gray-700 mb-1.5 block"
-                >
-                  City
-                </Label>
-                <Input
-                  id="company-city"
-                  value={city}
-                  onChange={(e) => setCity(e.target.value)}
-                  placeholder="New York"
-                />
-              </div>
-
-              <div>
-                <Label
-                  htmlFor="company-region"
-                  className="text-sm font-medium text-gray-700 mb-1.5 block"
-                >
-                  Region / State
-                </Label>
-                <Input
-                  id="company-region"
-                  value={region}
-                  onChange={(e) => setRegion(e.target.value)}
-                  placeholder="NY"
-                />
-              </div>
-
-              <div>
-                <Label
-                  htmlFor="company-country"
-                  className="text-sm font-medium text-gray-700 mb-1.5 block"
-                >
-                  Country
-                </Label>
-                <Input
-                  id="company-country"
-                  value={country}
-                  onChange={(e) => setCountry(e.target.value)}
-                  placeholder="USA"
-                />
-              </div>
-
-              <div>
-                <Label
-                  htmlFor="website-url"
-                  className="text-sm font-medium text-gray-700 mb-1.5 block"
-                >
-                  Website URL
-                </Label>
-                <Input
-                  id="website-url"
-                  value={websiteUrl}
-                  onChange={(e) => setWebsiteUrl(e.target.value)}
-                  placeholder="https://example.com"
-                />
-              </div>
-
-              <div>
-                <Label
-                  htmlFor="serpapi-language"
-                  className="text-sm font-medium text-gray-700 mb-1.5 block"
-                >
-                  SERP API Language
-                </Label>
-                <Input
-                  id="serpapi-language"
-                  value={serpapiLanguage}
-                  onChange={(e) => setSerpapiLanguage(e.target.value)}
-                  placeholder="en"
-                />
-              </div>
-
-              <div>
-                <Label
-                  htmlFor="facebook"
-                  className="text-sm font-medium text-gray-700 mb-1.5 block"
-                >
-                  Facebook
-                </Label>
-                <Input
-                  id="facebook"
-                  value={facebook}
-                  onChange={(e) => setFacebook(e.target.value)}
-                  placeholder="https://facebook.com/yourpage"
-                />
-              </div>
-
-              <div>
-                <Label
-                  htmlFor="instagram"
-                  className="text-sm font-medium text-gray-700 mb-1.5 block"
-                >
-                  Instagram
-                </Label>
-                <Input
-                  id="instagram"
-                  value={instagram}
-                  onChange={(e) => setInstagram(e.target.value)}
-                  placeholder="https://instagram.com/yourpage"
-                />
-              </div>
-
-              <div>
-                <Label
-                  htmlFor="youtube"
-                  className="text-sm font-medium text-gray-700 mb-1.5 block"
-                >
-                  YouTube
-                </Label>
-                <Input
-                  id="youtube"
-                  value={youtube}
-                  onChange={(e) => setYoutube(e.target.value)}
-                  placeholder="https://youtube.com/channel/..."
-                />
-              </div>
+              <div><Label htmlFor="company-name">Company Name</Label><Input id="company-name" value={name} onChange={(e) => setName(e.target.value)} /></div>
+              <div><Label htmlFor="contact">Contact</Label><Input id="contact" value={contact} onChange={(e) => setContact(e.target.value)} /></div>
+              <div><Label htmlFor="street">Street</Label><Input id="street" value={street} onChange={(e) => setStreet(e.target.value)} /></div>
+              <div><Label htmlFor="housenumber">House Number</Label><Input id="housenumber" value={housenumber} onChange={(e) => setHousenumber(e.target.value)} /></div>
+              <div><Label htmlFor="zipcode">Zipcode</Label><Input id="zipcode" value={zipcode} onChange={(e) => setZipcode(e.target.value)} /></div>
+              <div><Label htmlFor="city">City</Label><Input id="city" value={city} onChange={(e) => setCity(e.target.value)} /></div>
+              <div><Label htmlFor="region">Region</Label><Input id="region" value={region} onChange={(e) => setRegion(e.target.value)} /></div>
+              <div><Label htmlFor="country">Country</Label><Input id="country" value={country} onChange={(e) => setCountry(e.target.value)} /></div>
+              <div><Label htmlFor="website">Website URL</Label><Input id="website" value={websiteUrl} onChange={(e) => setWebsiteUrl(e.target.value)} /></div>
+              <div><Label htmlFor="facebook">Facebook</Label><Input id="facebook" value={facebook} onChange={(e) => setFacebook(e.target.value)} /></div>
+              <div><Label htmlFor="instagram">Instagram</Label><Input id="instagram" value={instagram} onChange={(e) => setInstagram(e.target.value)} /></div>
+              <div><Label htmlFor="youtube">YouTube</Label><Input id="youtube" value={youtube} onChange={(e) => setYoutube(e.target.value)} /></div>
+              <div><Label htmlFor="serpapi-language">SERPAPI Language</Label><Input id="serpapi-language" value={serpapiLanguage} onChange={(e) => setSerpapiLanguage(e.target.value)} /></div>
             </div>
 
-            <div className="pt-4 flex justify-between border-t border-gray-100">
-              <div className="text-sm text-gray-500">
-                {company?.company_opening_hours?.length ? (
-                  <div>
-                    <div>
-                      Opening hours configured:{" "}
-                      {company.company_opening_hours.length}
-                    </div>
-                    <div className="text-xs mt-1">
-                      Last updated:{" "}
-                      {company.last_updated || company.updated_at || "—"}
-                    </div>
-                  </div>
-                ) : (
-                  <div>No opening hours configured</div>
-                )}
-              </div>
+            {/* Opening Hours */}
+            <div className="space-y-2">
+              <h3 className="font-medium text-gray-700">Opening Hours</h3>
+              {openingHours.map((oh, idx) => (
+                <div key={idx} className="grid grid-cols-4 gap-2 items-center">
+                  <Input placeholder="Day" value={oh.day} onChange={(e) => handleOpeningHourChange(idx, "day", e.target.value)} />
+                  <Input placeholder="Open" value={oh.open} onChange={(e) => handleOpeningHourChange(idx, "open", e.target.value)} />
+                  <Input placeholder="Close" value={oh.close} onChange={(e) => handleOpeningHourChange(idx, "close", e.target.value)} />
+                  <Button type="button" variant="destructive" onClick={() => removeOpeningHour(idx)}>Remove</Button>
+                </div>
+              ))}
+              <Button type="button" onClick={addOpeningHour}>Add Opening Hour</Button>
+            </div>
 
-              <div className="flex gap-3">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => {
-                    // reset to current saved values
-                    setName(company.name || "");
-                    setStreet(company.address?.street || "");
-                    setHousenumber(company.address?.housenumber || "");
-                    setZipcode(company.address?.zipcode || "");
-                    setCity(company.address?.city || "");
-                    setRegion(company.address?.region || "");
-                    setCountry(company.address?.country || "");
-                    setContact(company.contact || "");
-                    setWebsiteUrl(company.website_url || "");
-                    setFacebook(company.social_links?.facebook || "");
-                    setInstagram(company.social_links?.instagram || "");
-                    setYoutube(company.social_links?.youtube || "");
-                    setSerpapiLanguage(company.serpapi_language || "");
-                    toast.info("Form reset to saved values");
-                  }}
-                >
-                  Reset
-                </Button>
-
-                <Button
-                  type="submit"
-                  className="px-6 py-2.5 text-sm font-medium"
-                  disabled={saving}
-                >
-                  {saving ? "Saving..." : "Save Company Details"}
-                </Button>
-              </div>
+            <div className="flex gap-4">
+              <Button type="submit" disabled={saving}>{saving ? "Saving..." : "Save"}</Button>
+              <Button type="button" variant="outline" onClick={handleReset}>Reset</Button>
             </div>
           </form>
         )}
