@@ -61,61 +61,75 @@ export function Details() {
   const [serpapiLanguage, setSerpapiLanguage] = useState("");
   const [openingHours, setOpeningHours] = useState<OpeningHour[]>([]);
 
-const API_BASE = "https://answer24.laravel.cloud/api/v1";
+  const API_BASE = "https://answer24.laravel.cloud/api/v1";
 
-useEffect(() => {
-  const fetchOrCreateCompany = async () => {
-    setLoading(true);
-    try {
-      const currentUser = tokenUtils.getUser();
-      const token = tokenUtils.getToken();
-      if (!currentUser?.id || !token) {
-        toast.error("No user or token found.");
+  useEffect(() => {
+    const fetchOrCreateCompany = async () => {
+      setLoading(true);
+      try {
+        const currentUser = tokenUtils.getUser();
+        const token = tokenUtils.getToken();
+        if (!currentUser?.id || !token) {
+          toast.error("No user or token found.");
+          setLoading(false);
+          return;
+        }
+
+        // Fetch companies for user
+        const res = await fetch(`${API_BASE}/user-companies/user/${currentUser.id}`, {
+          headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
+        });
+
+        if (!res.ok) throw new Error("Failed to fetch companies");
+
+        const json = await res.json();
+        let companyData: Company | null = json.data?.[0] ?? null;
+
+        if (!companyData) {
+          // This should rarely happen if backend auto-creates default
+          const createRes = await fetch(`${API_BASE}/user-companies`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+            body: JSON.stringify({ name: "Default Company", user_id: currentUser.id }),
+          });
+
+          if (!createRes.ok) throw new Error("Failed to create default company");
+
+          const createJson = await createRes.json();
+          companyData = createJson.data;
+        }
+
+        console.log("Fetched company from backend:", companyData);
+
+        setCompany(companyData);
+        setInitialCompanyData(companyData);
+
+        // Populate fields
+        setName(companyData?.name || "");
+        setStreet(companyData?.address?.street || "");
+        setHousenumber(companyData?.address?.housenumber || "");
+        setZipcode(companyData?.address?.zipcode || "");
+        setCity(companyData?.address?.city || "");
+        setRegion(companyData?.address?.region || "");
+        setCountry(companyData?.address?.country || "");
+        setContact(companyData?.contact || "");
+        setWebsiteUrl(companyData?.website_url || "");
+        setFacebook(companyData?.social_links?.facebook || "");
+        setInstagram(companyData?.social_links?.instagram || "");
+        setYoutube(companyData?.social_links?.youtube || "");
+        setSerpapiLanguage(companyData?.serpapi_language || "");
+        setOpeningHours(companyData?.company_opening_hours || []);
+
+      } catch (err) {
+        console.error("Error fetching/creating company:", err);
+        toast.error("Unable to fetch company data.");
+      } finally {
         setLoading(false);
-        return;
       }
+    };
 
-      // Fetch all companies for the user (backend auto-creates default if none exist)
-      const res = await fetch(`${API_BASE}/user-companies/user/${currentUser.id}`, {
-        headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
-      });
-
-      if (!res.ok) {
-        throw new Error("Failed to fetch companies");
-      }
-
-      const json = await res.json();
-      const companyData = json.data?.[0] ?? null;
-
-      setCompany(companyData);
-      setInitialCompanyData(companyData);
-
-      // Populate fields
-      setName(companyData?.name || "");
-      setStreet(companyData?.address?.street || "");
-      setHousenumber(companyData?.address?.housenumber || "");
-      setZipcode(companyData?.address?.zipcode || "");
-      setCity(companyData?.address?.city || "");
-      setRegion(companyData?.address?.region || "");
-      setCountry(companyData?.address?.country || "");
-      setContact(companyData?.contact || "");
-      setWebsiteUrl(companyData?.website_url || "");
-      setFacebook(companyData?.social_links?.facebook || "");
-      setInstagram(companyData?.social_links?.instagram || "");
-      setYoutube(companyData?.social_links?.youtube || "");
-      setSerpapiLanguage(companyData?.serpapi_language || "");
-      setOpeningHours(companyData?.company_opening_hours || []);
-
-    } catch (err) {
-      console.error("Error fetching/creating company:", err);
-      toast.error("Unable to fetch company data.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  fetchOrCreateCompany();
-}, []);
+    fetchOrCreateCompany();
+  }, []);
 
   const handleOpeningHourChange = (idx: number, field: "day" | "open" | "close", value: string) => {
     const updated = [...openingHours];
@@ -149,11 +163,18 @@ useEffect(() => {
         company_opening_hours: openingHours,
       };
 
-      const method = company?.id ? "PUT" : "POST";
-      const url = company?.id ? `${API_BASE}/user-companies/${company.id}` : `${API_BASE}/user-companies`;
+      if (!company?.id) {
+        toast.error("No company ID found. Cannot update.");
+        setSaving(false);
+        return;
+      }
+
+      const url = `${API_BASE}/user-companies/${company.id}`;
+
+      console.log("Submitting company update with ID:", company.id);
 
       const res = await fetch(url, {
-        method,
+        method: "PUT",
         headers: {
           "Content-Type": "application/json",
           Accept: "application/json",
@@ -214,7 +235,7 @@ useEffect(() => {
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* --- Fields Grid --- */}
+            {/* Fields Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div><Label htmlFor="company-name">Company Name</Label><Input id="company-name" value={name} onChange={(e) => setName(e.target.value)} /></div>
               <div><Label htmlFor="contact">Contact</Label><Input id="contact" value={contact} onChange={(e) => setContact(e.target.value)} /></div>
