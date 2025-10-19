@@ -34,12 +34,20 @@ interface PaymentData {
 export default function PaymentSuccessPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const pathname = window.location.pathname;
-  const locale = pathname.split('/')[1] || 'en';
+  const [locale, setLocale] = useState('en');
+  
+  useEffect(() => {
+    // Set locale from URL pathname on client side
+    if (typeof window !== 'undefined') {
+      const pathname = window.location.pathname;
+      setLocale(pathname.split('/')[1] || 'en');
+    }
+  }, []);
   const [isProcessing, setIsProcessing] = useState(true);
   const [paymentStatus, setPaymentStatus] = useState<"success" | "failed" | "pending">("pending");
   const [paymentData, setPaymentData] = useState<PaymentData | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [debugInfo, setDebugInfo] = useState<any>(null);
 
   useEffect(() => {
     processPayment();
@@ -77,6 +85,14 @@ export default function PaymentSuccessPage() {
 
       const verifyData = await verifyResponse.json();
       console.log("✅ Payment verification response:", verifyData);
+      
+      // Store debug info for display
+      setDebugInfo({
+        type: "backend_verification",
+        response: verifyData,
+        status: verifyResponse.status,
+        headers: Object.fromEntries(verifyResponse.headers.entries())
+      });
       
       setPaymentData(verifyData);
 
@@ -139,22 +155,25 @@ export default function PaymentSuccessPage() {
       );
 
       if (depositResponse.ok) {
-        console.log("✅ Wallet deposit successful");
-        setPaymentStatus("success");
-        setPaymentData({
-          id: "wallet_deposit_" + Date.now(),
-          status: "paid",
-          amount: { value: storedAmount, currency: "EUR" },
-          description: "Wallet deposit",
-          metadata: { type: "wallet_deposit" }
-        });
-        toast.success("Payment successful! Money added to your wallet! 🎉");
+        console.log("✅ Wallet deposit initiated successfully");
+        const depositData = await depositResponse.json();
         
-        // Clean up stored data
-        localStorage.removeItem('mollie_payment_id');
-        localStorage.removeItem('wallet_deposit_amount');
-        sessionStorage.removeItem('mollie_payment_id');
-        sessionStorage.removeItem('wallet_deposit_amount');
+        // Store debug info for wallet deposit
+        setDebugInfo({
+          type: "wallet_deposit_initiated",
+          response: depositData,
+          status: depositResponse.status,
+          storedAmount: storedAmount,
+          message: "Deposit initiated, redirecting to Mollie checkout"
+        });
+        
+        // Store the payment ID for later verification
+        localStorage.setItem('mollie_payment_id', depositData.data.payment_id);
+        
+        // Redirect to Mollie checkout instead of showing success
+        console.log("🔄 Redirecting to Mollie checkout:", depositData.data.checkout_url);
+        window.location.href = depositData.data.checkout_url;
+        return;
       } else {
         console.error("❌ Wallet deposit failed");
         setPaymentStatus("failed");
@@ -188,15 +207,15 @@ export default function PaymentSuccessPage() {
         paymentId,
         allParams: Object.fromEntries(searchParams.entries()),
         searchParamsKeys: Array.from(searchParams.keys()),
-        fullUrl: window.location.href,
-        pathname: window.location.pathname,
-        search: window.location.search,
-        hash: window.location.hash,
+        fullUrl: typeof window !== 'undefined' ? window.location.href : 'N/A',
+        pathname: typeof window !== 'undefined' ? window.location.pathname : 'N/A',
+        search: typeof window !== 'undefined' ? window.location.search : 'N/A',
+        hash: typeof window !== 'undefined' ? window.location.hash : 'N/A',
       });
 
       if (!paymentId) {
         // Try to extract payment ID from URL path as fallback
-        const urlPath = window.location.pathname;
+        const urlPath = typeof window !== 'undefined' ? window.location.pathname : '';
         const pathSegments = urlPath.split('/');
         const possiblePaymentId = pathSegments.find(segment => 
           segment.startsWith('tr_') || 
@@ -232,11 +251,11 @@ export default function PaymentSuccessPage() {
         // If still no payment ID found, let's try to simulate a successful payment for testing
         console.warn("⚠️ No payment ID found in URL params, path, or storage");
         console.log("🔍 Full URL details:", {
-          href: window.location.href,
-          pathname: window.location.pathname,
-          search: window.location.search,
-          hash: window.location.hash,
-          origin: window.location.origin,
+          href: typeof window !== 'undefined' ? window.location.href : 'N/A',
+          pathname: typeof window !== 'undefined' ? window.location.pathname : 'N/A',
+          search: typeof window !== 'undefined' ? window.location.search : 'N/A',
+          hash: typeof window !== 'undefined' ? window.location.hash : 'N/A',
+          origin: typeof window !== 'undefined' ? window.location.origin : 'N/A',
         });
         
         // Check if we have stored payment data (user came from wallet deposit)
@@ -253,6 +272,22 @@ export default function PaymentSuccessPage() {
         // For testing purposes, if no payment ID is found, we can simulate a successful wallet deposit
         // This should be removed in production
         console.log("🧪 Testing mode: Simulating successful wallet deposit");
+        
+        // Store debug info for test mode
+        setDebugInfo({
+          type: "test_mode",
+          message: "No payment ID found, showing test mode",
+          urlParams: Object.fromEntries(searchParams.entries()),
+          localStorage: {
+            mollie_payment_id: localStorage.getItem('mollie_payment_id'),
+            wallet_deposit_amount: localStorage.getItem('wallet_deposit_amount')
+          },
+          sessionStorage: {
+            mollie_payment_id: sessionStorage.getItem('mollie_payment_id'),
+            wallet_deposit_amount: sessionStorage.getItem('wallet_deposit_amount')
+          }
+        });
+        
         setPaymentStatus("success");
         setPaymentData({
           id: "test_payment_" + Date.now(),
@@ -380,6 +415,16 @@ export default function PaymentSuccessPage() {
                 <li>✓ A confirmation email has been sent</li>
               </ul>
             </div>
+
+            {/* Debug Information */}
+            {debugInfo && (
+              <div className="mt-6 p-4 bg-gray-100 rounded-lg border">
+                <h3 className="font-semibold text-sm mb-2">🔍 Debug Information:</h3>
+                <div className="text-xs font-mono bg-white p-3 rounded border overflow-auto max-h-60">
+                  <pre>{JSON.stringify(debugInfo, null, 2)}</pre>
+                </div>
+              </div>
+            )}
           </CardContent>
           <CardFooter className="flex flex-col gap-2">
             <Button
