@@ -19,18 +19,45 @@ const AddMoney = ({ handleClose }: { handleClose: () => void }) => {
     setLoader(true);
 
     try {
-      const response = await apiRequest("/wallet/deposit", {
-        method: "POST",
-        body: JSON.stringify({
-          amount: amount,
-        }),
+      // Extract locale from current URL
+      const pathname = typeof window !== 'undefined' ? window.location.pathname : '';
+      const locale = pathname.split('/')[1] || 'en';
+
+      const requestPayload = {
+        amount: amount,
+        redirect_url: `${window.location.origin}/${locale}/payment/success`,
+        webhook_url: `${window.location.origin}/api/payment/webhook`,
+      };
+
+      console.log("🚀 Starting wallet deposit process:", {
+        amount,
+        locale,
+        redirect_url: requestPayload.redirect_url,
+        webhook_url: requestPayload.webhook_url,
+        fullUrl: window.location.href,
       });
 
-      console.log("Deposit response:", response);
+      const response = await apiRequest("/wallet/deposit", {
+        method: "POST",
+        body: JSON.stringify(requestPayload),
+      });
+
+      console.log("📥 Deposit response:", response);
 
       // Check if response contains checkout_url
       if (response.data && response.data.checkout_url) {
-        // Redirect to checkout URL to complete payment
+        // Store payment ID for later retrieval (in case Mollie doesn't include it in redirect URL)
+        if (response.data.payment_id) {
+          localStorage.setItem('mollie_payment_id', response.data.payment_id);
+          sessionStorage.setItem('mollie_payment_id', response.data.payment_id);
+        }
+        
+        // Store amount for wallet deposit
+        localStorage.setItem('wallet_deposit_amount', amount.toString());
+        sessionStorage.setItem('wallet_deposit_amount', amount.toString());
+        
+        console.log("🌐 Redirecting to Mollie checkout:", response.data.checkout_url);
+        // Redirect to Mollie checkout URL to complete payment
         window.location.href = response.data.checkout_url;
       } else {
         toast.success(`Successfully added €${amount} to your wallet!`);
