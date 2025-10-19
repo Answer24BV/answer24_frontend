@@ -17,7 +17,7 @@ import {
 import { Security } from "./Security";
 import { Notifications } from "./Notifications";
 import { Billing } from "./Billing";
-import { Details } from "./Details"; // <-- added
+import Details from "./Details"; // <-- added
 import { usePathname } from "next/navigation";
 import { tokenUtils } from "@/utils/auth";
 import { toast } from "react-toastify";
