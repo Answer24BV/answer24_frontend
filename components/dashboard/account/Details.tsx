@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 
 interface Company {
   id?: number;
-  user_id?: number;
+  user_id?: string;
   name?: string;
   street?: string;
   housenumber?: string;
@@ -22,6 +22,7 @@ interface Company {
   instagram_url?: string;
   youtube_url?: string;
   local_map?: string;
+  serpapi_language?: string;
 }
 
 export default function Details() {
@@ -31,14 +32,26 @@ export default function Details() {
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState("");
 
-  const userId =
-    localStorage.getItem("userId") || "0198ff2c-5918-71a0-a451-0ac7b13e45d6";
+  const [userId, setUserId] = useState<string | null>(null);
+
+  // ✅ Use your live backend URL
+  const API_BASE_URL = "https://answer24.laravel.cloud/api/v1";
 
   useEffect(() => {
+    const storedId =
+      localStorage.getItem("userId") ||
+      "0198ff2c-5918-71a0-a451-0ac7b13e45d6"; // fallback for testing
+    setUserId(storedId);
+  }, []);
+
+  useEffect(() => {
+    if (!userId) return;
+
     const fetchCompany = async () => {
       try {
+        setLoading(true);
         const { data } = await axios.get(
-          `/api/v1/user-companies/user/${userId}`
+          `${API_BASE_URL}/user-companies/user/${userId}`
         );
 
         if (data.success && data.data.length > 0) {
@@ -48,8 +61,9 @@ export default function Details() {
           setCompany(null);
         }
       } catch (err: any) {
-        setError("Failed to load company data");
-        console.error(err);
+        console.error("Error fetching company:", err);
+        setCompany(null);
+        setError("No company found");
       } finally {
         setLoading(false);
       }
@@ -63,12 +77,17 @@ export default function Details() {
   };
 
   const handleSave = async () => {
+    if (!userId) {
+      alert("User ID not found. Please log in again.");
+      return;
+    }
+
     try {
-      if (company) {
-        await axios.put(`/api/v1/user-companies/${company.id}`, form);
+      if (company && company.id) {
+        await axios.put(`${API_BASE_URL}/user-companies/${company.id}`, form);
         alert("Company updated successfully!");
       } else {
-        await axios.post(`/api/v1/user-companies`, {
+        await axios.post(`${API_BASE_URL}/user-companies`, {
           ...form,
           user_id: userId,
         });
@@ -116,6 +135,7 @@ export default function Details() {
           "instagram_url",
           "youtube_url",
           "local_map",
+          "serpapi_language",
         ].map((field) => (
           <div key={field}>
             <label className="block text-sm font-medium mb-1 capitalize">
@@ -125,7 +145,7 @@ export default function Details() {
               name={field}
               value={form[field as keyof Company] || ""}
               onChange={handleChange}
-              placeholder={`Enter ${field}`}
+              placeholder={`Enter ${field.replace("_", " ")}`}
             />
           </div>
         ))}
