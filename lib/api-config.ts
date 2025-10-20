@@ -51,6 +51,7 @@ export const API_CONFIG = {
       BALANCE: "/wallet/balance",
       TRANSACTIONS: "/wallet/transactions",
       DEPOSIT: "/wallet/deposit",
+      ADD_MONEY: "/wallet/add-money",
     },
     BLOG: {
       LIST: "/blog",
