@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useToast } from "@/components/ui/use-toast";
 
 interface Company {
   id?: number;
@@ -29,12 +30,13 @@ export default function Details() {
   const [company, setCompany] = useState<Company | null>(null);
   const [form, setForm] = useState<Company>({});
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [creating, setCreating] = useState(false);
-  const [error, setError] = useState("");
-
+  const [error, setError] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
 
-  // ✅ Use your live backend URL
+  const { toast } = useToast();
+
   const API_BASE_URL = "https://answer24.laravel.cloud/api/v1";
 
   useEffect(() => {
@@ -50,20 +52,28 @@ export default function Details() {
     const fetchCompany = async () => {
       try {
         setLoading(true);
+        setError(null);
+
         const { data } = await axios.get(
           `${API_BASE_URL}/user-companies/user/${userId}`
         );
 
         if (data.success && data.data.length > 0) {
-          setCompany(data.data[0]);
-          setForm(data.data[0]);
+          const companyData = data.data[0];
+          setCompany(companyData);
+          setForm(companyData);
         } else {
           setCompany(null);
         }
       } catch (err: any) {
-        console.error("Error fetching company:", err);
+        console.error("❌ Error fetching company:", err);
         setCompany(null);
-        setError("No company found");
+        setError("Failed to load company details");
+        toast({
+          title: "Error",
+          description: "Could not load company details",
+          variant: "destructive",
+        });
       } finally {
         setLoading(false);
       }
@@ -78,30 +88,57 @@ export default function Details() {
 
   const handleSave = async () => {
     if (!userId) {
-      alert("User ID not found. Please log in again.");
+      toast({
+        title: "User ID missing",
+        description: "Please log in again to continue.",
+        variant: "destructive",
+      });
       return;
     }
 
+    setSaving(true);
+    setError(null);
+
     try {
-      if (company && company.id) {
-        await axios.put(`${API_BASE_URL}/user-companies/${company.id}`, form);
-        alert("Company updated successfully!");
+      if (company?.id) {
+        const { data } = await axios.put(
+          `${API_BASE_URL}/user-companies/${company.id}`,
+          form
+        );
+
+        setCompany(data.data);
+        toast({
+          title: "✅ Success",
+          description: "Company updated successfully!",
+        });
       } else {
-        await axios.post(`${API_BASE_URL}/user-companies`, {
+        const { data } = await axios.post(`${API_BASE_URL}/user-companies`, {
           ...form,
           user_id: userId,
         });
-        alert("Company created successfully!");
+
+        setCompany(data.data);
         setCreating(false);
+        toast({
+          title: "✅ Company Created",
+          description: "Your company has been created successfully!",
+        });
       }
-      window.location.reload();
-    } catch (error) {
-      console.error(error);
-      alert("Failed to save company");
+    } catch (err: any) {
+      console.error("❌ Save failed:", err);
+      setError("Failed to save company details");
+      toast({
+        title: "Error",
+        description: "Failed to save company details.",
+        variant: "destructive",
+      });
+    } finally {
+      setSaving(false);
     }
   };
 
-  if (loading) return <div className="p-6 text-gray-500">Loading...</div>;
+  if (loading)
+    return <div className="p-6 text-gray-500">Loading company details...</div>;
 
   if (!company && !creating)
     return (
@@ -119,6 +156,12 @@ export default function Details() {
       <h2 className="text-xl font-semibold">
         {creating ? "Create Company" : "Edit Company"}
       </h2>
+
+      {error && (
+        <p className="text-red-500 text-sm bg-red-50 p-2 rounded">
+          ⚠️ {error}
+        </p>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {[
@@ -152,9 +195,16 @@ export default function Details() {
       </div>
 
       <div className="flex gap-3 mt-4">
-        <Button onClick={handleSave}>
-          {creating ? "Create" : "Save Changes"}
+        <Button onClick={handleSave} disabled={saving}>
+          {saving
+            ? creating
+              ? "Creating..."
+              : "Saving..."
+            : creating
+            ? "Create"
+            : "Save Changes"}
         </Button>
+
         {!creating && (
           <Button variant="outline" onClick={() => setCreating(true)}>
             Create New
