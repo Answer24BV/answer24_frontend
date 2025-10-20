@@ -4,7 +4,8 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useToast } from "@/components/ui/use-toast";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 interface Company {
   id?: number;
@@ -32,10 +33,7 @@ export default function Details() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [creating, setCreating] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
-
-  const { toast } = useToast();
 
   const API_BASE_URL = "https://answer24.laravel.cloud/api/v1";
 
@@ -52,8 +50,6 @@ export default function Details() {
     const fetchCompany = async () => {
       try {
         setLoading(true);
-        setError(null);
-
         const { data } = await axios.get(
           `${API_BASE_URL}/user-companies/user/${userId}`
         );
@@ -62,18 +58,13 @@ export default function Details() {
           const companyData = data.data[0];
           setCompany(companyData);
           setForm(companyData);
+          toast.success("Company loaded successfully!");
         } else {
           setCompany(null);
         }
       } catch (err: any) {
         console.error("❌ Error fetching company:", err);
-        setCompany(null);
-        setError("Failed to load company details");
-        toast({
-          title: "Error",
-          description: "Could not load company details",
-          variant: "destructive",
-        });
+        toast.error("Failed to load company details.");
       } finally {
         setLoading(false);
       }
@@ -88,50 +79,41 @@ export default function Details() {
 
   const handleSave = async () => {
     if (!userId) {
-      toast({
-        title: "User ID missing",
-        description: "Please log in again to continue.",
-        variant: "destructive",
-      });
+      toast.error("User ID missing. Please log in again.");
       return;
     }
 
     setSaving(true);
-    setError(null);
 
     try {
       if (company?.id) {
+        // Update company
         const { data } = await axios.put(
           `${API_BASE_URL}/user-companies/${company.id}`,
           form
         );
-
         setCompany(data.data);
-        toast({
-          title: "✅ Success",
-          description: "Company updated successfully!",
-        });
+        toast.success("Company updated successfully!");
       } else {
+        // Create company
         const { data } = await axios.post(`${API_BASE_URL}/user-companies`, {
           ...form,
           user_id: userId,
         });
-
         setCompany(data.data);
         setCreating(false);
-        toast({
-          title: "✅ Company Created",
-          description: "Your company has been created successfully!",
-        });
+        toast.success("Company created successfully!");
       }
     } catch (err: any) {
       console.error("❌ Save failed:", err);
-      setError("Failed to save company details");
-      toast({
-        title: "Error",
-        description: "Failed to save company details.",
-        variant: "destructive",
-      });
+
+      if (err.response?.status === 405) {
+        toast.error("405 Error: Invalid request method. Check backend routes.");
+      } else if (err.response?.data?.message) {
+        toast.error(err.response.data.message);
+      } else {
+        toast.error("Failed to save company details.");
+      }
     } finally {
       setSaving(false);
     }
@@ -148,20 +130,16 @@ export default function Details() {
           You don’t have a company added yet.
         </p>
         <Button onClick={() => setCreating(true)}>Create Company</Button>
+        <ToastContainer position="top-right" autoClose={3000} />
       </div>
     );
 
   return (
     <div className="p-6 space-y-4">
+      <ToastContainer position="top-right" autoClose={3000} />
       <h2 className="text-xl font-semibold">
         {creating ? "Create Company" : "Edit Company"}
       </h2>
-
-      {error && (
-        <p className="text-red-500 text-sm bg-red-50 p-2 rounded">
-          ⚠️ {error}
-        </p>
-      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {[
