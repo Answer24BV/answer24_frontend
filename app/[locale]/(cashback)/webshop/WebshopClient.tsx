@@ -141,8 +141,26 @@ const WebshopClient = () => {
 
       if (!connectRes.ok) {
         const errorText = await connectRes.text();
-        console.error("❌ [DAISYCON] HTTP Error:", connectRes.status, errorText);
-        alert(`Failed to connect to Daisycon (${connectRes.status}). Please check console for details.`);
+        console.error("❌ [DAISYCON] HTTP Error:", connectRes.status);
+        console.error("❌ [DAISYCON] Error body:", errorText);
+        
+        if (connectRes.status === 500) {
+          alert(`Backend Error (500): The Daisycon connection endpoint is experiencing issues.\n\nThis is a backend problem. Please check the Laravel logs for details.`);
+        } else {
+          alert(`Failed to connect to Daisycon (${connectRes.status}). Please check console for details.`);
+        }
+        return;
+      }
+
+      // Check content type before parsing JSON
+      const contentType = connectRes.headers.get("content-type");
+      console.log("📄 [DAISYCON] Content-Type:", contentType);
+      
+      if (!contentType || !contentType.includes("application/json")) {
+        const textResponse = await connectRes.text();
+        console.error("❌ [DAISYCON] Expected JSON but got:", contentType);
+        console.error("❌ [DAISYCON] Response body:", textResponse.substring(0, 200));
+        alert(`Backend Error: Server returned ${contentType || 'HTML'} instead of JSON.\n\nThis is a backend configuration issue.`);
         return;
       }
 
@@ -166,7 +184,11 @@ const WebshopClient = () => {
       }
     } catch (err) {
       console.error("❌ [DAISYCON] Exception during OAuth initiation:", err);
-      if (err instanceof Error) {
+      
+      if (err instanceof SyntaxError && err.message.includes("JSON")) {
+        console.error("❌ [DAISYCON] Backend returned invalid JSON (likely HTML error page)");
+        alert("Backend Error: The server returned HTML instead of JSON.\n\nThis means the Daisycon endpoint crashed. Check Laravel logs for:\n- Missing Daisycon API credentials\n- Database connection issues\n- PHP errors");
+      } else if (err instanceof Error) {
         alert(`Failed to connect to Daisycon: ${err.message}`);
       } else {
         alert("Failed to connect to Daisycon. Please try again.");
