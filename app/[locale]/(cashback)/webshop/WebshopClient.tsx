@@ -68,6 +68,68 @@ const WebshopClient = () => {
     }
   };
 
+  // Check user profile completeness for diagnostics
+  const checkUserProfile = async () => {
+    try {
+      console.log("👤 [PROFILE CHECK] Fetching user profile data...");
+      
+      const profileRes = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/profile`, {
+        headers: { 
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json"
+        },
+      });
+
+      if (profileRes.ok) {
+        const profileData = await profileRes.json();
+        const user = profileData.data || profileData;
+        
+        console.log("👤 [PROFILE CHECK] Full user data:", JSON.stringify(user, null, 2));
+        console.log("📋 [PROFILE CHECK] Profile completeness check:");
+        console.log("  ✓ Name:", user.name || "❌ MISSING");
+        console.log("  ✓ Email:", user.email || "❌ MISSING");
+        console.log("  ✓ Phone:", user.phone || "❌ MISSING");
+        console.log("  ✓ Role:", user.role || "❌ MISSING");
+        console.log("  ✓ Company ID:", user.company_id || "❌ MISSING");
+        console.log("  ✓ Client ID (Daisycon):", user.client_id || "❌ MISSING");
+        console.log("  ✓ Secret Key (Daisycon):", user.secret_key ? "✅ SET" : "❌ MISSING");
+        console.log("  ✓ Publisher ID:", user.publisher_id || user.daisycon_publisher_id || "❌ MISSING");
+        
+        // Check if user has company details
+        if (user.company_id || user.company) {
+          console.log("🏢 [COMPANY CHECK] Company data:", user.company ? JSON.stringify(user.company) : "ID: " + user.company_id);
+        } else {
+          console.warn("⚠️ [COMPANY CHECK] No company data found - this might be required for Daisycon!");
+        }
+        
+        // List all potentially missing fields
+        const missingFields = [];
+        if (!user.name) missingFields.push("name");
+        if (!user.email) missingFields.push("email");
+        if (!user.phone) missingFields.push("phone");
+        if (!user.client_id) missingFields.push("client_id (Daisycon)");
+        if (!user.secret_key) missingFields.push("secret_key (Daisycon)");
+        if (!user.company_id && !user.company) missingFields.push("company");
+        
+        if (missingFields.length > 0) {
+          console.warn("⚠️ [PROFILE CHECK] Missing fields that might be required for Daisycon:");
+          console.warn("   " + missingFields.join(", "));
+          console.warn("⚠️ [PROFILE CHECK] The 'Update your details' error likely refers to one of these ☝️");
+        } else {
+          console.log("✅ [PROFILE CHECK] All common fields are populated");
+        }
+        
+        return user;
+      } else {
+        console.error("❌ [PROFILE CHECK] Failed to fetch profile:", profileRes.status);
+        return null;
+      }
+    } catch (err) {
+      console.error("❌ [PROFILE CHECK] Error fetching profile:", err);
+      return null;
+    }
+  };
+
   // Check Daisycon connection status (NO auto-redirect)
   const checkDaisyconConnection = async () => {
     if (!token) {
@@ -103,6 +165,15 @@ const WebshopClient = () => {
       } else {
         // User is not connected, just show the prompt - NO auto-redirect
         console.log("⚠️ [DAISYCON] User is not connected");
+        console.log("⚠️ [DAISYCON] Response message:", data.message || "No message");
+        
+        // If we get "Update your details" error, check user profile
+        if (data.message?.toLowerCase().includes("update your details")) {
+          console.error("🚨 [DAISYCON] 'Update your details' error detected!");
+          console.error("🚨 [DAISYCON] Running profile diagnostics...");
+          await checkUserProfile();
+        }
+        
         setIsConnected(false);
       }
     } catch (err) {
@@ -128,6 +199,10 @@ const WebshopClient = () => {
         alert("Please log in to connect your Daisycon account.");
         return;
       }
+      
+      // Check user profile before attempting connection
+      console.log("🔍 [DAISYCON] Checking user profile before connection...");
+      await checkUserProfile();
 
       const headers: HeadersInit = {
         Accept: "application/json",
