@@ -12,7 +12,7 @@ import {
 import {
   getNotifications,
   Notification,
-} from "@/app/actions/notificationActions";
+} from "@/app/[locale]/actions/notificationActions";
 import Avatar from "@/components/common/Avatar";
 import { toast } from "react-hot-toast";
 import { tokenUtils } from "@/utils/auth";
