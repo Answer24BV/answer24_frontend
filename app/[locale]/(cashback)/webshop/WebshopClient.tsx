@@ -26,173 +26,102 @@ const WebshopClient = () => {
   const [webshops, setWebshops] = useState<Webshop[]>([]);
   const [categories, setCategories] = useState<Category[]>(["All"]);
   const [loading, setLoading] = useState(true);
-  const [isConnected, setIsConnected] = useState(false);
-  const [connectionChecked, setConnectionChecked] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
   const categoryEndpoint = `${API_CONFIG.BASE_URL}/daisycon/categories`;
-  const connectEndpoint = `${API_CONFIG.BASE_URL}/daisycon/connect`;
   const mediaEndpoint = `${API_CONFIG.BASE_URL}/daisycon/media`;
 
   const token =
     typeof window !== "undefined" ? localStorage.getItem("auth_token") : null;
 
-  // Fetch media/webshops
-  const fetchMedia = async () => {
+  // Fetch categories from Daisycon
+  const fetchCategories = async () => {
     try {
-      const res = await fetch(mediaEndpoint, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await res.json();
-
-      if (data.success === true && data.data) {
-        const mediaList = data.data.map((media: any) => ({
-          id: media.id || Math.random(),
-          name: media.name || "Unknown Store",
-          logo: media.logo || "https://avatar.iran.liara.run/public/45",
-          cashback: media.cashback || "Up to 5%",
-          description: media.description || "Earn cashback on purchases",
-          category: media.category || "General",
-          rating: media.rating || 4.5,
-          featured: media.featured || false,
-        }));
-
-        setWebshops(mediaList);
-      } else {
-        console.error("Failed to fetch media:", data);
-        setWebshops([]);
-      }
-    } catch (err) {
-      console.error("Media fetch error:", err);
-      setWebshops([]);
-    }
-  };
-
-  // Check Daisycon connection status (NO auto-redirect)
-  const checkDaisyconConnection = async () => {
-    if (!token) {
-      console.log("⚠️ [DAISYCON] No token found, redirecting to login");
-      router.push("/login");
-      return;
-    }
-
-    try {
-      setLoading(true);
-      console.log("🔍 [DAISYCON] Checking connection status...");
-      console.log("🔍 [DAISYCON] Endpoint:", categoryEndpoint);
-
-      // Try to fetch categories to check if connected
       const res = await fetch(categoryEndpoint, {
-        headers: { 
+        headers: {
           Authorization: `Bearer ${token}`,
           Accept: "application/json",
         },
       });
-      
-      console.log("📡 [DAISYCON] Category response status:", res.status);
-      
-      const data = await res.json();
-      console.log("📦 [DAISYCON] Category response:", data);
 
-      if (data.success === true && data.data) {
-        // User is connected, load categories and media
-        console.log("✅ [DAISYCON] User is connected!");
-        setIsConnected(true);
-        setCategories(["All", ...data.data.map((c: any) => c.name)]);
-        await fetchMedia();
-      } else {
-        // User is not connected, just show the prompt - NO auto-redirect
-        console.log("⚠️ [DAISYCON] User is not connected");
-        setIsConnected(false);
-      }
-    } catch (err) {
-      console.error("❌ [DAISYCON] Connection check error:", err);
-      // If category fetch fails, assume not connected - NO auto-redirect
-      setIsConnected(false);
-    } finally {
-      setConnectionChecked(true);
-      setLoading(false);
-    }
-  };
-
-  // Initiate OAuth connection (only called when user clicks button)
-  const initiateOAuthConnection = async () => {
-    try {
-      console.log("🔗 [DAISYCON] Initiating OAuth connection...");
-      console.log("🔗 [DAISYCON] Endpoint:", connectEndpoint);
-      console.log("🔗 [DAISYCON] Token available:", !!token);
-
-      // Build headers - connect endpoint is public but we send token if available
-      const headers: HeadersInit = {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-      };
-      
-      if (token) {
-        headers.Authorization = `Bearer ${token}`;
-      }
-
-      const connectRes = await fetch(connectEndpoint, {
-        headers,
-      });
-
-      console.log("📡 [DAISYCON] Response status:", connectRes.status);
-      console.log("📡 [DAISYCON] Response ok:", connectRes.ok);
-
-      if (!connectRes.ok) {
-        const errorText = await connectRes.text();
-        console.error("❌ [DAISYCON] HTTP Error:", connectRes.status, errorText);
-        alert(`Failed to connect to Daisycon (${connectRes.status}). Please check console for details.`);
+      if (!res.ok) {
+        console.error("Failed to fetch categories:", res.status);
         return;
       }
 
-      const connectData = await connectRes.json();
-      console.log("📦 [DAISYCON] Response data:", connectData);
+      const data = await res.json();
 
-      if (connectData?.success && connectData?.data?.url) {
-        console.log("✅ [DAISYCON] OAuth URL received:", connectData.data.url);
-        
-        // Store current page in localStorage so we can return here after OAuth
-        localStorage.setItem("daisycon_return_url", window.location.pathname);
-
-        // Redirect to Daisycon OAuth
-        window.location.href = connectData.data.url;
-      } else {
-        console.error("❌ [DAISYCON] Invalid response format:", connectData);
-        console.error("Expected: { success: true, data: { url: '...' } }");
-        
-        const errorMsg = connectData?.message || "Invalid response format from server";
-        alert(`Failed to initiate Daisycon connection: ${errorMsg}`);
+      if (data.success && Array.isArray(data.data)) {
+        const categoryNames = data.data.map((c: any) => c.name || c.title);
+        setCategories(["All", ...categoryNames]);
       }
     } catch (err) {
-      console.error("❌ [DAISYCON] Exception during OAuth initiation:", err);
-      if (err instanceof Error) {
-        alert(`Failed to connect to Daisycon: ${err.message}`);
-      } else {
-        alert("Failed to connect to Daisycon. Please try again.");
-      }
+      console.error("Error fetching categories:", err);
     }
   };
 
-  // Check for OAuth return (when user comes back from Daisycon)
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const code = urlParams.get("code");
-    const state = urlParams.get("state");
+  // Fetch webshops/campaigns from Daisycon
+  const fetchWebshops = async () => {
+    try {
+      const res = await fetch(mediaEndpoint, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+        },
+      });
 
-    if (code && state) {
-      // User returned from OAuth, clean URL and recheck connection
-      window.history.replaceState({}, document.title, window.location.pathname);
+      if (!res.ok) {
+        if (res.status === 404) {
+          setError("Daisycon platform integration is being configured. Please check back later.");
+        } else {
+          setError("Failed to load webshops. Please try again later.");
+        }
+        setWebshops([]);
+        return;
+      }
 
-      // Give backend time to process the callback, then recheck
-      setTimeout(() => {
-        checkDaisyconConnection();
-      }, 2000);
-    } else {
-      // Normal page load, check connection
-      checkDaisyconConnection();
+      const data = await res.json();
+
+      if (data.success && Array.isArray(data.data)) {
+        const shopsList = data.data.map((shop: any) => ({
+          id: shop.id || shop.program_id || Math.random(),
+          name: shop.name || shop.program_name || "Store",
+          logo: shop.logo || shop.image_url || "https://avatar.iran.liara.run/public/45",
+          cashback: shop.commission_rate || shop.cashback || "Up to 5%",
+          description: shop.description || "Earn cashback on your purchases",
+          category: shop.category || shop.category_name || "General",
+          rating: shop.rating || 4.5,
+          featured: shop.featured || shop.is_featured || false,
+        }));
+
+        setWebshops(shopsList);
+        setError(null);
+      } else {
+        setWebshops([]);
+      }
+    } catch (err) {
+      console.error("Error fetching webshops:", err);
+      setError("Failed to load webshops. Please try again later.");
+      setWebshops([]);
     }
-  }, [token, router]);
+  };
+
+  // Load categories and webshops on mount
+  useEffect(() => {
+    if (!token) {
+      router.push("/login");
+      return;
+    }
+
+    const loadData = async () => {
+      setLoading(true);
+      await Promise.all([fetchCategories(), fetchWebshops()]);
+      setLoading(false);
+    };
+
+    loadData();
+  }, []);
 
   const filteredWebshops = webshops.filter((shop) => {
     const matchesCategory =
@@ -203,39 +132,37 @@ const WebshopClient = () => {
     return matchesCategory && matchesSearch;
   });
 
-  const handleShopClick = (shopName: string) => {
-    router.push(`/nl/webshop/${shopName}`);
+  const handleShopClick = (shop: Webshop) => {
+    // Backend should generate tracking link with user ID
+    // For now, just navigate to shop detail page
+    router.push(`/webshop/${shop.id}`);
   };
 
-  // Show loading while checking connection
-  if (!connectionChecked || loading) {
+  // Show loading state
+  if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
         <PrivateNavbar />
         <div className="flex items-center justify-center min-h-[60vh] pt-20">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
-            <p className="text-gray-600">
-              {!connectionChecked
-                ? "Checking Daisycon connection..."
-                : "Loading stores..."}
-            </p>
+            <p className="text-gray-600">Loading cashback stores...</p>
           </div>
         </div>
       </div>
     );
   }
 
-  // Show connection prompt if not connected
-  if (!isConnected) {
+  // Show error state
+  if (error) {
     return (
       <div className="min-h-screen bg-gray-50">
         <PrivateNavbar />
         <div className="flex items-center justify-center min-h-[60vh] pt-20">
           <div className="text-center max-w-md mx-auto p-8">
-            <div className="bg-blue-100 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-6">
+            <div className="bg-yellow-100 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-6">
               <svg
-                className="w-10 h-10 text-blue-500"
+                className="w-10 h-10 text-yellow-500"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -244,22 +171,19 @@ const WebshopClient = () => {
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   strokeWidth={2}
-                  d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"
+                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
                 />
               </svg>
             </div>
             <h2 className="text-2xl font-bold text-gray-900 mb-4">
-              You are not connected to Daisycon
+              Webshops Unavailable
             </h2>
-            <p className="text-gray-600 mb-6">
-              Connect your Daisycon account to access cashback stores and start
-              earning rewards.
-            </p>
+            <p className="text-gray-600 mb-6">{error}</p>
             <button
-              onClick={initiateOAuthConnection}
+              onClick={() => window.location.reload()}
               className="bg-blue-500 hover:bg-blue-600 text-white font-medium py-3 px-6 rounded-lg transition-colors"
             >
-              Connect Daisycon Account
+              Retry
             </button>
           </div>
         </div>
@@ -267,106 +191,105 @@ const WebshopClient = () => {
     );
   }
 
-  // Main content (when connected)
+  // Main content
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
+      <div className="pt-20 pb-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Header */}
+          <div className="text-center mb-12">
+            <h1 className="text-4xl font-bold text-gray-900 mb-4">
+              Cashback Webshops
+            </h1>
+            <p className="text-lg text-gray-600">
+              Shop at your favorite stores and earn A-Points cashback on every purchase
+            </p>
+          </div>
 
-      {/* Hero Section with padding to account for fixed navbar */}
-      <div className="pt-20">
-        {/* Search and Filters */}
-        <section className="bg-white py-8 border-b">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex flex-col lg:flex-row gap-6 items-center">
-              {/* Search */}
-              <div className="relative flex-1 max-w-md">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                <input
-                  type="text"
-                  placeholder="Search stores..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-
-              {/* Categories */}
-              <div className="flex items-center space-x-2 overflow-x-auto">
-                <Filter className="w-5 h-5 text-gray-500 flex-shrink-0" />
-                {categories.map((cat) => (
-                  <button
-                    key={cat}
-                    onClick={() => setActiveCategory(cat)}
-                    className={`px-4 py-2 rounded-lg font-medium whitespace-nowrap transition-all ${
-                      activeCategory === cat
-                        ? "bg-blue-500 text-white"
-                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                    }`}
-                  >
-                    {cat}
-                  </button>
+          {/* Search & Filter */}
+          <div className="mb-8 flex flex-col md:flex-row gap-4">
+            <div className="flex-1 relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+              <input
+                type="text"
+                placeholder="Search stores..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+            <div className="relative">
+              <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+              <select
+                value={activeCategory}
+                onChange={(e) => setActiveCategory(e.target.value)}
+                className="pl-10 pr-8 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none bg-white min-w-[200px]"
+              >
+                {categories.map((category) => (
+                  <option key={category} value={category}>
+                    {category}
+                  </option>
                 ))}
-              </div>
+              </select>
             </div>
           </div>
-        </section>
 
-        {/* All Stores */}
-        <section className="py-16 bg-gray-50">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h2 className="text-3xl font-bold text-gray-900 mb-8">
-              All Stores
-            </h2>
-
-            {filteredWebshops.length === 0 ? (
-              <div className="text-center py-12 text-gray-500">
-                No stores found.
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {filteredWebshops.map((shop) => (
-                  <div
-                    key={shop.id}
-                    className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 hover:shadow-md transition-all cursor-pointer"
-                    onClick={() => handleShopClick(shop.name)}
-                  >
-                    <div className="flex items-center space-x-3 mb-3">
+          {/* Webshops Grid */}
+          {filteredWebshops.length === 0 ? (
+            <div className="text-center py-12">
+              <p className="text-gray-500 text-lg">
+                No stores found. Try adjusting your search or filter.
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredWebshops.map((shop) => (
+                <div
+                  key={shop.id}
+                  onClick={() => handleShopClick(shop)}
+                  className="bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow cursor-pointer overflow-hidden"
+                >
+                  <div className="p-6">
+                    <div className="flex items-center justify-between mb-4">
                       <img
                         src={shop.logo}
                         alt={shop.name}
-                        className="w-12 h-6 object-contain"
+                        className="w-16 h-16 object-contain rounded"
                       />
-                      <div>
-                        <h3 className="font-semibold text-gray-900">
-                          {shop.name}
-                        </h3>
-                        <div className="text-green-600 font-medium text-sm">
-                          {shop.cashback}
-                        </div>
-                      </div>
+                      {shop.featured && (
+                        <span className="bg-yellow-100 text-yellow-800 text-xs font-semibold px-2 py-1 rounded">
+                          Featured
+                        </span>
+                      )}
                     </div>
-                    <p className="text-gray-600 text-sm mb-3">
+                    <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                      {shop.name}
+                    </h3>
+                    <p className="text-gray-600 text-sm mb-4 line-clamp-2">
                       {shop.description}
                     </p>
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-1">
-                        <Star className="w-3 h-3 text-yellow-400 fill-current" />
-                        <span className="text-xs text-gray-600">
-                          {shop.rating}
-                        </span>
+                      <div className="flex items-center">
+                        <Star className="w-4 h-4 text-yellow-400 fill-current mr-1" />
+                        <span className="text-sm text-gray-700">{shop.rating}</span>
                       </div>
-                      <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                      <span className="text-blue-600 font-semibold">
+                        {shop.cashback}
+                      </span>
+                    </div>
+                    <div className="mt-4">
+                      <span className="inline-block bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded">
                         {shop.category}
                       </span>
                     </div>
                   </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </section>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
-
       <Footer />
     </div>
   );
