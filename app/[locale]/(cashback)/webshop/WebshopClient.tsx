@@ -147,12 +147,24 @@ const WebshopClient = () => {
         console.error("❌ [DAISYCON] HTTP Error:", connectRes.status);
         console.error("❌ [DAISYCON] Error body:", errorText);
         
+        // Try to parse error response
+        let errorMessage = "";
+        try {
+          const errorData = JSON.parse(errorText);
+          errorMessage = errorData.message || "";
+        } catch (e) {
+          // Not JSON, use raw text
+          errorMessage = errorText;
+        }
+        
         if (connectRes.status === 401) {
           alert("Authentication failed. Please log in again.");
+        } else if (connectRes.status === 404 && errorMessage.toLowerCase().includes("update your details")) {
+          alert("Daisycon Configuration Required\n\nYour Daisycon API credentials (client_id and secret_key) need to be configured in your account.\n\nPlease:\n1. Go to your Profile Settings\n2. Navigate to Integrations\n3. Add your Daisycon API credentials\n\nIf you don't have Daisycon credentials yet, please contact support.");
         } else if (connectRes.status === 500) {
           alert(`Backend Error (500): The Daisycon connection endpoint is experiencing issues.\n\nPlease try again later or contact support.`);
         } else {
-          alert(`Failed to connect to Daisycon (${connectRes.status}). Please check console for details.`);
+          alert(`Failed to connect to Daisycon (${connectRes.status})\n\n${errorMessage || 'Please check console for details.'}`);
         }
         return;
       }
