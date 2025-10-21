@@ -576,63 +576,92 @@ export default function WalletPage() {
 
   useEffect(() => {
     const fetchTransactions = async () => {
+      console.log("🔍 [WALLET TRANSACTIONS] Starting to fetch transactions...");
       setWalletHistoryLoader(true);
-      // Simulate API call delay
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-      const dummyTransactions: Transaction[] = [
-        {
-          id: "txn_001",
-          payment_type: "wallet",
-          mollie_data: { description: t("transactionTypes.wallet") },
-          mollie_payment_id: "tr_abc123",
-          paid_at: new Date().toISOString(),
-          amount: 100,
-          status: t("status.paid"),
-        },
-        {
-          id: "txn_002",
-          payment_type: "expense",
-          mollie_data: { description: t("transactionTypes.expense") },
-          mollie_payment_id: "tr_def456",
-          paid_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-          amount: 45.5,
-          status: t("status.pending"),
-        },
-        {
-          id: "txn_003",
-          payment_type: "wallet",
-          mollie_data: { description: t("transactionTypes.wallet") },
-          mollie_payment_id: "tr_ghi789",
-          paid_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-          amount: 20.0,
-          status: t("status.active"),
-        },
-        {
-          id: "txn_004",
-          payment_type: "expense",
-          mollie_data: { description: t("transactionTypes.expense") },
-          mollie_payment_id: "tr_jkl012",
-          paid_at: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-          amount: 15.0,
-          status: t("status.paid"),
-        },
-        {
-          id: "txn_005",
-          payment_type: "wallet",
-          mollie_data: { description: t("transactionTypes.wallet") },
-          mollie_payment_id: "tr_mno345",
-          paid_at: new Date(
-            Date.now() - 10 * 24 * 60 * 60 * 1000
-          ).toISOString(),
-          amount: 50.0,
-          status: t("status.paid"),
-        },
-      ];
-      setWalletHistory(dummyTransactions);
-      setWalletHistoryLoader(false);
+      try {
+        const token = tokenUtils.getToken();
+        console.log("🔑 [WALLET TRANSACTIONS] Token available:", !!token);
+        console.log("🔑 [WALLET TRANSACTIONS] Token (first 20 chars):", token?.substring(0, 20) + "...");
+        
+        if (!token) {
+          console.error("❌ [WALLET TRANSACTIONS] No token available for transactions");
+          setWalletHistory([]);
+          setWalletHistoryLoader(false);
+          return;
+        }
+
+        const url = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/wallet/transactions?per_page=10`;
+        console.log("🌐 [WALLET TRANSACTIONS] API URL:", url);
+        console.log("🌐 [WALLET TRANSACTIONS] API Base URL:", process.env.NEXT_PUBLIC_API_BASE_URL);
+
+        const response = await fetch(url, {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+        });
+
+        console.log("📡 [WALLET TRANSACTIONS] Response status:", response.status);
+        console.log("📡 [WALLET TRANSACTIONS] Response ok:", response.ok);
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error("❌ [WALLET TRANSACTIONS] Failed to fetch transactions:", response.status);
+          console.error("❌ [WALLET TRANSACTIONS] Error response:", errorText);
+          setWalletHistory([]);
+          setWalletHistoryLoader(false);
+          return;
+        }
+
+        const result = await response.json();
+        console.log("📦 [WALLET TRANSACTIONS] Full API Response:", JSON.stringify(result, null, 2));
+        console.log("✅ [WALLET TRANSACTIONS] Success:", result.success);
+        console.log("📊 [WALLET TRANSACTIONS] Data exists:", !!result.data);
+        console.log("📊 [WALLET TRANSACTIONS] Data is array:", Array.isArray(result.data));
+        console.log("📊 [WALLET TRANSACTIONS] Data length:", result.data?.length || 0);
+        
+        if (result.success && result.data) {
+          // Transform backend response to match frontend Transaction interface
+          const transactions: Transaction[] = result.data.map((txn: any) => ({
+            id: txn.id,
+            payment_type: txn.payment_type?.toLowerCase().includes("expense") ? "expense" : "wallet",
+            mollie_data: { 
+              description: txn.mollie_data?.description || txn.plan_name || "Transaction" 
+            },
+            mollie_payment_id: txn.mollie_payment_id || txn.id,
+            paid_at: txn.paid_at || txn.created_at || new Date().toISOString(),
+            amount: parseFloat(txn.amount) || 0,
+            status: txn.status || "pending",
+          }));
+          
+          console.log("✅ [WALLET TRANSACTIONS] Transformed transactions:", transactions.length);
+          console.log("📋 [WALLET TRANSACTIONS] Transactions details:", JSON.stringify(transactions, null, 2));
+          
+          setWalletHistory(transactions);
+        } else {
+          console.warn("⚠️ [WALLET TRANSACTIONS] No transactions found in response");
+          console.warn("⚠️ [WALLET TRANSACTIONS] Result:", result);
+          setWalletHistory([]);
+        }
+      } catch (error) {
+        console.error("❌ [WALLET TRANSACTIONS] Error fetching transactions:", error);
+        console.error("❌ [WALLET TRANSACTIONS] Error details:", error instanceof Error ? error.message : String(error));
+        setWalletHistory([]);
+      } finally {
+        console.log("🏁 [WALLET TRANSACTIONS] Finished fetching. Loader off.");
+        setWalletHistoryLoader(false);
+      }
     };
     fetchTransactions();
   }, []);
+
+  // Debug logging for transaction rendering
+  console.log("🎨 [WALLET RENDER] walletHistory state:", walletHistory);
+  console.log("🎨 [WALLET RENDER] walletHistory length:", walletHistory?.length);
+  console.log("🎨 [WALLET RENDER] walletHistoryLoader:", walletHistoryLoader);
+  console.log("🎨 [WALLET RENDER] isPageLoading:", isPageLoading);
 
   if (isPageLoading) {
     return <PageLoader />;
