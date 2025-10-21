@@ -67,6 +67,12 @@ export const API_CONFIG = {
     },
     NOTIFICATIONS: {
       LIST: "/notifications",
+      UNREAD: "/notifications/unread",
+      COUNT: "/notifications/count",
+      MARK_READ: (id: string) => `/notifications/${id}/mark-read`,
+      MARK_ALL_READ: "/notifications/mark-all-read",
+      DELETE: (id: string) => `/notifications/${id}`,
+      DELETE_ALL_READ: "/notifications/delete-all-read",
     },
     CHAT: {
       CHATS: "/chats",
