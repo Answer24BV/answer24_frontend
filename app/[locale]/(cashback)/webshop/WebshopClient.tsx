@@ -30,7 +30,7 @@ const WebshopClient = () => {
   const [connectionChecked, setConnectionChecked] = useState(false);
   const router = useRouter();
 
-  const categoryEndpoint = `${API_CONFIG.BASE_URL}/daisycon/category`;
+  const categoryEndpoint = `${API_CONFIG.BASE_URL}/daisycon/categories`;
   const connectEndpoint = `${API_CONFIG.BASE_URL}/daisycon/connect`;
   const mediaEndpoint = `${API_CONFIG.BASE_URL}/daisycon/media`;
 
@@ -68,33 +68,116 @@ const WebshopClient = () => {
     }
   };
 
+  // Check user profile completeness for diagnostics
+  const checkUserProfile = async () => {
+    try {
+      console.log("👤 [PROFILE CHECK] Fetching user profile data...");
+      
+      const profileRes = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/profile`, {
+        headers: { 
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json"
+        },
+      });
+
+      if (profileRes.ok) {
+        const profileData = await profileRes.json();
+        const user = profileData.data || profileData;
+        
+        console.log("👤 [PROFILE CHECK] Full user data:", JSON.stringify(user, null, 2));
+        console.log("📋 [PROFILE CHECK] Profile completeness check:");
+        console.log("  ✓ Name:", user.name || "❌ MISSING");
+        console.log("  ✓ Email:", user.email || "❌ MISSING");
+        console.log("  ✓ Phone:", user.phone || "❌ MISSING");
+        console.log("  ✓ Role:", user.role || "❌ MISSING");
+        console.log("  ✓ Company ID:", user.company_id || "❌ MISSING");
+        console.log("  ✓ Client ID (Daisycon):", user.client_id || "❌ MISSING");
+        console.log("  ✓ Secret Key (Daisycon):", user.secret_key ? "✅ SET" : "❌ MISSING");
+        console.log("  ✓ Publisher ID:", user.publisher_id || user.daisycon_publisher_id || "❌ MISSING");
+        
+        // Check if user has company details
+        if (user.company_id || user.company) {
+          console.log("🏢 [COMPANY CHECK] Company data:", user.company ? JSON.stringify(user.company) : "ID: " + user.company_id);
+        } else {
+          console.warn("⚠️ [COMPANY CHECK] No company data found - this might be required for Daisycon!");
+        }
+        
+        // List all potentially missing fields
+        const missingFields = [];
+        if (!user.name) missingFields.push("name");
+        if (!user.email) missingFields.push("email");
+        if (!user.phone) missingFields.push("phone");
+        if (!user.client_id) missingFields.push("client_id (Daisycon)");
+        if (!user.secret_key) missingFields.push("secret_key (Daisycon)");
+        if (!user.company_id && !user.company) missingFields.push("company");
+        
+        if (missingFields.length > 0) {
+          console.warn("⚠️ [PROFILE CHECK] Missing fields that might be required for Daisycon:");
+          console.warn("   " + missingFields.join(", "));
+          console.warn("⚠️ [PROFILE CHECK] The 'Update your details' error likely refers to one of these ☝️");
+        } else {
+          console.log("✅ [PROFILE CHECK] All common fields are populated");
+        }
+        
+        return user;
+      } else {
+        console.error("❌ [PROFILE CHECK] Failed to fetch profile:", profileRes.status);
+        return null;
+      }
+    } catch (err) {
+      console.error("❌ [PROFILE CHECK] Error fetching profile:", err);
+      return null;
+    }
+  };
+
   // Check Daisycon connection status (NO auto-redirect)
   const checkDaisyconConnection = async () => {
     if (!token) {
+      console.log("⚠️ [DAISYCON] No token found, redirecting to login");
       router.push("/login");
       return;
     }
 
     try {
       setLoading(true);
+      console.log("🔍 [DAISYCON] Checking connection status...");
+      console.log("🔍 [DAISYCON] Endpoint:", categoryEndpoint);
 
       // Try to fetch categories to check if connected
       const res = await fetch(categoryEndpoint, {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { 
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+        },
       });
+      
+      console.log("📡 [DAISYCON] Category response status:", res.status);
+      
       const data = await res.json();
+      console.log("📦 [DAISYCON] Category response:", data);
 
       if (data.success === true && data.data) {
         // User is connected, load categories and media
+        console.log("✅ [DAISYCON] User is connected!");
         setIsConnected(true);
         setCategories(["All", ...data.data.map((c: any) => c.name)]);
         await fetchMedia();
       } else {
         // User is not connected, just show the prompt - NO auto-redirect
+        console.log("⚠️ [DAISYCON] User is not connected");
+        console.log("⚠️ [DAISYCON] Response message:", data.message || "No message");
+        
+        // If we get "Update your details" error, check user profile
+        if (data.message?.toLowerCase().includes("update your details")) {
+          console.error("🚨 [DAISYCON] 'Update your details' error detected!");
+          console.error("🚨 [DAISYCON] Running profile diagnostics...");
+          await checkUserProfile();
+        }
+        
         setIsConnected(false);
       }
     } catch (err) {
-      console.error("Connection check error:", err);
+      console.error("❌ [DAISYCON] Connection check error:", err);
       // If category fetch fails, assume not connected - NO auto-redirect
       setIsConnected(false);
     } finally {
@@ -106,24 +189,102 @@ const WebshopClient = () => {
   // Initiate OAuth connection (only called when user clicks button)
   const initiateOAuthConnection = async () => {
     try {
+      console.log("🔗 [DAISYCON] Initiating OAuth connection...");
+      console.log("🔗 [DAISYCON] Endpoint:", connectEndpoint);
+      console.log("🔗 [DAISYCON] Token available:", !!token);
+
+      // Authentication is required for Daisycon connection
+      if (!token) {
+        console.error("❌ [DAISYCON] No authentication token available");
+        alert("Please log in to connect your Daisycon account.");
+        return;
+      }
+      
+      // Check user profile before attempting connection
+      console.log("🔍 [DAISYCON] Checking user profile before connection...");
+      await checkUserProfile();
+
+      const headers: HeadersInit = {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      };
+
       const connectRes = await fetch(connectEndpoint, {
-        headers: { Authorization: `Bearer ${token}` },
+        headers,
       });
+
+      console.log("📡 [DAISYCON] Response status:", connectRes.status);
+      console.log("📡 [DAISYCON] Response ok:", connectRes.ok);
+
+      if (!connectRes.ok) {
+        const errorText = await connectRes.text();
+        console.error("❌ [DAISYCON] HTTP Error:", connectRes.status);
+        console.error("❌ [DAISYCON] Error body:", errorText);
+        
+        // Try to parse error response
+        let errorMessage = "";
+        try {
+          const errorData = JSON.parse(errorText);
+          errorMessage = errorData.message || "";
+        } catch (e) {
+          // Not JSON, use raw text
+          errorMessage = errorText;
+        }
+        
+        if (connectRes.status === 401) {
+          alert("Authentication failed. Please log in again.");
+        } else if (connectRes.status === 404 && errorMessage.toLowerCase().includes("update your details")) {
+          alert("Daisycon Configuration Required\n\nYour Daisycon API credentials (client_id and secret_key) need to be configured in your account.\n\nPlease:\n1. Go to your Profile Settings\n2. Navigate to Integrations\n3. Add your Daisycon API credentials\n\nIf you don't have Daisycon credentials yet, please contact support.");
+        } else if (connectRes.status === 500) {
+          alert(`Backend Error (500): The Daisycon connection endpoint is experiencing issues.\n\nPlease try again later or contact support.`);
+        } else {
+          alert(`Failed to connect to Daisycon (${connectRes.status})\n\n${errorMessage || 'Please check console for details.'}`);
+        }
+        return;
+      }
+
+      // Check content type before parsing JSON
+      const contentType = connectRes.headers.get("content-type");
+      console.log("📄 [DAISYCON] Content-Type:", contentType);
+      
+      if (!contentType || !contentType.includes("application/json")) {
+        const textResponse = await connectRes.text();
+        console.error("❌ [DAISYCON] Expected JSON but got:", contentType);
+        console.error("❌ [DAISYCON] Response body:", textResponse.substring(0, 200));
+        alert(`Backend Error: Server returned ${contentType || 'HTML'} instead of JSON.\n\nThis is a backend configuration issue.`);
+        return;
+      }
+
       const connectData = await connectRes.json();
+      console.log("📦 [DAISYCON] Response data:", connectData);
 
       if (connectData?.success && connectData?.data?.url) {
+        console.log("✅ [DAISYCON] OAuth URL received:", connectData.data.url);
+        
         // Store current page in localStorage so we can return here after OAuth
         localStorage.setItem("daisycon_return_url", window.location.pathname);
 
         // Redirect to Daisycon OAuth
         window.location.href = connectData.data.url;
       } else {
-        console.error("Failed to get OAuth URL:", connectData);
-        alert("Failed to initiate Daisycon connection. Please try again.");
+        console.error("❌ [DAISYCON] Invalid response format:", connectData);
+        console.error("Expected: { success: true, data: { url: '...' } }");
+        
+        const errorMsg = connectData?.message || "Invalid response format from server";
+        alert(`Failed to initiate Daisycon connection: ${errorMsg}`);
       }
     } catch (err) {
-      console.error("OAuth initiation error:", err);
-      alert("Failed to connect to Daisycon. Please try again.");
+      console.error("❌ [DAISYCON] Exception during OAuth initiation:", err);
+      
+      if (err instanceof SyntaxError && err.message.includes("JSON")) {
+        console.error("❌ [DAISYCON] Backend returned invalid JSON (likely HTML error page)");
+        alert("Backend Error: The server returned HTML instead of JSON.\n\nThis means the Daisycon endpoint crashed. Check Laravel logs for:\n- Missing Daisycon API credentials\n- Database connection issues\n- PHP errors");
+      } else if (err instanceof Error) {
+        alert(`Failed to connect to Daisycon: ${err.message}`);
+      } else {
+        alert("Failed to connect to Daisycon. Please try again.");
+      }
     }
   };
 
