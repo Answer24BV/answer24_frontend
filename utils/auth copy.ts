@@ -5,20 +5,26 @@ export const TOKEN_KEY = "auth_token";
 export const USER_KEY = "user_data";
 
 export const tokenUtils = {
+  // Store token in localStorage
   setToken: (token: string) => {
     if (typeof window !== "undefined") {
       localStorage.setItem(TOKEN_KEY, token);
     }
   },
 
+  // Get token from localStorage or from cookies
   getToken: (token?: string): string | null => {
+    // If token is provided, use it (for server actions)
     if (token) return token;
+
+    // Otherwise try to get from localStorage (client-side)
     if (typeof window !== "undefined") {
       return localStorage.getItem(TOKEN_KEY);
     }
     return null;
   },
 
+  // Remove token from localStorage
   removeToken: () => {
     if (typeof window !== "undefined") {
       localStorage.removeItem(TOKEN_KEY);
@@ -26,13 +32,16 @@ export const tokenUtils = {
     }
   },
 
+  // Store user data
   setUser: (user: any) => {
     if (typeof window !== "undefined") {
       localStorage.setItem(USER_KEY, JSON.stringify(user));
-      window.dispatchEvent(new CustomEvent("userDataUpdated", { detail: user }));
+      // Dispatch a custom event to notify all components
+      window.dispatchEvent(new CustomEvent('userDataUpdated', { detail: user }));
     }
   },
 
+  // Get user data
   getUser: () => {
     if (typeof window !== "undefined") {
       const userData = localStorage.getItem(USER_KEY);
@@ -41,32 +50,45 @@ export const tokenUtils = {
     return null;
   },
 
+  // Check if user is authenticated
   isAuthenticated: (): boolean => {
     return !!tokenUtils.getToken();
   },
 
+  // Validate token with server (optional - for extra security)
   validateToken: async (): Promise<boolean> => {
     const token = tokenUtils.getToken();
     if (!token) return false;
 
     try {
-      const response = await fetch(getApiUrl("/validate"), {
-        method: "GET",
-        headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
-      });
+      const response = await fetch(
+        getApiUrl("/validate"),
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            Accept: "application/json",
+          },
+        }
+      );
 
-      if (response.ok) return true;
-
-      tokenUtils.removeToken();
-      return false;
+      if (response.ok) {
+        return true;
+      } else {
+        // Token is invalid, remove it
+        tokenUtils.removeToken();
+        return false;
+      }
     } catch (error) {
       console.error("Token validation error:", error);
       return false;
     }
   },
 
+  // Logout function
   logout: () => {
     tokenUtils.removeToken();
+    // Redirect to signin page
     if (typeof window !== "undefined") {
       window.location.href = "/nl/signin";
     }
@@ -74,7 +96,10 @@ export const tokenUtils = {
 };
 
 // API request helper
-export const apiRequest = async (endpoint: string, options: RequestInit = {}) => {
+export const apiRequest = async (
+  endpoint: string,
+  options: RequestInit = {}
+) => {
   const token = tokenUtils.getToken();
 
   const defaultHeaders: HeadersInit = {
@@ -107,42 +132,21 @@ export const apiRequest = async (endpoint: string, options: RequestInit = {}) =>
 
 // Auth API functions
 export const authAPI = {
+  // Login
   login: async (email: string, password: string, remember: boolean) => {
-    const response = await apiRequest("/login", {
+    return apiRequest("/login", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password, remember }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        email,
+        password,
+        remember,
+      }),
     });
-
-    // Store token and user locally
-    const token = response.token || response.data?.token;
-    const user = response.user || response.data?.user || {
-      id: response.data?.id,
-      name: response.data?.name,
-      email: response.data?.email,
-      profile_picture: response.data?.profile_picture,
-    };
-
-    if (token) tokenUtils.setToken(token);
-    if (user) tokenUtils.setUser(user);
-
-    // Automatically update backend UUID with frontend-collected id
-    const frontendId = user?.id;
-    if (frontendId) {
-      try {
-        await apiRequest("/update-uuid", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ uuid: frontendId }),
-        });
-      } catch (err) {
-        console.error("Failed to update UUID for user:", err);
-      }
-    }
-
-    return response;
   },
-
+  // Register (normal signup)
   register: async (data: {
     name: string;
     email: string;
@@ -152,7 +156,9 @@ export const authAPI = {
     userType?: string;
     referral_token?: string;
   }) => {
-    const endpoint = data.referral_token ? `/register/${data.referral_token}` : "/register";
+    const endpoint = data.referral_token
+      ? `/register/${data.referral_token}`
+      : "/register";
 
     return apiRequest(endpoint, {
       method: "POST",
@@ -168,6 +174,7 @@ export const authAPI = {
     });
   },
 
+  // Partner register
   registerPartner: async (data: {
     name: string;
     email: string;
@@ -176,15 +183,9 @@ export const authAPI = {
     password_confirmation: string;
     referral_token?: string;
   }) => {
-    return authAPI.register({ ...data, userType: "partner" });
-  },
-
-  // Manual UUID update if needed
-  updateUuidForUser: async (userId: number | string) => {
-    return apiRequest("/update-uuid", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ uuid: userId }),
+    return authAPI.register({
+      ...data,
+      userType: "partner",
     });
   },
 };
