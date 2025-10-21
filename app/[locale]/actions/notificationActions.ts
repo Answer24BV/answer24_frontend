@@ -1,13 +1,14 @@
-"use server";
+"use client";
 
-import { getAuthHeadersAsync } from "@/utils/serverAuth";
+import { API_CONFIG, getApiUrl } from "@/lib/api-config";
+import { tokenUtils } from "@/utils/auth";
 
 // Define a standard Notification type
 export interface Notification {
   id: string;
   message: string;
   read: boolean;
-  createdAt: string; // ISO 8601 date string
+  createdAt: string;
   link?: string;
   sender?: {
     name: string;
@@ -15,82 +16,319 @@ export interface Notification {
   };
 }
 
-const API_BASE_URL = "https://api.lociq.nl/api/v1/notifications"; // Dummy base URL
+export interface NotificationCount {
+  total: number;
+  unread: number;
+}
 
 /**
- * Fetches notifications for the current user.
+ * Fetches notifications for the current user from the backend API (Client-side)
  */
 export const getNotifications = async (
   page: number = 1,
-  pageSize: number = 10
+  pageSize: number = 10,
+  userType?: "admin" | "partner" | "client"
 ): Promise<Notification[]> => {
   try {
-    const response = await fetch(`${API_BASE_URL}?page=${page}&limit=${pageSize}`, {
-      headers: await getAuthHeadersAsync(),
-      cache: 'no-store',
+    const token = tokenUtils.getToken();
+    if (!token) {
+      console.warn("⚠️ [NOTIFICATIONS] No authentication token available");
+      return [];
+    }
+
+    const url = getApiUrl(`${API_CONFIG.ENDPOINTS.NOTIFICATIONS.LIST}?per_page=${pageSize}&page=${page}`);
+    
+    console.log("🔔 [NOTIFICATIONS] Fetching from:", url);
+
+    const response = await fetch(url, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      cache: "no-store",
     });
 
     if (!response.ok) {
-      throw new Error("Failed to fetch notifications.");
+      console.error("❌ [NOTIFICATIONS] Failed to fetch:", response.status);
+      if (response.status === 401) {
+        console.error("❌ [NOTIFICATIONS] Authentication failed - token may be expired");
+      }
+      return [];
+    }
+
+    const result = await response.json();
+    console.log("✅ [NOTIFICATIONS] Response:", result);
+
+    if (result.success && result.data) {
+      // Transform backend response to match frontend Notification interface
+      const notifications: Notification[] = result.data.map((notification: any) => ({
+        id: notification.id,
+        message: notification.data?.message || notification.data?.body || "New notification",
+        read: !!notification.read_at,
+        createdAt: notification.created_at,
+        link: notification.data?.link || notification.data?.url,
+        sender: notification.data?.sender ? {
+          name: notification.data.sender.name || "System",
+          avatar: notification.data.sender.avatar || "/answerLogobgRemover-removebg-preview.png",
+        } : {
+          name: "System",
+          avatar: "/answerLogobgRemover-removebg-preview.png",
+        },
+      }));
+      
+      return notifications;
+    }
+
+    return [];
+  } catch (error) {
+    console.error("❌ [NOTIFICATIONS] Error:", error);
+    return [];
+  }
+};
+
+/**
+ * Marks a specific notification as read
+ */
+export const markAsRead = async (
+  notificationId: string
+): Promise<{ success: boolean }> => {
+  try {
+    const token = tokenUtils.getToken();
+    if (!token) {
+      return { success: false };
+    }
+
+    const url = getApiUrl(API_CONFIG.ENDPOINTS.NOTIFICATIONS.MARK_READ(notificationId));
+    
+    console.log("🔔 [NOTIFICATIONS] Marking as read:", notificationId);
+
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      console.error("❌ [NOTIFICATIONS] Failed to mark as read:", response.status);
+      return { success: false };
+    }
+
+    const result = await response.json();
+    console.log("✅ [NOTIFICATIONS] Marked as read:", result);
+
+    return { success: result.success || true };
+  } catch (error) {
+    console.error("❌ [NOTIFICATIONS] Error marking as read:", error);
+    return { success: false };
+  }
+};
+
+/**
+ * Marks all unread notifications for the user as read
+ */
+export const markAllAsRead = async (): Promise<{ success: boolean }> => {
+  try {
+    const token = tokenUtils.getToken();
+    if (!token) {
+      return { success: false };
+    }
+
+    const url = getApiUrl(API_CONFIG.ENDPOINTS.NOTIFICATIONS.MARK_ALL_READ);
+    
+    console.log("🔔 [NOTIFICATIONS] Marking all as read");
+
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      console.error("❌ [NOTIFICATIONS] Failed to mark all as read:", response.status);
+      return { success: false };
+    }
+
+    const result = await response.json();
+    console.log("✅ [NOTIFICATIONS] Marked all as read:", result);
+
+    return { success: result.success || true };
+  } catch (error) {
+    console.error("❌ [NOTIFICATIONS] Error marking all as read:", error);
+    return { success: false };
+  }
+};
+
+/**
+ * Get notification counts (total and unread)
+ */
+export const getNotificationCount = async (): Promise<NotificationCount> => {
+  try {
+    const token = tokenUtils.getToken();
+    if (!token) {
+      return { total: 0, unread: 0 };
+    }
+
+    const url = getApiUrl(API_CONFIG.ENDPOINTS.NOTIFICATIONS.COUNT);
+    
+    const response = await fetch(url, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      cache: "no-store",
+    });
+
+    if (!response.ok) {
+      return { total: 0, unread: 0 };
     }
 
     const result = await response.json();
 
-    // Assuming the API returns a structure like { success: boolean, data: [...] }
-    if (result.success && Array.isArray(result.data)) {
-      return result.data;
-    } else {
-      // Handle cases where the API call is successful but there's no data
+    if (result.success && result.data) {
+      return {
+        total: result.data.total || 0,
+        unread: result.data.unread || 0,
+      };
+    }
+
+    return { total: 0, unread: 0 };
+  } catch (error) {
+    console.error("❌ [NOTIFICATIONS] Error fetching count:", error);
+    return { total: 0, unread: 0 };
+  }
+};
+
+/**
+ * Get only unread notifications
+ */
+export const getUnreadNotifications = async (
+  page: number = 1,
+  pageSize: number = 10
+): Promise<Notification[]> => {
+  try {
+    const token = tokenUtils.getToken();
+    if (!token) {
       return [];
     }
-  } catch (error) {
-    console.error("Error fetching notifications:", error);
-    // In case of an error, return a default notification to show how it should look
-    return [
-      {
-        id: "default-1",
-        message: "Welcome! This is a default notification.",
-        read: false,
-        createdAt: new Date().toISOString(),
-        link: "#",
-        sender: { name: "Lociq System", avatar: "/images/avatars/Image-4.png" },
+
+    const url = getApiUrl(`${API_CONFIG.ENDPOINTS.NOTIFICATIONS.UNREAD}?per_page=${pageSize}&page=${page}`);
+    
+    const response = await fetch(url, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: "application/json",
+        "Content-Type": "application/json",
       },
-    ];
+      cache: "no-store",
+    });
+
+    if (!response.ok) {
+      return [];
+    }
+
+    const result = await response.json();
+
+    if (result.success && result.data) {
+      const notifications: Notification[] = result.data.map((notification: any) => ({
+        id: notification.id,
+        message: notification.data?.message || notification.data?.body || "New notification",
+        read: !!notification.read_at,
+        createdAt: notification.created_at,
+        link: notification.data?.link || notification.data?.url,
+        sender: notification.data?.sender ? {
+          name: notification.data.sender.name || "System",
+          avatar: notification.data.sender.avatar || "/answerLogobgRemover-removebg-preview.png",
+        } : {
+          name: "System",
+          avatar: "/answerLogobgRemover-removebg-preview.png",
+        },
+      }));
+      
+      return notifications;
+    }
+
+    return [];
+  } catch (error) {
+    console.error("❌ [NOTIFICATIONS] Error fetching unread:", error);
+    return [];
   }
 };
 
 /**
- * Marks a specific notification as read.
+ * Delete a specific notification
  */
-export const markAsRead = async (notificationId: string): Promise<{ success: boolean }> => {
-  // This is a dummy endpoint.
-  const response = await fetch(`${API_BASE_URL}/${notificationId}/mark-as-read`, {
-    method: "PATCH",
-    headers: await getAuthHeadersAsync()
-  });
+export const deleteNotification = async (
+  notificationId: string
+): Promise<{ success: boolean }> => {
+  try {
+    const token = tokenUtils.getToken();
+    if (!token) {
+      return { success: false };
+    }
 
-  if (!response.ok) {
-    throw new Error("Failed to mark notification as read.");
+    const url = getApiUrl(API_CONFIG.ENDPOINTS.NOTIFICATIONS.DELETE(notificationId));
+    
+    const response = await fetch(url, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      return { success: false };
+    }
+
+    const result = await response.json();
+    return { success: result.success || true };
+  } catch (error) {
+    console.error("❌ [NOTIFICATIONS] Error deleting:", error);
+    return { success: false };
   }
-  
-  console.log(`Notification ${notificationId} marked as read.`);
-  return { success: true };
 };
 
 /**
- * Marks all unread notifications for the user as read.
+ * Delete all read notifications
  */
-export const markAllAsRead = async (): Promise<{ success: boolean }> => {
-  // This is a dummy endpoint.
-  const response = await fetch(`${API_BASE_URL}/mark-all-read`, {
-    method: "POST",
-    headers: await getAuthHeadersAsync()
-  });
+export const deleteAllReadNotifications = async (): Promise<{ success: boolean }> => {
+  try {
+    const token = tokenUtils.getToken();
+    if (!token) {
+      return { success: false };
+    }
 
-  if (!response.ok) {
-    throw new Error("Failed to mark all notifications as read.");
+    const url = getApiUrl(API_CONFIG.ENDPOINTS.NOTIFICATIONS.DELETE_ALL_READ);
+    
+    const response = await fetch(url, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      return { success: false };
+    }
+
+    const result = await response.json();
+    return { success: result.success || true };
+  } catch (error) {
+    console.error("❌ [NOTIFICATIONS] Error deleting all read:", error);
+    return { success: false };
   }
-  
-  console.log("All notifications marked as read.");
-  return { success: true };
 };
