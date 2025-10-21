@@ -51,6 +51,7 @@ export const API_CONFIG = {
       BALANCE: "/wallet/balance",
       TRANSACTIONS: "/wallet/transactions",
       DEPOSIT: "/wallet/deposit",
+      ADD_MONEY: "/wallet/add-money",
     },
     BLOG: {
       LIST: "/blog",
@@ -60,12 +61,23 @@ export const API_CONFIG = {
       LIST: "/faqs",
     },
     DAISYCON: {
-      CATEGORY: "/daisycon/category",
-      CONNECT: "/daisycon/connect",
+      CONNECT: "/daisycon/connect", // Public route
+      CALLBACK: "/daisycon/callback",
+      REFRESH: "/daisycon/refresh",
+      CATEGORIES: "/daisycon/categories",
+      CATEGORY_BY_ID: (id: string) => `/daisycon/categories/${id}`,
       MEDIA: "/daisycon/media",
+      MEDIA_BY_ID: (id: string) => `/daisycon/media/${id}`,
+      PRODUCT_FEEDS: "/daisycon/product-feeds",
     },
     NOTIFICATIONS: {
       LIST: "/notifications",
+      UNREAD: "/notifications/unread",
+      COUNT: "/notifications/count",
+      MARK_READ: (id: string) => `/notifications/${id}/mark-read`,
+      MARK_ALL_READ: "/notifications/mark-all-read",
+      DELETE: (id: string) => `/notifications/${id}`,
+      DELETE_ALL_READ: "/notifications/delete-all-read",
     },
     CHAT: {
       CHATS: "/chats",

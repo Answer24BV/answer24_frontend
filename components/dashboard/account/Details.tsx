@@ -1,538 +1,206 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
+import React, { useEffect, useState } from "react";
+import axios from "axios";
 import { Button } from "@/components/ui/button";
-import { tokenUtils } from "@/utils/auth";
-import { toast } from "react-toastify";
+import { Input } from "@/components/ui/input";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
-interface Address {
+interface Company {
+  id?: string;
+  user_id?: string;
+  name?: string;
   street?: string;
   housenumber?: string;
   zipcode?: string;
   city?: string;
   region?: string;
   country?: string;
-}
-
-interface SocialLinks {
-  facebook?: string;
-  instagram?: string;
-  youtube?: string;
-}
-
-interface Company {
-  id?: string;
-  user_id?: string;
-  name?: string;
-  address?: Address;
   contact?: string;
   website_url?: string;
-  social_links?: SocialLinks;
+  facebook_url?: string;
+  instagram_url?: string;
+  youtube_url?: string;
+  local_map?: string;
   serpapi_language?: string;
-  created_at?: string;
-  updated_at?: string;
-  last_updated?: string;
-  company_opening_hours?: any[];
-  company_reviews?: any[];
 }
 
-export function Details() {
-  const [company, setCompany] = useState<Company>({});
+export default function Details() {
+  const [company, setCompany] = useState<Company | null>(null);
+  const [form, setForm] = useState<Company>({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [creating, setCreating] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
+  const [userUuid, setUserUuid] = useState<string>("");
 
-  // Local editable copies
-  const [name, setName] = useState("");
-  const [street, setStreet] = useState("");
-  const [housenumber, setHousenumber] = useState("");
-  const [zipcode, setZipcode] = useState("");
-  const [city, setCity] = useState("");
-  const [region, setRegion] = useState("");
-  const [country, setCountry] = useState("");
-  const [contact, setContact] = useState("");
-  const [websiteUrl, setWebsiteUrl] = useState("");
-  const [facebook, setFacebook] = useState("");
-  const [instagram, setInstagram] = useState("");
-  const [youtube, setYoutube] = useState("");
-  const [serpapiLanguage, setSerpapiLanguage] = useState("");
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://answer24.nl/api/v1";
 
-  const API_BASE =
-    process.env.NEXT_PUBLIC_API_BASE_URL ||
-    "https://answer24.laravel.cloud/api/v1";
-
+  // ✅ Ensure axios uses JSON
   useEffect(() => {
+    axios.defaults.headers.common["Accept"] = "application/json";
+    axios.defaults.headers.common["Content-Type"] = "application/json";
+  }, []);
+
+  // 🔹 Step 1: Get UUID from localStorage or generate a new one
+  useEffect(() => {
+    let storedUuid = localStorage.getItem("userUuid");
+    if (!storedUuid) {
+      storedUuid = crypto.randomUUID(); // modern browser UUID
+      localStorage.setItem("userUuid", storedUuid);
+    }
+    setUserUuid(storedUuid);
+
+    const storedId = localStorage.getItem("userId");
+    if (storedId) {
+      setUserId(storedId);
+      setLoading(false);
+    } else {
+      resolveUuidToId(storedUuid);
+    }
+  }, []);
+
+  // 🔹 Step 2: Resolve UUID → numeric userId
+  const resolveUuidToId = async (uuid: string) => {
+    try {
+      const { data } = await axios.get(`${API_BASE_URL}/auth/resolve/${uuid}`);
+      if (data.success && data.data.id) {
+        setUserId(data.data.id.toString());
+        localStorage.setItem("userId", data.data.id.toString());
+        toast.success("✅ User ID resolved successfully!");
+      } else {
+        toast.info("No user found for this UUID. You may need to register.");
+        setCreating(true);
+      }
+    } catch (err: any) {
+      console.error("❌ UUID resolution failed:", err);
+      toast.info("User not found. You can create a new company.");
+      setCreating(true);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 🔹 Step 3: Fetch company once userId exists
+  useEffect(() => {
+    if (!userId) return;
+
     const fetchCompany = async () => {
-      setLoading(true);
       try {
-        const token = tokenUtils.getToken();
-        if (!token) {
-          toast.error("Not authenticated.");
-          setLoading(false);
-          return;
+        setLoading(true);
+        const { data } = await axios.get(`${API_BASE_URL}/user-companies/user/${userId}`);
+        if (data.success && data.data.length > 0) {
+          setCompany(data.data[0]);
+          setForm(data.data[0]);
+          setCreating(false);
+        } else {
+          setCompany(null);
+          setCreating(true);
         }
-
-        // get current user id from /profile
-        let fetchedUserId: string | null = null;
-        try {
-          const profileRes = await fetch(`${API_BASE}/profile`, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              Accept: "application/json",
-            },
-          });
-          if (profileRes.ok) {
-            const profileJson = await profileRes.json().catch(() => null);
-            fetchedUserId = profileJson?.user?.id || profileJson?.id || null;
-            setUserId(fetchedUserId);
-          } else {
-            console.debug("[Details] /profile returned", profileRes.status);
-          }
-        } catch (err) {
-          console.debug("[Details] profile lookup error", err);
-        }
-
-        if (!fetchedUserId) {
-          toast.error(
-            "Could not determine current user. Company show endpoint requires an identifier."
-          );
-          setLoading(false);
-          return;
-        }
-
-        // Use only show endpoint: GET /user-companies/{company}
-        const showRes = await fetch(`${API_BASE}/user-companies/user/${fetchedUserId}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            Accept: "application/json",
-          },
-        });
-
-
-        if (!showRes.ok) {
-          if (showRes.status === 404) {
-            // No company found for this user (expected for new users)
-            setCompany({});
-            setLoading(false);
-            return;
-          }
-          const text = await showRes.text().catch(() => "");
-          console.error("[Details] show fetch failed:", showRes.status, text);
-          toast.error(
-            `Failed to load company: ${showRes.status} ${showRes.statusText}`
-          );
-          setCompany({});
-          setLoading(false);
-          return;
-        }
-
-        const json = await showRes.json().catch(() => ({}));
-        const data = json?.data || json || {};
-        setCompany(data);
-        // populate local fields
-        setName(data.name || "");
-        setStreet(data.address?.street || "");
-        setHousenumber(data.address?.housenumber || "");
-        setZipcode(data.address?.zipcode || "");
-        setCity(data.address?.city || "");
-        setRegion(data.address?.region || "");
-        setCountry(data.address?.country || "");
-        setContact(data.contact || "");
-        setWebsiteUrl(data.website_url || "");
-        setFacebook(data.social_links?.facebook || "");
-        setInstagram(data.social_links?.instagram || "");
-        setYoutube(data.social_links?.youtube || "");
-        setSerpapiLanguage(data.serpapi_language || "");
       } catch (err) {
-        console.error("[Details] fetchCompany error:", err);
-        toast.error("Unable to reach API. Check API_BASE, network and CORS.");
-        setCompany({});
+        console.error("❌ Error fetching company:", err);
+        setCreating(true);
       } finally {
         setLoading(false);
       }
     };
 
     fetchCompany();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [userId]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
 
+  // 🔹 Step 4: Save company
+  const handleSave = async () => {
     if (!userId) {
-      toast.error(
-        "Cannot save: missing user identifier for company show endpoint."
-      );
+      toast.error("User ID missing. Please log in or register.");
       return;
     }
 
-    const payload: Partial<Company> = {
-      name: name || undefined,
-      address: {
-        street: street || undefined,
-        housenumber: housenumber || undefined,
-        zipcode: zipcode || undefined,
-        city: city || undefined,
-        region: region || undefined,
-        country: country || undefined,
-      },
-      contact: contact || undefined,
-      website_url: websiteUrl || undefined,
-      social_links: {
-        facebook: facebook || undefined,
-        instagram: instagram || undefined,
-        youtube: youtube || undefined,
-      },
-      serpapi_language: serpapiLanguage || undefined,
-    };
-
     setSaving(true);
+
     try {
-      const token = tokenUtils.getToken();
-      const url = `${API_BASE}/user-companies/${userId}`;
-      const res = await fetch(url, {
-        method: "PUT", // use show endpoint for update
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
-        body: JSON.stringify(payload),
-      });
-
-      const text = await res.text().catch(() => "");
-      let parsed: any = null;
-      try {
-        parsed = text ? JSON.parse(text) : null;
-      } catch {}
-
-      if (!res.ok) {
-        if (res.status === 404) {
-          toast.error(
-            "Company not found for this user. This app uses the show endpoint for update. Contact support to create a company."
-          );
-          throw new Error(
-            "Company not found (404) - update via show endpoint not possible."
-          );
-        }
-
-        if (parsed?.errors) {
-          const firstKey = Object.keys(parsed.errors)[0];
-          const firstMsg =
-            Array.isArray(parsed.errors[firstKey]) &&
-            parsed.errors[firstKey].length
-              ? parsed.errors[firstKey][0]
-              : JSON.stringify(parsed.errors[firstKey]);
-          toast.error(firstMsg);
-          throw new Error(firstMsg);
-        }
-
-        const msg =
-          parsed?.message || text || `${res.status} ${res.statusText}`;
-        toast.error(msg);
-        throw new Error(msg);
+      // Delete existing company if exists
+      if (company?.id) {
+        await axios.delete(`${API_BASE_URL}/user-companies/${company.id}`);
+        toast.info("🗑️ Old company deleted.");
       }
 
-      const json = parsed || {};
-      const updated = json?.data || json;
-      setCompany(updated);
-      setName(updated.name || "");
-      setStreet(updated.address?.street || "");
-      setHousenumber(updated.address?.housenumber || "");
-      setZipcode(updated.address?.zipcode || "");
-      setCity(updated.address?.city || "");
-      setRegion(updated.address?.region || "");
-      setCountry(updated.address?.country || "");
-      setContact(updated.contact || "");
-      setWebsiteUrl(updated.website_url || "");
-      setFacebook(updated.social_links?.facebook || "");
-      setInstagram(updated.social_links?.instagram || "");
-      setYoutube(updated.social_links?.youtube || "");
-      setSerpapiLanguage(updated.serpapi_language || "");
+      const { data } = await axios.post(`${API_BASE_URL}/user-companies`, {
+        ...form,
+        user_id: userId,
+      });
 
-      toast.success("Company details updated");
-    } catch (error) {
-      console.error("Save company error:", error);
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : "Failed to save company details"
-      );
+      setCompany(data.data);
+      setCreating(false);
+      toast.success("✅ Company saved successfully!");
+    } catch (err: any) {
+      console.error("❌ Save failed:", err);
+      toast.error(err.response?.data?.message || "Failed to save company.");
     } finally {
       setSaving(false);
     }
   };
 
+  // ---------------------------- UI ----------------------------
+  if (loading) return <div className="p-6 text-gray-500">Loading company details...</div>;
+
+  if (!company && !creating)
+    return (
+      <div className="p-6">
+        <ToastContainer position="top-right" autoClose={3000} />
+        <h2 className="text-lg font-semibold mb-2">No company found</h2>
+        <p className="text-gray-500 mb-4">You don’t have a company added yet.</p>
+        <Button onClick={() => setCreating(true)}>Create Company</Button>
+      </div>
+    );
+
   return (
-    <div className="space-y-4">
-      <div>
-        <h2 className="text-2xl font-semibold text-gray-900">
-          Company Details
-        </h2>
-        <p className="text-gray-500 mt-1">
-          Edit company information. 
-        </p>
+    <div className="p-6 space-y-4">
+      <ToastContainer position="top-right" autoClose={3000} />
+      <h2 className="text-xl font-semibold">{creating ? "Create Company" : "Manage Company"}</h2>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {[
+          "name",
+          "street",
+          "housenumber",
+          "zipcode",
+          "city",
+          "region",
+          "country",
+          "contact",
+          "website_url",
+          "facebook_url",
+          "instagram_url",
+          "youtube_url",
+          "local_map",
+          "serpapi_language",
+        ].map((field) => (
+          <div key={field}>
+            <label className="block text-sm font-medium mb-1 capitalize">{field.replace("_", " ")}</label>
+            <Input
+              name={field}
+              value={form[field as keyof Company] || ""}
+              onChange={handleChange}
+              placeholder={`Enter ${field.replace("_", " ")}`}
+            />
+          </div>
+        ))}
       </div>
 
-      <div className="border-t border-gray-100 pt-6">
-        {loading ? (
-          <div className="flex items-center justify-center h-40">
-            <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-blue-500"></div>
-          </div>
-        ) : (
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <Label
-                  htmlFor="company-name"
-                  className="text-sm font-medium text-gray-700 mb-1.5 block"
-                >
-                  Company Name
-                </Label>
-                <Input
-                  id="company-name"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Acme Ltd."
-                />
-              </div>
+      <div className="flex gap-3 mt-4">
+        <Button onClick={handleSave} disabled={saving}>
+          {saving ? "Saving..." : "Save Company"}
+        </Button>
 
-              <div>
-                <Label
-                  htmlFor="contact-person"
-                  className="text-sm font-medium text-gray-700 mb-1.5 block"
-                >
-                  Contact Person / Phone / Email
-                </Label>
-                <Input
-                  id="contact-person"
-                  value={contact}
-                  onChange={(e) => setContact(e.target.value)}
-                  placeholder="Jane Doe, +1 555 555"
-                />
-              </div>
-
-              <div>
-                <Label
-                  htmlFor="company-street"
-                  className="text-sm font-medium text-gray-700 mb-1.5 block"
-                >
-                  Street
-                </Label>
-                <Input
-                  id="company-street"
-                  value={street}
-                  onChange={(e) => setStreet(e.target.value)}
-                  placeholder="123 Main St"
-                />
-              </div>
-
-              <div>
-                <Label
-                  htmlFor="company-housenumber"
-                  className="text-sm font-medium text-gray-700 mb-1.5 block"
-                >
-                  House number
-                </Label>
-                <Input
-                  id="company-housenumber"
-                  value={housenumber}
-                  onChange={(e) => setHousenumber(e.target.value)}
-                  placeholder="1A"
-                />
-              </div>
-
-              <div>
-                <Label
-                  htmlFor="company-zipcode"
-                  className="text-sm font-medium text-gray-700 mb-1.5 block"
-                >
-                  Zipcode
-                </Label>
-                <Input
-                  id="company-zipcode"
-                  value={zipcode}
-                  onChange={(e) => setZipcode(e.target.value)}
-                  placeholder="10001"
-                />
-              </div>
-
-              <div>
-                <Label
-                  htmlFor="company-city"
-                  className="text-sm font-medium text-gray-700 mb-1.5 block"
-                >
-                  City
-                </Label>
-                <Input
-                  id="company-city"
-                  value={city}
-                  onChange={(e) => setCity(e.target.value)}
-                  placeholder="New York"
-                />
-              </div>
-
-              <div>
-                <Label
-                  htmlFor="company-region"
-                  className="text-sm font-medium text-gray-700 mb-1.5 block"
-                >
-                  Region / State
-                </Label>
-                <Input
-                  id="company-region"
-                  value={region}
-                  onChange={(e) => setRegion(e.target.value)}
-                  placeholder="NY"
-                />
-              </div>
-
-              <div>
-                <Label
-                  htmlFor="company-country"
-                  className="text-sm font-medium text-gray-700 mb-1.5 block"
-                >
-                  Country
-                </Label>
-                <Input
-                  id="company-country"
-                  value={country}
-                  onChange={(e) => setCountry(e.target.value)}
-                  placeholder="USA"
-                />
-              </div>
-
-              <div>
-                <Label
-                  htmlFor="website-url"
-                  className="text-sm font-medium text-gray-700 mb-1.5 block"
-                >
-                  Website URL
-                </Label>
-                <Input
-                  id="website-url"
-                  value={websiteUrl}
-                  onChange={(e) => setWebsiteUrl(e.target.value)}
-                  placeholder="https://example.com"
-                />
-              </div>
-
-              <div>
-                <Label
-                  htmlFor="serpapi-language"
-                  className="text-sm font-medium text-gray-700 mb-1.5 block"
-                >
-                  SERP API Language
-                </Label>
-                <Input
-                  id="serpapi-language"
-                  value={serpapiLanguage}
-                  onChange={(e) => setSerpapiLanguage(e.target.value)}
-                  placeholder="en"
-                />
-              </div>
-
-              <div>
-                <Label
-                  htmlFor="facebook"
-                  className="text-sm font-medium text-gray-700 mb-1.5 block"
-                >
-                  Facebook
-                </Label>
-                <Input
-                  id="facebook"
-                  value={facebook}
-                  onChange={(e) => setFacebook(e.target.value)}
-                  placeholder="https://facebook.com/yourpage"
-                />
-              </div>
-
-              <div>
-                <Label
-                  htmlFor="instagram"
-                  className="text-sm font-medium text-gray-700 mb-1.5 block"
-                >
-                  Instagram
-                </Label>
-                <Input
-                  id="instagram"
-                  value={instagram}
-                  onChange={(e) => setInstagram(e.target.value)}
-                  placeholder="https://instagram.com/yourpage"
-                />
-              </div>
-
-              <div>
-                <Label
-                  htmlFor="youtube"
-                  className="text-sm font-medium text-gray-700 mb-1.5 block"
-                >
-                  YouTube
-                </Label>
-                <Input
-                  id="youtube"
-                  value={youtube}
-                  onChange={(e) => setYoutube(e.target.value)}
-                  placeholder="https://youtube.com/channel/..."
-                />
-              </div>
-            </div>
-
-            <div className="pt-4 flex justify-between border-t border-gray-100">
-              <div className="text-sm text-gray-500">
-                {company?.company_opening_hours?.length ? (
-                  <div>
-                    <div>
-                      Opening hours configured:{" "}
-                      {company.company_opening_hours.length}
-                    </div>
-                    <div className="text-xs mt-1">
-                      Last updated:{" "}
-                      {company.last_updated || company.updated_at || "—"}
-                    </div>
-                  </div>
-                ) : (
-                  <div>No opening hours configured</div>
-                )}
-              </div>
-
-              <div className="flex gap-3">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => {
-                    // reset to current saved values
-                    setName(company.name || "");
-                    setStreet(company.address?.street || "");
-                    setHousenumber(company.address?.housenumber || "");
-                    setZipcode(company.address?.zipcode || "");
-                    setCity(company.address?.city || "");
-                    setRegion(company.address?.region || "");
-                    setCountry(company.address?.country || "");
-                    setContact(company.contact || "");
-                    setWebsiteUrl(company.website_url || "");
-                    setFacebook(company.social_links?.facebook || "");
-                    setInstagram(company.social_links?.instagram || "");
-                    setYoutube(company.social_links?.youtube || "");
-                    setSerpapiLanguage(company.serpapi_language || "");
-                    toast.info("Form reset to saved values");
-                  }}
-                >
-                  Reset
-                </Button>
-
-                <Button
-                  type="submit"
-                  className="px-6 py-2.5 text-sm font-medium"
-                  disabled={saving}
-                >
-                  {saving ? "Saving..." : "Save Company Details"}
-                </Button>
-              </div>
-            </div>
-          </form>
+        {!creating && (
+          <Button variant="outline" onClick={() => setCreating(true)}>
+            Create New
+          </Button>
         )}
       </div>
     </div>

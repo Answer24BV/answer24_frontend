@@ -16,185 +16,276 @@ export interface Notification {
   };
 }
 
+export interface NotificationCount {
+  total: number;
+  unread: number;
+}
+
 /**
- * Fetches notifications for the current user.
- * MOCK IMPLEMENTATION - Replace with real API when available
+ * Fetches notifications for the current user from the backend API
  */
 export const getNotifications = async (
   page: number = 1,
   pageSize: number = 10,
   userType?: "admin" | "partner" | "client"
 ): Promise<Notification[]> => {
-  // Mock API call - simulate network delay
-  await new Promise((resolve) =>
-    setTimeout(resolve, 300 + Math.random() * 500)
-  );
+  try {
+    const headers = await getAuthHeadersAsync();
+    const url = getApiUrl(`${API_CONFIG.ENDPOINTS.NOTIFICATIONS.LIST}?per_page=${pageSize}&page=${page}`);
+    
+    console.log("🔔 [NOTIFICATIONS] Fetching from:", url);
 
-  // Return mock data based on user type with pagination
-  return getMockNotifications(userType, page, pageSize);
+    const response = await fetch(url, {
+      method: "GET",
+      headers,
+      cache: "no-store",
+    });
+
+    if (!response.ok) {
+      console.error("❌ [NOTIFICATIONS] Failed to fetch:", response.status);
+      throw new Error(`Failed to fetch notifications: ${response.status}`);
+    }
+
+    const result = await response.json();
+    console.log("✅ [NOTIFICATIONS] Response:", result);
+
+    if (result.success && result.data) {
+      // Handle paginated response - notifications are in result.data.data
+      const notificationsData = Array.isArray(result.data) ? result.data : result.data.data;
+      
+      if (!notificationsData || !Array.isArray(notificationsData)) {
+        console.warn("⚠️ [NOTIFICATIONS] No notifications array found in response");
+        return [];
+      }
+
+      // Transform backend response to match frontend Notification interface
+      const notifications: Notification[] = notificationsData.map((notification: any) => ({
+        id: notification.id,
+        message: notification.data?.message || notification.data?.body || "New notification",
+        read: !!notification.read_at,
+        createdAt: notification.created_at,
+        link: notification.data?.link || notification.data?.url,
+        sender: notification.data?.sender ? {
+          name: notification.data.sender.name || "System",
+          avatar: notification.data.sender.avatar || "/answerLogobgRemover-removebg-preview.png",
+        } : {
+          name: "System",
+          avatar: "/answerLogobgRemover-removebg-preview.png",
+        },
+      }));
+      
+      return notifications;
+    }
+
+    return [];
+  } catch (error) {
+    console.error("❌ [NOTIFICATIONS] Error:", error);
+    // Return empty array on error to prevent UI breaking
+    return [];
+  }
 };
 
 /**
- * Marks a specific notification as read.
- * MOCK IMPLEMENTATION - Replace with real API when available
+ * Marks a specific notification as read
  */
 export const markAsRead = async (
   notificationId: string
 ): Promise<{ success: boolean }> => {
-  // Mock API call - simulate network delay
-  await new Promise((resolve) => setTimeout(resolve, 200));
+  try {
+    const headers = await getAuthHeadersAsync();
+    const url = getApiUrl(API_CONFIG.ENDPOINTS.NOTIFICATIONS.MARK_READ(notificationId));
+    
+    console.log("🔔 [NOTIFICATIONS] Marking as read:", notificationId);
 
-  return { success: true };
+    const response = await fetch(url, {
+      method: "POST",
+      headers,
+    });
+
+    if (!response.ok) {
+      console.error("❌ [NOTIFICATIONS] Failed to mark as read:", response.status);
+      throw new Error(`Failed to mark notification as read: ${response.status}`);
+    }
+
+    const result = await response.json();
+    console.log("✅ [NOTIFICATIONS] Marked as read:", result);
+
+    return { success: result.success || true };
+  } catch (error) {
+    console.error("❌ [NOTIFICATIONS] Error marking as read:", error);
+    return { success: false };
+  }
 };
 
 /**
- * Marks all unread notifications for the user as read.
- * MOCK IMPLEMENTATION - Replace with real API when available
+ * Marks all unread notifications for the user as read
  */
 export const markAllAsRead = async (): Promise<{ success: boolean }> => {
-  // Mock API call - simulate network delay
-  await new Promise((resolve) => setTimeout(resolve, 400));
+  try {
+    const headers = await getAuthHeadersAsync();
+    const url = getApiUrl(API_CONFIG.ENDPOINTS.NOTIFICATIONS.MARK_ALL_READ);
+    
+    console.log("🔔 [NOTIFICATIONS] Marking all as read");
 
-  return { success: true };
+    const response = await fetch(url, {
+      method: "POST",
+      headers,
+    });
+
+    if (!response.ok) {
+      console.error("❌ [NOTIFICATIONS] Failed to mark all as read:", response.status);
+      throw new Error(`Failed to mark all notifications as read: ${response.status}`);
+    }
+
+    const result = await response.json();
+    console.log("✅ [NOTIFICATIONS] Marked all as read:", result);
+
+    return { success: result.success || true };
+  } catch (error) {
+    console.error("❌ [NOTIFICATIONS] Error marking all as read:", error);
+    return { success: false };
+  }
 };
 
 /**
- * Get mock notifications based on user type with pagination support
+ * Get notification counts (total and unread)
  */
-const getMockNotifications = (
-  userType?: "admin" | "partner" | "client",
+export const getNotificationCount = async (): Promise<NotificationCount> => {
+  try {
+    const headers = await getAuthHeadersAsync();
+    const url = getApiUrl(API_CONFIG.ENDPOINTS.NOTIFICATIONS.COUNT);
+    
+    const response = await fetch(url, {
+      method: "GET",
+      headers,
+      cache: "no-store",
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch notification count: ${response.status}`);
+    }
+
+    const result = await response.json();
+
+    if (result.success && result.data) {
+      return {
+        total: result.data.total || 0,
+        unread: result.data.unread || 0,
+      };
+    }
+
+    return { total: 0, unread: 0 };
+  } catch (error) {
+    console.error("❌ [NOTIFICATIONS] Error fetching count:", error);
+    return { total: 0, unread: 0 };
+  }
+};
+
+/**
+ * Get only unread notifications
+ */
+export const getUnreadNotifications = async (
   page: number = 1,
   pageSize: number = 10
-): Notification[] => {
-  const baseNotifications = {
-    admin: [
-      {
-        id: "admin-1",
-        message: "New user registration requires approval.",
-        read: false,
-        createdAt: new Date().toISOString(),
-        link: "/dashboard/admin/users",
-        sender: {
-          name: "System Admin",
-          avatar: "/answerLogobgRemover-removebg-preview.png",
-        },
-      },
-      {
-        id: "admin-2",
-        message: "Server maintenance scheduled for tonight.",
-        read: true,
-        createdAt: new Date(Date.now() - 86400000).toISOString(),
-        link: "/dashboard/admin/maintenance",
-        sender: {
-          name: "System Monitor",
-          avatar: "/answerLogobgRemover-removebg-preview.png",
-        },
-      },
-      {
-        id: "admin-3",
-        message: "Monthly report is ready for review.",
-        read: false,
-        createdAt: new Date(Date.now() - 3600000).toISOString(),
-        link: "/dashboard/admin/reports",
-        sender: {
-          name: "Analytics System",
-          avatar: "/answerLogobgRemover-removebg-preview.png",
-        },
-      },
-    ],
-    partner: [
-      {
-        id: "partner-1",
-        message: "New client inquiry received for your services.",
-        read: false,
-        createdAt: new Date().toISOString(),
-        link: "/partner/clients",
-        sender: {
-          name: "Client Portal",
-          avatar: "/answerLogobgRemover-removebg-preview.png",
-        },
-      },
-      {
-        id: "partner-2",
-        message: "Service package has been approved and is now active.",
-        read: true,
-        createdAt: new Date(Date.now() - 86400000).toISOString(),
-        link: "/partner/services",
-        sender: {
-          name: "Service Manager",
-          avatar: "/answerLogobgRemover-removebg-preview.png",
-        },
-      },
-      {
-        id: "partner-3",
-        message: "Commission payment has been processed.",
-        read: false,
-        createdAt: new Date(Date.now() - 3600000).toISOString(),
-        link: "/partner/finance",
-        sender: {
-          name: "Finance Team",
-          avatar: "/answerLogobgRemover-removebg-preview.png",
-        },
-      },
-    ],
-    client: [
-      {
-        id: "client-1",
-        message:
-          "Welcome to Answer24! Your account has been successfully created.",
-        read: false,
-        createdAt: new Date().toISOString(),
-        link: "/dashboard",
-        sender: {
-          name: "Answer24 System",
-          avatar: "/answerLogobgRemover-removebg-preview.png",
-        },
-      },
-      {
-        id: "client-2",
-        message: "New message received from your service provider.",
-        read: true,
-        createdAt: new Date(Date.now() - 86400000).toISOString(),
-        link: "/dashboard/chat",
-        sender: {
-          name: "Support Team",
-          avatar: "/answerLogobgRemover-removebg-preview.png",
-        },
-      },
-      {
-        id: "client-3",
-        message: "Your service request has been updated.",
-        read: false,
-        createdAt: new Date(Date.now() - 3600000).toISOString(),
-        link: "/dashboard/services",
-        sender: {
-          name: "Service Manager",
-          avatar: "/answerLogobgRemover-removebg-preview.png",
-        },
-      },
-    ],
-  };
-
-  const notifications = baseNotifications[userType || "client"];
-
-  // Add more mock notifications for pagination testing
-  const extendedNotifications = [...notifications];
-
-  // Generate additional mock notifications if needed
-  for (let i = notifications.length; i < pageSize * 3; i++) {
-    const baseNotification = notifications[i % notifications.length];
-    extendedNotifications.push({
-      ...baseNotification,
-      id: `${baseNotification.id}-${i}`,
-      message: `${baseNotification.message} (${i + 1})`,
-      createdAt: new Date(Date.now() - i * 3600000).toISOString(), // Spread over hours
-      read: Math.random() > 0.3, // 70% chance of being read
+): Promise<Notification[]> => {
+  try {
+    const headers = await getAuthHeadersAsync();
+    const url = getApiUrl(`${API_CONFIG.ENDPOINTS.NOTIFICATIONS.UNREAD}?per_page=${pageSize}&page=${page}`);
+    
+    const response = await fetch(url, {
+      method: "GET",
+      headers,
+      cache: "no-store",
     });
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch unread notifications: ${response.status}`);
+    }
+
+    const result = await response.json();
+
+    if (result.success && result.data) {
+      // Handle paginated response - notifications are in result.data.data
+      const notificationsData = Array.isArray(result.data) ? result.data : result.data.data;
+      
+      if (!notificationsData || !Array.isArray(notificationsData)) {
+        return [];
+      }
+
+      const notifications: Notification[] = notificationsData.map((notification: any) => ({
+        id: notification.id,
+        message: notification.data?.message || notification.data?.body || "New notification",
+        read: !!notification.read_at,
+        createdAt: notification.created_at,
+        link: notification.data?.link || notification.data?.url,
+        sender: notification.data?.sender ? {
+          name: notification.data.sender.name || "System",
+          avatar: notification.data.sender.avatar || "/answerLogobgRemover-removebg-preview.png",
+        } : {
+          name: "System",
+          avatar: "/answerLogobgRemover-removebg-preview.png",
+        },
+      }));
+      
+      return notifications;
+    }
+
+    return [];
+  } catch (error) {
+    console.error("❌ [NOTIFICATIONS] Error fetching unread:", error);
+    return [];
   }
-
-  // Implement pagination
-  const startIndex = (page - 1) * pageSize;
-  const endIndex = startIndex + pageSize;
-
-  return extendedNotifications.slice(startIndex, endIndex);
 };
+
+/**
+ * Delete a specific notification
+ */
+export const deleteNotification = async (
+  notificationId: string
+): Promise<{ success: boolean }> => {
+  try {
+    const headers = await getAuthHeadersAsync();
+    const url = getApiUrl(API_CONFIG.ENDPOINTS.NOTIFICATIONS.DELETE(notificationId));
+    
+    const response = await fetch(url, {
+      method: "DELETE",
+      headers,
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to delete notification: ${response.status}`);
+    }
+
+    const result = await response.json();
+    return { success: result.success || true };
+  } catch (error) {
+    console.error("❌ [NOTIFICATIONS] Error deleting:", error);
+    return { success: false };
+  }
+};
+
+/**
+ * Delete all read notifications
+ */
+export const deleteAllReadNotifications = async (): Promise<{ success: boolean }> => {
+  try {
+    const headers = await getAuthHeadersAsync();
+    const url = getApiUrl(API_CONFIG.ENDPOINTS.NOTIFICATIONS.DELETE_ALL_READ);
+    
+    const response = await fetch(url, {
+      method: "DELETE",
+      headers,
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to delete all read notifications: ${response.status}`);
+    }
+
+    const result = await response.json();
+    return { success: result.success || true };
+  } catch (error) {
+    console.error("❌ [NOTIFICATIONS] Error deleting all read:", error);
+    return { success: false };
+  }
+};
+
