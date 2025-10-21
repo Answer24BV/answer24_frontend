@@ -143,6 +143,9 @@ export async function createChat(participantIds: string[], title?: string): Prom
 
 export async function createHelpdeskChat(token?: string, userId?: string): Promise<Chat> {
   try {
+    console.log("createHelpdeskChat: Starting with token:", token ? token.substring(0, 20) + '...' : 'NOT PROVIDED')
+    console.log("createHelpdeskChat: Starting with userId:", userId)
+    
     // Get token from parameter or from tokenUtils
     const authToken = token || tokenUtils.getToken()
     if (!authToken) {
@@ -154,11 +157,15 @@ export async function createHelpdeskChat(token?: string, userId?: string): Promi
     let userIdValue = userId
     if (!userIdValue) {
       const userData = tokenUtils.getUser()
+      console.log("createHelpdeskChat: Retrieved user data:", userData)
       userIdValue = userData?.id
     }
     
-    if (!userIdValue) {
-      console.error("createHelpdeskChat: No user ID found")
+    console.log("createHelpdeskChat: Final userId:", userIdValue)
+    console.log("createHelpdeskChat: User ID is valid:", !!userIdValue && userIdValue !== 'undefined' && userIdValue !== 'null')
+    
+    if (!userIdValue || userIdValue === 'undefined' || userIdValue === 'null') {
+      console.error("createHelpdeskChat: No user ID found or invalid user ID")
       throw new Error("User ID not found")
     }
 
@@ -166,11 +173,12 @@ export async function createHelpdeskChat(token?: string, userId?: string): Promi
     console.log("createHelpdeskChat: Using token:", authToken.substring(0, 20) + "...")
 
     const requestBody = {
-      participants: [userIdValue],
+      participants: [String(userIdValue)], // Ensure user ID is a string
       type: "helpdesk",
       title: "Helpdesk Support"
     }
     console.log("createHelpdeskChat: Request body:", requestBody)
+    console.log("createHelpdeskChat: User ID type:", typeof userIdValue)
 
     // Add timeout to prevent hanging requests
     const controller = new AbortController()
@@ -218,6 +226,7 @@ export async function createHelpdeskChat(token?: string, userId?: string): Promi
 
     const data = await response.json()
     console.log("createHelpdeskChat: Response data:", data)
+    console.log("createHelpdeskChat: Chat ID from response:", data.chat?.id)
     return data.chat
   } catch (error) {
     console.error("Error creating helpdesk chat:", error)
@@ -251,14 +260,27 @@ export async function generateAIResponse(chatId: string, message: string, token?
     // Get token from parameter or from tokenUtils
     const authToken = token || tokenUtils.getToken()
     if (!authToken) {
-      throw new Error("No authentication token found")
+      console.log("generateAIResponse: No authentication token, providing fallback response")
+      return {
+        id: `fallback-${Date.now()}`,
+        senderId: "ai",
+        content: "Hello! I'm Answer24's AI assistant. I'm currently in offline mode, but I can still help you with basic questions. For full AI capabilities, please log in to your account.",
+        type: "text" as const,
+        timestamp: new Date(),
+        isAiGenerated: true
+      }
     }
 
     // Add timeout to prevent hanging requests
     const controller = new AbortController()
     const timeoutId = setTimeout(() => controller.abort(), 15000) // 15 second timeout for AI
 
-    const response = await fetch(getApiUrl(`/chats/${chatId}/ai`), {
+    const apiUrl = getApiUrl(`/chats/${chatId}/ai`)
+    console.log("generateAIResponse: Making request to:", apiUrl)
+    console.log("generateAIResponse: Using token:", authToken.substring(0, 20) + '...')
+    console.log("generateAIResponse: Message:", message)
+
+    const response = await fetch(apiUrl, {
       method: "POST",
       headers: {
         ...getApiHeaders(authToken),
@@ -271,6 +293,8 @@ export async function generateAIResponse(chatId: string, message: string, token?
     })
 
     clearTimeout(timeoutId)
+    console.log("generateAIResponse: Response status:", response.status)
+    console.log("generateAIResponse: Response ok:", response.ok)
 
     if (!response.ok) {
       // If it's a server error, provide a fallback response
@@ -292,6 +316,8 @@ export async function generateAIResponse(chatId: string, message: string, token?
     return data.message
   } catch (error) {
     console.error("Error generating AI response:", error)
+    console.log("Error type:", error instanceof Error ? error.name : typeof error)
+    console.log("Error message:", error instanceof Error ? error.message : String(error))
     
     // If it's a network error or timeout, provide a fallback response
     if (error instanceof Error && (error.name === 'AbortError' || error.message.includes('fetch'))) {

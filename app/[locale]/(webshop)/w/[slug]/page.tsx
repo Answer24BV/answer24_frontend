@@ -21,7 +21,7 @@ export async function generateStaticParams() {
 }
 
 interface ClientHomepageProps {
-  params: any;
+  params: Promise<{ slug: string; locale: string }>;
 }
 
 async function getClientData(slug: string): Promise<ClientHomepageData | null> {
@@ -68,7 +68,8 @@ async function getClientData(slug: string): Promise<ClientHomepageData | null> {
 export async function generateMetadata({
   params,
 }: ClientHomepageProps): Promise<Metadata> {
-  const clientData = await getClientData(params.slug);
+  const { slug } = await params;
+  const clientData = await getClientData(slug);
 
   if (!clientData) {
     return {
@@ -84,7 +85,8 @@ export async function generateMetadata({
 }
 
 export default async function ClientHomepage({ params }: ClientHomepageProps) {
-  const clientData = await getClientData(params.slug);
+  const { slug } = await params;
+  const clientData = await getClientData(slug);
 
   if (!clientData) {
     notFound();

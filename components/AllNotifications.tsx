@@ -4,7 +4,7 @@ import {
   getNotifications,
   markAsRead,
   Notification,
-} from "@/app/actions/notificationActions";
+} from "@/app/[locale]/actions/notificationActions";
 import Avatar from "@/components/common/Avatar";
 import { tokenUtils } from "@/utils/auth";
 import { Card, CardContent } from "@/components/ui/card";
