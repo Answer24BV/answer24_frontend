@@ -71,30 +71,42 @@ const WebshopClient = () => {
   // Check Daisycon connection status (NO auto-redirect)
   const checkDaisyconConnection = async () => {
     if (!token) {
+      console.log("⚠️ [DAISYCON] No token found, redirecting to login");
       router.push("/login");
       return;
     }
 
     try {
       setLoading(true);
+      console.log("🔍 [DAISYCON] Checking connection status...");
+      console.log("🔍 [DAISYCON] Endpoint:", categoryEndpoint);
 
       // Try to fetch categories to check if connected
       const res = await fetch(categoryEndpoint, {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { 
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+        },
       });
+      
+      console.log("📡 [DAISYCON] Category response status:", res.status);
+      
       const data = await res.json();
+      console.log("📦 [DAISYCON] Category response:", data);
 
       if (data.success === true && data.data) {
         // User is connected, load categories and media
+        console.log("✅ [DAISYCON] User is connected!");
         setIsConnected(true);
         setCategories(["All", ...data.data.map((c: any) => c.name)]);
         await fetchMedia();
       } else {
         // User is not connected, just show the prompt - NO auto-redirect
+        console.log("⚠️ [DAISYCON] User is not connected");
         setIsConnected(false);
       }
     } catch (err) {
-      console.error("Connection check error:", err);
+      console.error("❌ [DAISYCON] Connection check error:", err);
       // If category fetch fails, assume not connected - NO auto-redirect
       setIsConnected(false);
     } finally {
@@ -106,24 +118,53 @@ const WebshopClient = () => {
   // Initiate OAuth connection (only called when user clicks button)
   const initiateOAuthConnection = async () => {
     try {
+      console.log("🔗 [DAISYCON] Initiating OAuth connection...");
+      console.log("🔗 [DAISYCON] Endpoint:", connectEndpoint);
+      console.log("🔗 [DAISYCON] Token available:", !!token);
+
       const connectRes = await fetch(connectEndpoint, {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { 
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
       });
+
+      console.log("📡 [DAISYCON] Response status:", connectRes.status);
+      console.log("📡 [DAISYCON] Response ok:", connectRes.ok);
+
+      if (!connectRes.ok) {
+        const errorText = await connectRes.text();
+        console.error("❌ [DAISYCON] HTTP Error:", connectRes.status, errorText);
+        alert(`Failed to connect to Daisycon (${connectRes.status}). Please check console for details.`);
+        return;
+      }
+
       const connectData = await connectRes.json();
+      console.log("📦 [DAISYCON] Response data:", connectData);
 
       if (connectData?.success && connectData?.data?.url) {
+        console.log("✅ [DAISYCON] OAuth URL received:", connectData.data.url);
+        
         // Store current page in localStorage so we can return here after OAuth
         localStorage.setItem("daisycon_return_url", window.location.pathname);
 
         // Redirect to Daisycon OAuth
         window.location.href = connectData.data.url;
       } else {
-        console.error("Failed to get OAuth URL:", connectData);
-        alert("Failed to initiate Daisycon connection. Please try again.");
+        console.error("❌ [DAISYCON] Invalid response format:", connectData);
+        console.error("Expected: { success: true, data: { url: '...' } }");
+        
+        const errorMsg = connectData?.message || "Invalid response format from server";
+        alert(`Failed to initiate Daisycon connection: ${errorMsg}`);
       }
     } catch (err) {
-      console.error("OAuth initiation error:", err);
-      alert("Failed to connect to Daisycon. Please try again.");
+      console.error("❌ [DAISYCON] Exception during OAuth initiation:", err);
+      if (err instanceof Error) {
+        alert(`Failed to connect to Daisycon: ${err.message}`);
+      } else {
+        alert("Failed to connect to Daisycon. Please try again.");
+      }
     }
   };
 
