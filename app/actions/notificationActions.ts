@@ -50,8 +50,16 @@ export const getNotifications = async (
     console.log("✅ [NOTIFICATIONS] Response:", result);
 
     if (result.success && result.data) {
+      // Handle paginated response - notifications are in result.data.data
+      const notificationsData = Array.isArray(result.data) ? result.data : result.data.data;
+      
+      if (!notificationsData || !Array.isArray(notificationsData)) {
+        console.warn("⚠️ [NOTIFICATIONS] No notifications array found in response");
+        return [];
+      }
+
       // Transform backend response to match frontend Notification interface
-      const notifications: Notification[] = result.data.map((notification: any) => ({
+      const notifications: Notification[] = notificationsData.map((notification: any) => ({
         id: notification.id,
         message: notification.data?.message || notification.data?.body || "New notification",
         read: !!notification.read_at,
@@ -197,7 +205,14 @@ export const getUnreadNotifications = async (
     const result = await response.json();
 
     if (result.success && result.data) {
-      const notifications: Notification[] = result.data.map((notification: any) => ({
+      // Handle paginated response - notifications are in result.data.data
+      const notificationsData = Array.isArray(result.data) ? result.data : result.data.data;
+      
+      if (!notificationsData || !Array.isArray(notificationsData)) {
+        return [];
+      }
+
+      const notifications: Notification[] = notificationsData.map((notification: any) => ({
         id: notification.id,
         message: notification.data?.message || notification.data?.body || "New notification",
         read: !!notification.read_at,
