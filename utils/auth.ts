@@ -41,9 +41,7 @@ export const tokenUtils = {
     return null;
   },
 
-  isAuthenticated: (): boolean => {
-    return !!tokenUtils.getToken();
-  },
+  isAuthenticated: (): boolean => !!tokenUtils.getToken(),
 
   validateToken: async (): Promise<boolean> => {
     const token = tokenUtils.getToken();
@@ -81,8 +79,11 @@ export const apiRequest = async (endpoint: string, options: RequestInit = {}) =>
     const fullUrl = getApiUrl(endpoint);
     const response = await fetch(fullUrl, config);
     const data = await response.json();
+
+    // Always check if response.ok
     if (!response.ok) throw new Error(data.message || "API request failed");
-    return data;
+
+    return data; // return raw backend JSON
   } catch (error) {
     console.error("API Request Error:", error);
     throw error;
@@ -91,8 +92,8 @@ export const apiRequest = async (endpoint: string, options: RequestInit = {}) =>
 
 // Transform backend user data for frontend
 const transformUserData = (user: any) => ({
-  id: user.uuid,        // frontend uses UUID as id
-  mainId: user.id,      // backend numeric ID
+  id: user.uuid,      // frontend uses UUID as id
+  mainId: user.id,    // backend numeric ID
   uuid: user.uuid,
   name: user.name,
   email: user.email,
@@ -109,6 +110,17 @@ export const authAPI = {
       body: JSON.stringify({ email, password, remember }),
     });
 
+    // Handle 2FA response separately
+    if (response.status === "2FA_REQUIRED") {
+      return {
+        status: "2FA_REQUIRED",
+        message: response.message,
+        email: response.email,
+        uuid: response.uuid,
+      };
+    }
+
+    // Normal login
     if (response && response.data) {
       const transformedUser = transformUserData(response.data);
       tokenUtils.setUser(transformedUser);
@@ -117,6 +129,7 @@ export const authAPI = {
       }
       return transformedUser;
     }
+
     throw new Error("Invalid login response");
   },
 
@@ -151,6 +164,7 @@ export const authAPI = {
       }
       return transformedUser;
     }
+
     throw new Error("Invalid register response");
   },
 
@@ -163,3 +177,4 @@ export const authAPI = {
     referral_token?: string;
   }) => authAPI.register({ ...data, userType: "partner" }),
 };
+
