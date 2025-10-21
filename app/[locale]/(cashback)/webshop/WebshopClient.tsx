@@ -122,15 +122,18 @@ const WebshopClient = () => {
       console.log("🔗 [DAISYCON] Endpoint:", connectEndpoint);
       console.log("🔗 [DAISYCON] Token available:", !!token);
 
-      // Build headers - connect endpoint is public but we send token if available
+      // Authentication is required for Daisycon connection
+      if (!token) {
+        console.error("❌ [DAISYCON] No authentication token available");
+        alert("Please log in to connect your Daisycon account.");
+        return;
+      }
+
       const headers: HeadersInit = {
         Accept: "application/json",
         "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
       };
-      
-      if (token) {
-        headers.Authorization = `Bearer ${token}`;
-      }
 
       const connectRes = await fetch(connectEndpoint, {
         headers,
@@ -144,8 +147,10 @@ const WebshopClient = () => {
         console.error("❌ [DAISYCON] HTTP Error:", connectRes.status);
         console.error("❌ [DAISYCON] Error body:", errorText);
         
-        if (connectRes.status === 500) {
-          alert(`Backend Error (500): The Daisycon connection endpoint is experiencing issues.\n\nThis is a backend problem. Please check the Laravel logs for details.`);
+        if (connectRes.status === 401) {
+          alert("Authentication failed. Please log in again.");
+        } else if (connectRes.status === 500) {
+          alert(`Backend Error (500): The Daisycon connection endpoint is experiencing issues.\n\nPlease try again later or contact support.`);
         } else {
           alert(`Failed to connect to Daisycon (${connectRes.status}). Please check console for details.`);
         }
