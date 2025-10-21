@@ -30,7 +30,7 @@ const WebshopClient = () => {
   const [connectionChecked, setConnectionChecked] = useState(false);
   const router = useRouter();
 
-  const categoryEndpoint = `${API_CONFIG.BASE_URL}/daisycon/category`;
+  const categoryEndpoint = `${API_CONFIG.BASE_URL}/daisycon/categories`;
   const connectEndpoint = `${API_CONFIG.BASE_URL}/daisycon/connect`;
   const mediaEndpoint = `${API_CONFIG.BASE_URL}/daisycon/media`;
 
@@ -122,12 +122,18 @@ const WebshopClient = () => {
       console.log("🔗 [DAISYCON] Endpoint:", connectEndpoint);
       console.log("🔗 [DAISYCON] Token available:", !!token);
 
+      // Build headers - connect endpoint is public but we send token if available
+      const headers: HeadersInit = {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      };
+      
+      if (token) {
+        headers.Authorization = `Bearer ${token}`;
+      }
+
       const connectRes = await fetch(connectEndpoint, {
-        headers: { 
-          Authorization: `Bearer ${token}`,
-          Accept: "application/json",
-          "Content-Type": "application/json",
-        },
+        headers,
       });
 
       console.log("📡 [DAISYCON] Response status:", connectRes.status);
