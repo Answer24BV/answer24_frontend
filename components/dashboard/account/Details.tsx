@@ -209,7 +209,7 @@ export default function Details() {
           {company.contact && (
             <div>
               <p className="text-xs uppercase text-neutral-500 tracking-wider">
-                Contact
+                Company Contact
               </p>
               <p className="text-base font-medium">{company.contact}</p>
             </div>
