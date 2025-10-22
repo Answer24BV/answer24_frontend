@@ -4,8 +4,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { Copy } from "lucide-react";
 
 interface Company {
   id?: string;
@@ -22,8 +21,6 @@ interface Company {
   facebook_url?: string;
   instagram_url?: string;
   youtube_url?: string;
-  local_map?: string;
-  serpapi_language?: string;
 }
 
 export default function Details() {
@@ -31,41 +28,32 @@ export default function Details() {
   const [form, setForm] = useState<Company>({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [creating, setCreating] = useState(false);
+  const [editing, setEditing] = useState(false);
   const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [copied, setCopied] = useState<string | null>(null);
 
   const API_BASE_URL =
     process.env.NEXT_PUBLIC_API_URL || "https://answer24_backend.test/api/v1";
 
-  // ✅ Ensure axios uses JSON
   useEffect(() => {
     axios.defaults.headers.common["Accept"] = "application/json";
     axios.defaults.headers.common["Content-Type"] = "application/json";
   }, []);
 
-  // 🔹 Step 1: Extract email from localStorage user_data
   useEffect(() => {
     try {
       const storedUserData = localStorage.getItem("user_data");
       if (storedUserData) {
         const parsed = JSON.parse(storedUserData);
-        if (parsed.email) {
-          setUserEmail(parsed.email);
-        } else {
-          toast.error("❌ No email found in user data. Please log in again.");
-        }
-      } else {
-        toast.error("❌ No user data found. Please log in again.");
+        if (parsed.email) setUserEmail(parsed.email);
       }
     } catch (error) {
-      console.error("Error parsing user data:", error);
-      toast.error("❌ Failed to parse user data.");
+      console.error("Error reading user data:", error);
     } finally {
       setLoading(false);
     }
   }, []);
 
-  // 🔹 Step 2: Fetch company using email
   useEffect(() => {
     if (!userEmail) return;
 
@@ -77,16 +65,20 @@ export default function Details() {
         );
 
         if (data.success && data.data.length > 0) {
-          setCompany(data.data[0]);
-          setForm(data.data[0]);
-          setCreating(false);
+          const fetched = data.data[0];
+          setCompany(fetched);
+          setForm(fetched);
+          localStorage.setItem("company_data", JSON.stringify(fetched));
         } else {
           setCompany(null);
-          setCreating(true);
         }
-      } catch (err) {
-        console.error("❌ Error fetching company:", err);
-        setCreating(true);
+      } catch {
+        const localData = localStorage.getItem("company_data");
+        if (localData) {
+          const parsed = JSON.parse(localData);
+          setCompany(parsed);
+          setForm(parsed);
+        }
       } finally {
         setLoading(false);
       }
@@ -95,108 +87,196 @@ export default function Details() {
     fetchCompany();
   }, [userEmail]);
 
-  // 🔹 Step 3: Handle input changes
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    const updated = { ...form, [e.target.name]: e.target.value };
+    setForm(updated);
+    localStorage.setItem("company_data", JSON.stringify(updated));
   };
 
-  // 🔹 Step 4: Save or update company
   const handleSave = async () => {
-    if (!userEmail) {
-      toast.error("User email missing. Please log in or register.");
-      return;
-    }
-
+    if (!userEmail) return;
     setSaving(true);
 
     try {
-      // Delete existing company if exists
-      if (company?.id) {
-        await axios.delete(`${API_BASE_URL}/user-companies/${company.id}`);
-        toast.info("🗑️ Old company deleted.");
-      }
-
-      // Create new company using email
       const { data } = await axios.post(`${API_BASE_URL}/user-companies`, {
         ...form,
         email: userEmail,
       });
 
       setCompany(data.data);
-      setCreating(false);
-      toast.success("✅ Company saved successfully!");
-    } catch (err: any) {
-      console.error("❌ Save failed:", err);
-      toast.error(err.response?.data?.message || "Failed to save company.");
+      localStorage.setItem("company_data", JSON.stringify(data.data));
+      setEditing(false);
+    } catch {
+      localStorage.setItem("company_data", JSON.stringify(form));
+      setEditing(false);
     } finally {
       setSaving(false);
     }
   };
 
-  // ---------------------------- UI ----------------------------
-  if (loading)
-    return <div className="p-6 text-gray-500">Loading company details...</div>;
+  const handleCopy = (text: string) => {
+    navigator.clipboard.writeText(text);
+    setCopied(text);
+    setTimeout(() => setCopied(null), 2000);
+  };
 
-  if (!company && !creating)
+  if (loading)
     return (
-      <div className="p-6">
-        <ToastContainer position="top-right" autoClose={3000} />
-        <h2 className="text-lg font-semibold mb-2">No company found</h2>
-        <p className="text-gray-500 mb-4">
-          You don’t have a company added yet.
-        </p>
-        <Button onClick={() => setCreating(true)}>Create Company</Button>
+      <div className="p-6 text-gray-500 text-center animate-pulse">
+        Loading company details...
       </div>
     );
 
-  return (
-    <div className="p-6 space-y-4">
-      <ToastContainer position="top-right" autoClose={3000} />
-      <h2 className="text-xl font-semibold">
-        {creating ? "Create Company" : "Manage Company"}
-      </h2>
+  // FORM MODE
+  if (!company || editing)
+    return (
+      <div className="p-6 max-w-3xl mx-auto bg-white dark:bg-neutral-900 rounded-2xl shadow-md border border-neutral-200 dark:border-neutral-700">
+        <h2 className="text-2xl font-semibold mb-6 text-neutral-900 dark:text-neutral-100">
+          {company ? "Edit Company" : "Create Company"}
+        </h2>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {[
-          "name",
-          "street",
-          "housenumber",
-          "zipcode",
-          "city",
-          "region",
-          "country",
-          "contact",
-          "website_url",
-          "facebook_url",
-          "instagram_url",
-          "youtube_url",
-          "local_map",
-          "serpapi_language",
-        ].map((field) => (
-          <div key={field}>
-            <label className="block text-sm font-medium mb-1 capitalize">
-              {field.replace("_", " ")}
-            </label>
-            <Input
-              name={field}
-              value={form[field as keyof Company] || ""}
-              onChange={handleChange}
-              placeholder={`Enter ${field.replace("_", " ")}`}
-            />
-          </div>
-        ))}
-      </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+          {[
+            "name",
+            "street",
+            "housenumber",
+            "zipcode",
+            "city",
+            "region",
+            "country",
+            "contact",
+            "website_url",
+            "facebook_url",
+            "instagram_url",
+            "youtube_url",
+          ].map((field) => (
+            <div key={field} className="space-y-1.5">
+              <label className="text-sm font-medium text-neutral-700 dark:text-neutral-300 capitalize">
+                {field.replace("_", " ")}
+              </label>
+              <Input
+                name={field}
+                value={form[field as keyof Company] || ""}
+                onChange={handleChange}
+                placeholder={`Enter ${field.replace("_", " ")}`}
+                className="border-neutral-300 dark:border-neutral-700 focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+          ))}
+        </div>
 
-      <div className="flex gap-3 mt-4">
-        <Button onClick={handleSave} disabled={saving}>
-          {saving ? "Saving..." : "Save Company"}
-        </Button>
-
-        {!creating && (
-          <Button variant="outline" onClick={() => setCreating(true)}>
-            Create New
+        <div className="flex justify-end gap-4 mt-8">
+          <Button
+            onClick={handleSave}
+            disabled={saving}
+            className="px-6 bg-blue-600 hover:bg-blue-700 text-white"
+          >
+            {saving ? "Saving..." : "Save"}
           </Button>
-        )}
+          {company && (
+            <Button
+              variant="outline"
+              onClick={() => setEditing(false)}
+              className="px-6"
+            >
+              Cancel
+            </Button>
+          )}
+        </div>
+      </div>
+    );
+
+  // CARD MODE
+  return (
+    <div className="">
+      {/* <h2 className="text-2xl font-semibold mb-6 text-neutral-900 dark:text-neutral-100 text-center sm:text-left">
+        Your Company
+      </h2> */}
+
+      <div className="rounded-2xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 p-6 sm:p-8 shadow-md hover:shadow-lg transition-all duration-300">
+        <div className="mb-6">
+          <h3 className="text-2xl font-semibold text-neutral-800 dark:text-neutral-100">
+            {company.name || "Untitled Company"}
+          </h3>
+          <p className="text-neutral-500 mt-1 text-sm sm:text-base">
+            {company.city && company.country
+              ? `${company.city}, ${company.country}`
+              : company.city || company.country || ""}
+          </p>
+        </div>
+
+        <div className="space-y-5">
+          {company.contact && (
+            <div>
+              <p className="text-xs uppercase text-neutral-500 tracking-wider">
+                Contact
+              </p>
+              <p className="text-base font-medium">{company.contact}</p>
+            </div>
+          )}
+
+          {/* Link Fields with Copy Buttons */}
+          {[
+            { label: "Website", value: company.website_url },
+            { label: "Facebook", value: company.facebook_url },
+            { label: "Instagram", value: company.instagram_url },
+            { label: "YouTube", value: company.youtube_url },
+          ]
+            .filter((link) => link.value)
+            .map(({ label, value }) => (
+              <div
+                key={label}
+                className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2"
+              >
+                <div className="w-full">
+                  <p className="text-xs uppercase text-neutral-500 tracking-wider">
+                    {label}
+                  </p>
+                  <a
+                    href={value!}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-600 hover:underline break-all"
+                  >
+                    {value}
+                  </a>
+                </div>
+                <button
+                  onClick={() => handleCopy(value!)}
+                  className="p-2 rounded-md hover:bg-neutral-100 dark:hover:bg-neutral-800 transition self-start sm:self-center"
+                  title="Copy to clipboard"
+                >
+                  <Copy
+                    className={`h-4 w-4 ${
+                      copied === value ? "text-green-500" : "text-neutral-500"
+                    }`}
+                  />
+                </button>
+              </div>
+            ))}
+
+          {company.street && (
+            <div>
+              <p className="text-xs uppercase text-neutral-500 tracking-wider">
+                Address
+              </p>
+              <p className="text-base font-medium text-neutral-800 dark:text-neutral-200">
+                {[company.street, company.housenumber, company.zipcode]
+                  .filter(Boolean)
+                  .join(" ")}
+              </p>
+            </div>
+          )}
+        </div>
+
+        <div className="mt-8 flex justify-center sm:justify-end">
+          <Button
+            onClick={() => setEditing(true)}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-2"
+          >
+            Edit Company
+          </Button>
+        </div>
       </div>
     </div>
   );
