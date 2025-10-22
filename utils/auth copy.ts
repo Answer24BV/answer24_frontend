@@ -5,20 +5,26 @@ export const TOKEN_KEY = "auth_token";
 export const USER_KEY = "user_data";
 
 export const tokenUtils = {
+  // Store token in localStorage
   setToken: (token: string) => {
     if (typeof window !== "undefined") {
       localStorage.setItem(TOKEN_KEY, token);
     }
   },
 
+  // Get token from localStorage or from cookies
   getToken: (token?: string): string | null => {
+    // If token is provided, use it (for server actions)
     if (token) return token;
+
+    // Otherwise try to get from localStorage (client-side)
     if (typeof window !== "undefined") {
       return localStorage.getItem(TOKEN_KEY);
     }
     return null;
   },
 
+  // Remove token from localStorage
   removeToken: () => {
     if (typeof window !== "undefined") {
       localStorage.removeItem(TOKEN_KEY);
@@ -26,13 +32,16 @@ export const tokenUtils = {
     }
   },
 
+  // Store user data
   setUser: (user: any) => {
     if (typeof window !== "undefined") {
       localStorage.setItem(USER_KEY, JSON.stringify(user));
+      // Dispatch a custom event to notify all components
       window.dispatchEvent(new CustomEvent('userDataUpdated', { detail: user }));
     }
   },
 
+  // Get user data
   getUser: () => {
     if (typeof window !== "undefined") {
       const userData = localStorage.getItem(USER_KEY);
@@ -41,28 +50,45 @@ export const tokenUtils = {
     return null;
   },
 
-  isAuthenticated: (): boolean => !!tokenUtils.getToken(),
+  // Check if user is authenticated
+  isAuthenticated: (): boolean => {
+    return !!tokenUtils.getToken();
+  },
 
+  // Validate token with server (optional - for extra security)
   validateToken: async (): Promise<boolean> => {
     const token = tokenUtils.getToken();
     if (!token) return false;
 
     try {
-      const response = await fetch(getApiUrl("/validate"), {
-        method: "GET",
-        headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
-      });
-      if (response.ok) return true;
-      tokenUtils.removeToken();
-      return false;
+      const response = await fetch(
+        getApiUrl("/validate"),
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            Accept: "application/json",
+          },
+        }
+      );
+
+      if (response.ok) {
+        return true;
+      } else {
+        // Token is invalid, remove it
+        tokenUtils.removeToken();
+        return false;
+      }
     } catch (error) {
       console.error("Token validation error:", error);
       return false;
     }
   },
 
+  // Logout function
   logout: () => {
     tokenUtils.removeToken();
+    // Redirect to signin page
     if (typeof window !== "undefined") {
       window.location.href = "/nl/signin";
     }
@@ -70,69 +96,57 @@ export const tokenUtils = {
 };
 
 // API request helper
-export const apiRequest = async (endpoint: string, options: RequestInit = {}) => {
+export const apiRequest = async (
+  endpoint: string,
+  options: RequestInit = {}
+) => {
   const token = tokenUtils.getToken();
-  const defaultHeaders: HeadersInit = { ...getApiHeaders(token || undefined) };
-  const config: RequestInit = { ...options, headers: { ...defaultHeaders, ...options.headers } };
+
+  const defaultHeaders: HeadersInit = {
+    ...getApiHeaders(token || undefined),
+  };
+
+  const config: RequestInit = {
+    ...options,
+    headers: {
+      ...defaultHeaders,
+      ...options.headers,
+    },
+  };
 
   try {
     const fullUrl = getApiUrl(endpoint);
     const response = await fetch(fullUrl, config);
     const data = await response.json();
 
-    // Always check if response.ok
-    if (!response.ok) throw new Error(data.message || "API request failed");
+    if (!response.ok) {
+      throw new Error(data.message || "API request failed");
+    }
 
-    return data; // return raw backend JSON
+    return data;
   } catch (error) {
     console.error("API Request Error:", error);
     throw error;
   }
 };
 
-// Transform backend user data for frontend
-const transformUserData = (user: any) => ({
-  id: user.uuid,      // frontend uses UUID as id
-  mainId: user.id,    // backend numeric ID
-  uuid: user.uuid,
-  name: user.name,
-  email: user.email,
-  phone: user.phone ?? null,
-  userType: user.userType ?? "client",
-  token: user.token ?? null,
-});
-
+// Auth API functions
 export const authAPI = {
+  // Login
   login: async (email: string, password: string, remember: boolean) => {
-    const response: any = await apiRequest("/login", {
+    return apiRequest("/login", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password, remember }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        email,
+        password,
+        remember,
+      }),
     });
-
-    // Handle 2FA response separately
-    if (response.status === "2FA_REQUIRED") {
-      return {
-        status: "2FA_REQUIRED",
-        message: response.message,
-        email: response.email,
-        uuid: response.uuid,
-      };
-    }
-
-    // Normal login
-    if (response && response.data) {
-      const transformedUser = transformUserData(response.data);
-      tokenUtils.setUser(transformedUser);
-      if (response.token || response.data.token) {
-        tokenUtils.setToken(response.token || response.data.token);
-      }
-      return transformedUser;
-    }
-
-    throw new Error("Invalid login response");
   },
-
+  // Register (normal signup)
   register: async (data: {
     name: string;
     email: string;
@@ -142,8 +156,11 @@ export const authAPI = {
     userType?: string;
     referral_token?: string;
   }) => {
-    const endpoint = data.referral_token ? `/register/${data.referral_token}` : "/register";
-    const response: any = await apiRequest(endpoint, {
+    const endpoint = data.referral_token
+      ? `/register/${data.referral_token}`
+      : "/register";
+
+    return apiRequest(endpoint, {
       method: "POST",
       body: JSON.stringify({
         name: data.name,
@@ -155,19 +172,9 @@ export const authAPI = {
         ...(data.referral_token && { referral_token: data.referral_token }),
       }),
     });
-
-    if (response && response.data) {
-      const transformedUser = transformUserData(response.data);
-      tokenUtils.setUser(transformedUser);
-      if (response.token || response.data.token) {
-        tokenUtils.setToken(response.token || response.data.token);
-      }
-      return transformedUser;
-    }
-
-    throw new Error("Invalid register response");
   },
 
+  // Partner register
   registerPartner: async (data: {
     name: string;
     email: string;
@@ -175,6 +182,10 @@ export const authAPI = {
     password: string;
     password_confirmation: string;
     referral_token?: string;
-  }) => authAPI.register({ ...data, userType: "partner" }),
+  }) => {
+    return authAPI.register({
+      ...data,
+      userType: "partner",
+    });
+  },
 };
-
