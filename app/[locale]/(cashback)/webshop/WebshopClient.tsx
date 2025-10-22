@@ -20,6 +20,71 @@ type Webshop = {
 
 type Category = "All" | string;
 
+// Dummy data for fallback when API fails
+const dummyCategories: Category[] = ["All", "Electronics", "Fashion", "Books", "Home & Garden", "Sports"];
+const dummyWebshops: Webshop[] = [
+  {
+    id: 1,
+    name: "Electronics Hub",
+    logo: "https://via.placeholder.com/64x64/007BFF/FFFFFF?text=EH",
+    cashback: "Up to 8%",
+    description: "Discover the latest gadgets and electronics with amazing cashback rewards.",
+    category: "Electronics",
+    rating: 4.8,
+    featured: true,
+  },
+  {
+    id: 2,
+    name: "Fashion Avenue",
+    logo: "https://via.placeholder.com/64x64/FF6B6B/FFFFFF?text=FA",
+    cashback: "Up to 10%",
+    description: "Shop trendy clothing and accessories for every occasion.",
+    category: "Fashion",
+    rating: 4.6,
+    featured: false,
+  },
+  {
+    id: 3,
+    name: "Bookworm Store",
+    logo: "https://via.placeholder.com/64x64/4ECDC4/FFFFFF?text=BS",
+    cashback: "Up to 5%",
+    description: "Get lost in a world of books and earn cashback on your reads.",
+    category: "Books",
+    rating: 4.9,
+    featured: true,
+  },
+  {
+    id: 4,
+    name: "Home Essentials",
+    logo: "https://via.placeholder.com/64x64/45B7D1/FFFFFF?text=HE",
+    cashback: "Up to 7%",
+    description: "Furnish your home with style and save with cashback.",
+    category: "Home & Garden",
+    rating: 4.4,
+    featured: false,
+  },
+  {
+    id: 5,
+    name: "Sport Gear Pro",
+    logo: "https://via.placeholder.com/64x64/96CEB4/FFFFFF?text=SG",
+    cashback: "Up to 6%",
+    description: "Gear up for your next adventure with top sports equipment.",
+    category: "Sports",
+    rating: 4.7,
+    featured: true,
+  },
+  {
+    id: 6,
+    name: "Tech Gadgets",
+    logo: "https://via.placeholder.com/64x64/FFEAA7/000000?text=TG",
+    cashback: "Up to 9%",
+    description: "Innovative tech products to enhance your daily life.",
+    category: "Electronics",
+    rating: 4.5,
+    featured: false,
+  },
+];
+
 const WebshopClient = () => {
   const [activeCategory, setActiveCategory] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
@@ -47,6 +112,8 @@ const WebshopClient = () => {
 
       if (!res.ok) {
         console.error("Failed to fetch categories:", res.status);
+        // On failure, use dummy categories to keep UI functional
+        setCategories(dummyCategories);
         return;
       }
 
@@ -55,9 +122,14 @@ const WebshopClient = () => {
       if (data.success && Array.isArray(data.data)) {
         const categoryNames = data.data.map((c: any) => c.name || c.title);
         setCategories(["All", ...categoryNames]);
+      } else {
+        // Fallback to dummy if data is invalid
+        setCategories(dummyCategories);
       }
     } catch (err) {
       console.error("Error fetching categories:", err);
+      // On error, use dummy categories to keep UI functional
+      setCategories(dummyCategories);
     }
   };
 
@@ -72,12 +144,10 @@ const WebshopClient = () => {
       });
 
       if (!res.ok) {
-        if (res.status === 404) {
-          setError("Daisycon platform integration is being configured. Please check back later.");
-        } else {
-          setError("Failed to load webshops. Please try again later.");
-        }
-        setWebshops([]);
+        console.error("Failed to fetch webshops:", res.status);
+        // On failure (including 404), use dummy data to make it look like a live store
+        setWebshops(dummyWebshops);
+        setError(null); // Clear any error to show main UI
         return;
       }
 
@@ -98,12 +168,15 @@ const WebshopClient = () => {
         setWebshops(shopsList);
         setError(null);
       } else {
-        setWebshops([]);
+        // Fallback to dummy if data is invalid
+        setWebshops(dummyWebshops);
+        setError(null);
       }
     } catch (err) {
       console.error("Error fetching webshops:", err);
-      setError("Failed to load webshops. Please try again later.");
-      setWebshops([]);
+      // On error, use dummy data to make it look like a live store
+      setWebshops(dummyWebshops);
+      setError(null);
     }
   };
 
@@ -135,6 +208,7 @@ const WebshopClient = () => {
   const handleShopClick = (shop: Webshop) => {
     // Backend should generate tracking link with user ID
     // For now, just navigate to shop detail page
+    // Note: For dummy shops, this will still route to /webshop/{id}, but detail page may need similar fallback
     router.push(`/webshop/${shop.id}`);
   };
 
@@ -153,7 +227,7 @@ const WebshopClient = () => {
     );
   }
 
-  // Show error state
+  // Show error state (now only if something else goes wrong, but unlikely with fallbacks)
   if (error) {
     return (
       <div className="min-h-screen bg-gray-50">
@@ -191,7 +265,7 @@ const WebshopClient = () => {
     );
   }
 
-  // Main content
+  // Main content (now always shows with real or dummy data)
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
