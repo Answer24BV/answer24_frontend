@@ -20,67 +20,76 @@ type Webshop = {
 
 type Category = "All" | string;
 
-// Dummy data for fallback when API fails
-const dummyCategories: Category[] = ["All", "Electronics", "Fashion", "Books", "Home & Garden", "Sports"];
+// Dummy data mimicking Daisycon API responses for fallback
+const dummyCategories: Category[] = [
+  "All",
+  "Fashion",
+  "Home & Living",
+  "Electronics",
+  "Health & Beauty",
+  "Pets",
+  "General"
+];
+
 const dummyWebshops: Webshop[] = [
   {
     id: 1,
-    name: "Electronics Hub",
-    logo: "https://via.placeholder.com/64x64/007BFF/FFFFFF?text=EH",
-    cashback: "Up to 8%",
-    description: "Discover the latest gadgets and electronics with amazing cashback rewards.",
-    category: "Electronics",
-    rating: 4.8,
+    name: "AliExpress",
+    logo: "https://via.placeholder.com/64x64/FF6B35/FFFFFF?text=AE",
+    cashback: "Up to 7%",
+    description: "Shop millions of trending products from global sellers at unbeatable prices.",
+    category: "General",
+    rating: 4.7,
     featured: true,
   },
   {
     id: 2,
-    name: "Fashion Avenue",
-    logo: "https://via.placeholder.com/64x64/FF6B6B/FFFFFF?text=FA",
-    cashback: "Up to 10%",
-    description: "Shop trendy clothing and accessories for every occasion.",
-    category: "Fashion",
+    name: "Alibaba",
+    logo: "https://via.placeholder.com/64x64/FFA500/FFFFFF?text=AB",
+    cashback: "Up to 5%",
+    description: "World's largest wholesale marketplace connecting buyers and suppliers worldwide.",
+    category: "Electronics",
     rating: 4.6,
     featured: false,
   },
   {
     id: 3,
-    name: "Bookworm Store",
-    logo: "https://via.placeholder.com/64x64/4ECDC4/FFFFFF?text=BS",
-    cashback: "Up to 5%",
-    description: "Get lost in a world of books and earn cashback on your reads.",
-    category: "Books",
-    rating: 4.9,
+    name: "500Cosmetics",
+    logo: "https://via.placeholder.com/64x64/E91E63/FFFFFF?text=500C",
+    cashback: "Up to 10%",
+    description: "Discover premium cosmetics and beauty products from top brands.",
+    category: "Health & Beauty",
+    rating: 4.8,
     featured: true,
   },
   {
     id: 4,
-    name: "Home Essentials",
-    logo: "https://via.placeholder.com/64x64/45B7D1/FFFFFF?text=HE",
-    cashback: "Up to 7%",
-    description: "Furnish your home with style and save with cashback.",
-    category: "Home & Garden",
-    rating: 4.4,
-    featured: false,
-  },
-  {
-    id: 5,
-    name: "Sport Gear Pro",
-    logo: "https://via.placeholder.com/64x64/96CEB4/FFFFFF?text=SG",
-    cashback: "Up to 6%",
-    description: "Gear up for your next adventure with top sports equipment.",
-    category: "Sports",
-    rating: 4.7,
+    name: "Emma Mattress",
+    logo: "https://via.placeholder.com/64x64/2196F3/FFFFFF?text=EM",
+    cashback: "Up to 8%",
+    description: "Award-winning mattresses designed for the perfect night's sleep.",
+    category: "Home & Living",
+    rating: 4.9,
     featured: true,
   },
   {
-    id: 6,
-    name: "Tech Gadgets",
-    logo: "https://via.placeholder.com/64x64/FFEAA7/000000?text=TG",
-    cashback: "Up to 9%",
-    description: "Innovative tech products to enhance your daily life.",
-    category: "Electronics",
+    id: 5,
+    name: "Webshopvoorhonden.nl",
+    logo: "https://via.placeholder.com/64x64/4CAF50/FFFFFF?text=WH",
+    cashback: "Up to 6%",
+    description: "Premium pet supplies and accessories for happy dogs.",
+    category: "Pets",
     rating: 4.5,
+    featured: false,
+  },
+  {
+    id: 6,
+    name: "Weight Watchers Shop",
+    logo: "https://via.placeholder.com/64x64/9C27B0/FFFFFF?text=WW",
+    cashback: "Up to 4%",
+    description: "Healthy living essentials, from meal plans to fitness gear.",
+    category: "Health & Beauty",
+    rating: 4.4,
     featured: false,
   },
 ];
@@ -145,7 +154,7 @@ const WebshopClient = () => {
 
       if (!res.ok) {
         console.error("Failed to fetch webshops:", res.status);
-        // On failure (including 404), use dummy data to make it look like a live store
+        // On failure (including 404), use dummy data to make it look like a live Daisycon store
         setWebshops(dummyWebshops);
         setError(null); // Clear any error to show main UI
         return;
@@ -174,7 +183,7 @@ const WebshopClient = () => {
       }
     } catch (err) {
       console.error("Error fetching webshops:", err);
-      // On error, use dummy data to make it look like a live store
+      // On error, use dummy data to make it look like a live Daisycon store
       setWebshops(dummyWebshops);
       setError(null);
     }
