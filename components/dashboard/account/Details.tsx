@@ -9,7 +9,7 @@ import "react-toastify/dist/ReactToastify.css";
 
 interface Company {
   id?: string;
-  user_id?: string;
+  email?: string;
   name?: string;
   street?: string;
   housenumber?: string;
@@ -32,10 +32,10 @@ export default function Details() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [creating, setCreating] = useState(false);
-  const [userId, setUserId] = useState<string | null>(null);
-  const [userUuid, setUserUuid] = useState<string>("");
+  const [userEmail, setUserEmail] = useState<string | null>(null);
 
-  const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://answer24.nl/api/v1";
+  const API_BASE_URL =
+    process.env.NEXT_PUBLIC_API_URL || "https://answer24_backend.test/api/v1";
 
   // ✅ Ensure axios uses JSON
   useEffect(() => {
@@ -43,53 +43,39 @@ export default function Details() {
     axios.defaults.headers.common["Content-Type"] = "application/json";
   }, []);
 
-  // 🔹 Step 1: Get UUID from localStorage or generate a new one
+  // 🔹 Step 1: Extract email from localStorage user_data
   useEffect(() => {
-    let storedUuid = localStorage.getItem("userUuid");
-    if (!storedUuid) {
-      storedUuid = crypto.randomUUID(); // modern browser UUID
-      localStorage.setItem("userUuid", storedUuid);
-    }
-    setUserUuid(storedUuid);
-
-    const storedId = localStorage.getItem("userId");
-    if (storedId) {
-      setUserId(storedId);
-      setLoading(false);
-    } else {
-      resolveUuidToId(storedUuid);
-    }
-  }, []);
-
-  // 🔹 Step 2: Resolve UUID → numeric userId
-  const resolveUuidToId = async (uuid: string) => {
     try {
-      const { data } = await axios.get(`${API_BASE_URL}/auth/resolve/${uuid}`);
-      if (data.success && data.data.id) {
-        setUserId(data.data.id.toString());
-        localStorage.setItem("userId", data.data.id.toString());
-        toast.success("✅ User ID resolved successfully!");
+      const storedUserData = localStorage.getItem("user_data");
+      if (storedUserData) {
+        const parsed = JSON.parse(storedUserData);
+        if (parsed.email) {
+          setUserEmail(parsed.email);
+        } else {
+          toast.error("❌ No email found in user data. Please log in again.");
+        }
       } else {
-        toast.info("No user found for this UUID. You may need to register.");
-        setCreating(true);
+        toast.error("❌ No user data found. Please log in again.");
       }
-    } catch (err: any) {
-      console.error("❌ UUID resolution failed:", err);
-      toast.info("User not found. You can create a new company.");
-      setCreating(true);
+    } catch (error) {
+      console.error("Error parsing user data:", error);
+      toast.error("❌ Failed to parse user data.");
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  // 🔹 Step 3: Fetch company once userId exists
+  // 🔹 Step 2: Fetch company using email
   useEffect(() => {
-    if (!userId) return;
+    if (!userEmail) return;
 
     const fetchCompany = async () => {
       try {
         setLoading(true);
-        const { data } = await axios.get(`${API_BASE_URL}/user-companies/user/${userId}`);
+        const { data } = await axios.get(
+          `${API_BASE_URL}/user-company/email/${encodeURIComponent(userEmail)}`
+        );
+
         if (data.success && data.data.length > 0) {
           setCompany(data.data[0]);
           setForm(data.data[0]);
@@ -107,16 +93,17 @@ export default function Details() {
     };
 
     fetchCompany();
-  }, [userId]);
+  }, [userEmail]);
 
+  // 🔹 Step 3: Handle input changes
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  // 🔹 Step 4: Save company
+  // 🔹 Step 4: Save or update company
   const handleSave = async () => {
-    if (!userId) {
-      toast.error("User ID missing. Please log in or register.");
+    if (!userEmail) {
+      toast.error("User email missing. Please log in or register.");
       return;
     }
 
@@ -129,9 +116,10 @@ export default function Details() {
         toast.info("🗑️ Old company deleted.");
       }
 
+      // Create new company using email
       const { data } = await axios.post(`${API_BASE_URL}/user-companies`, {
         ...form,
-        user_id: userId,
+        email: userEmail,
       });
 
       setCompany(data.data);
@@ -146,14 +134,17 @@ export default function Details() {
   };
 
   // ---------------------------- UI ----------------------------
-  if (loading) return <div className="p-6 text-gray-500">Loading company details...</div>;
+  if (loading)
+    return <div className="p-6 text-gray-500">Loading company details...</div>;
 
   if (!company && !creating)
     return (
       <div className="p-6">
         <ToastContainer position="top-right" autoClose={3000} />
         <h2 className="text-lg font-semibold mb-2">No company found</h2>
-        <p className="text-gray-500 mb-4">You don’t have a company added yet.</p>
+        <p className="text-gray-500 mb-4">
+          You don’t have a company added yet.
+        </p>
         <Button onClick={() => setCreating(true)}>Create Company</Button>
       </div>
     );
@@ -161,7 +152,9 @@ export default function Details() {
   return (
     <div className="p-6 space-y-4">
       <ToastContainer position="top-right" autoClose={3000} />
-      <h2 className="text-xl font-semibold">{creating ? "Create Company" : "Manage Company"}</h2>
+      <h2 className="text-xl font-semibold">
+        {creating ? "Create Company" : "Manage Company"}
+      </h2>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {[
@@ -181,7 +174,9 @@ export default function Details() {
           "serpapi_language",
         ].map((field) => (
           <div key={field}>
-            <label className="block text-sm font-medium mb-1 capitalize">{field.replace("_", " ")}</label>
+            <label className="block text-sm font-medium mb-1 capitalize">
+              {field.replace("_", " ")}
+            </label>
             <Input
               name={field}
               value={form[field as keyof Company] || ""}
