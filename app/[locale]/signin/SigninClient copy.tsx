@@ -9,6 +9,25 @@ import { authAPI, tokenUtils } from "@/utils/auth";
 import { useRouter } from "@/i18n/navigation";
 import { AuthGuard } from "@/components/AuthGuard";
 
+type SuccessResponse = {
+  id: any;
+  mainId: any;
+  uuid: any;
+  name: any;
+  email: any;
+  phone: any;
+  userType: any;
+  token: any;
+  // Add other fields if needed, e.g., pin?: any;
+};
+
+type ErrorResponse = {
+  status: string;
+  message: any;
+  email: any;
+  uuid: any;
+};
+
 export default function SignIn() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -28,57 +47,44 @@ export default function SignIn() {
     setIsLoading(true);
 
     try {
-      const response = await authAPI.login(email, password, rememberMe);
+      const response: SuccessResponse | ErrorResponse = await authAPI.login(email, password, rememberMe);
 
-      // Store token and user data
+      // Check for error response
+      if ('status' in response) {
+        throw new Error(response.message || "Login failed. Please try again.");
+      }
+
+      // Now TypeScript knows response is SuccessResponse
       console.log("=== LOGIN RESPONSE DEBUG ===");
       console.log("Full response:", response);
       console.log("Response token:", response.token);
-      console.log("Response data token:", response.data?.token);
       console.log("=============================");
       
-      // Handle token from different possible locations
-      let tokenToStore = null;
-      if (response.token) {
-        tokenToStore = response.token;
-      } else if (response.data && response.data.token) {
-        tokenToStore = response.data.token;
-      }
-      
+      // Store token (directly from response, as per type)
+      const tokenToStore = response.token;
       if (tokenToStore) {
         console.log("Storing token:", tokenToStore);
         tokenUtils.setToken(tokenToStore);
       } else {
         console.error("No token found in response:", response);
+        throw new Error("No token received from server");
       }
       
-      // Handle different possible response structures
-      let userData = null;
-      if (response.user) {
-        userData = response.user;
-      } else if (response.data && response.data.user) {
-        userData = response.data.user;
-      } else if (response.data && !response.data.user && response.data.email) {
-        // If user object is not separate, create it from the response data
-        userData = {
-          id: response.data.id,
-          name: response.data.name,
-          email: response.data.email,
-          profile_picture: response.data.profile_picture,
-        };
-      }
-      
-      // Add PIN to user data if available
-      if (response.data && response.data.pin) {
-        userData = {
-          ...userData,
-          pin: response.data.pin,
-        };
-      }
+      // Extract user data directly from response (as per type)
+      const userData = {
+        id: response.id,
+        mainId: response.mainId,
+        uuid: response.uuid,
+        name: response.name,
+        email: response.email,
+        phone: response.phone,
+        userType: response.userType,
+        // If pin is expected, add it here if present: pin: response.pin,
+      };
       
       console.log("Final user data to store:", userData);
       
-      if (userData && userData.email) {
+      if (userData.email) {
         tokenUtils.setUser(userData);
       } else {
         console.error("No valid user data in response:", response);
