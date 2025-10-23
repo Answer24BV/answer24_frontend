@@ -206,48 +206,6 @@ const WebshopClient = () => {
     };
 
     loadData();
-    
-    // Load Answer24 Widget v2 (Advanced Widget)
-    const loadWidget = () => {
-      if (typeof window !== 'undefined' && !document.querySelector('script[src*="widget-v2.js"]')) {
-        const script = document.createElement('script');
-        script.src = '/widget-v2.js';
-        script.async = true;
-        script.setAttribute('data-public-key', 'PUB_webshop_demo');
-        script.setAttribute('data-locale', 'en-US');
-        script.setAttribute('data-theme', 'auto');
-        script.setAttribute('data-color-primary', '#0059ff');
-        script.setAttribute('data-position', 'right');
-        document.head.appendChild(script);
-        
-        console.log('🚀 Advanced Widget v2 loaded on webshop page');
-      }
-    };
-    
-    // Load widget after a short delay to ensure page is ready
-    setTimeout(loadWidget, 1000);
-
-    // COMMENTED OUT: Legacy Widget v1 (kept for reference, not deleted)
-    /*
-    const loadLegacyWidget = () => {
-      if (typeof window !== 'undefined' && !document.querySelector('script[src*="answer24.js"]')) {
-        const script = document.createElement('script');
-        script.src = '/widget/v1/answer24.js';
-        script.async = true;
-        script.setAttribute('data-public-key', 'PUB_webshop_demo');
-        script.setAttribute('data-locale', 'en-US');
-        script.setAttribute('data-theme', 'auto');
-        script.setAttribute('data-color-primary', '#0059ff');
-        script.setAttribute('data-position', 'right');
-        document.head.appendChild(script);
-        
-        console.log('🧪 Legacy Widget v1 loaded on webshop page');
-      }
-    };
-    
-    // Load legacy widget after a short delay to ensure page is ready
-    setTimeout(loadLegacyWidget, 1000);
-    */
   }, []);
 
   const filteredWebshops = webshops.filter((shop) => {

@@ -10,6 +10,7 @@ import {
   ArrowLeft,
 } from "lucide-react";
 import { createHelpdeskChat, generateAIResponse } from "@/app/[locale]/actions/chat";
+import type { WidgetSettings } from "@/hooks/useWidgetSettings";
 
 interface Message {
   sender: "user" | "bot";
@@ -35,14 +36,41 @@ const welcomeOptions = [
   { label: "Contact support", icon: "💬" },
 ];
 
-const ChatWidget: React.FC = () => {
-  const [isOpen, setIsOpen] = useState(false);
+interface ChatWidgetProps {
+  settings?: WidgetSettings;
+}
+
+const ChatWidget: React.FC<ChatWidgetProps> = ({ settings }) => {
+  // Use settings or defaults
+  const theme = settings?.theme || {
+    primary: '#2563eb',
+    foreground: '#ffffff',
+    background: '#ffffff',
+    radius: 18,
+    fontFamily: 'Inter, ui-sans-serif',
+    logoUrl: '/Answer24Logo.png'
+  };
+  
+  const behavior = settings?.behavior || {
+    position: 'right',
+    openOnLoad: false,
+    openOnExitIntent: true,
+    openOnInactivityMs: 60000,
+    zIndex: 9999
+  };
+  
+  const i18nStrings = settings?.i18n?.strings || {
+    'chat.welcome': "Hi there! I'm answer24, your assistant. How can I help you today?",
+    'chat.placeholder': 'Type your message...',
+    'chat.send': 'Send'
+  };
+  const [isOpen, setIsOpen] = useState(behavior.openOnLoad);
   const [input, setInput] = useState("");
   const [chatId, setChatId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([
     {
       sender: "bot",
-      text: process.env.NEXT_PUBLIC_CHATBOT_WELCOME_MESSAGE || "Hi there! I'm answer24, your assistant. How can I help you today?",
+      text: i18nStrings['chat.welcome'] || process.env.NEXT_PUBLIC_CHATBOT_WELCOME_MESSAGE || "Hi there! I'm answer24, your assistant. How can I help you today?",
     },
   ]);
 
@@ -108,7 +136,7 @@ const ChatWidget: React.FC = () => {
     if (activityTimerRef.current) {
       clearTimeout(activityTimerRef.current);
     }
-    if (!isOpen && !hasPromptedInactivity) {
+    if (!isOpen && !hasPromptedInactivity && behavior.openOnInactivityMs > 0) {
       activityTimerRef.current = setTimeout(() => {
         setIsOpen(true);
         setActiveTab("chat");
@@ -117,9 +145,9 @@ const ChatWidget: React.FC = () => {
           { sender: "bot", text: "Can I assist you with anything?" },
         ]);
         setHasPromptedInactivity(true);
-      }, 60000);
+      }, behavior.openOnInactivityMs);
     }
-  }, [isOpen, hasPromptedInactivity]);
+  }, [isOpen, hasPromptedInactivity, behavior.openOnInactivityMs]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -150,6 +178,8 @@ const ChatWidget: React.FC = () => {
     };
 
     const handleMouseLeave = (event: MouseEvent) => {
+      if (!behavior.openOnExitIntent) return;
+      
       const currentTime = Date.now();
       const timeSinceLastPrompt = currentTime - lastExitPromptTime;
 
@@ -177,7 +207,9 @@ const ChatWidget: React.FC = () => {
     };
 
     document.addEventListener("mousemove", handleMouseMove);
-    document.addEventListener("mouseleave", handleMouseLeave);
+    if (behavior.openOnExitIntent) {
+      document.addEventListener("mouseleave", handleMouseLeave);
+    }
 
     return () => {
       document.removeEventListener("mousemove", handleMouseMove);
@@ -425,15 +457,35 @@ const ChatWidget: React.FC = () => {
       {/* Chat Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="fixed bottom-6 cursor-pointer right-6 z-50 rounded-full bg-gradient-to-br from-[#1e293b] to-[#2563eb] p-4 text-white shadow-lg transition duration-300 hover:from-[#2563eb] hover:to-[#1e293b] animate-floaty"
+        className={`fixed bottom-6 cursor-pointer ${behavior.position === 'right' ? 'right-6' : 'left-6'} rounded-full p-4 shadow-lg transition duration-300 animate-floaty`}
+        style={{
+          zIndex: behavior.zIndex,
+          background: `linear-gradient(135deg, ${theme.primary}, #1e293b)`,
+          color: theme.foreground
+        }}
         aria-label={isOpen ? "Close chat" : "Open chat"}
       >
         {isOpen ? <X size={24} /> : <MessageCircle size={24} />}
       </button>
 
       {isOpen && (
-        <div className="fixed bottom-20 right-4 z-[9999] flex h-[70vh] max-h-[600px] w-[90vw] max-w-[400px] flex-col rounded-3xl border border-gray-200 bg-white font-sans shadow-2xl overflow-hidden">
-          <div className="relative bg-gradient-to-br from-[#1e293b] to-[#2563eb] p-5 pb-4 rounded-t-3xl flex flex-col gap-2 sticky top-0 z-10">
+        <div 
+          className={`fixed bottom-20 ${behavior.position === 'right' ? 'right-4' : 'left-4'} flex h-[70vh] max-h-[600px] w-[90vw] max-w-[400px] flex-col border border-gray-200 font-sans shadow-2xl overflow-hidden`}
+          style={{
+            zIndex: behavior.zIndex,
+            backgroundColor: theme.background,
+            borderRadius: `${theme.radius}px`,
+            fontFamily: theme.fontFamily
+          }}
+        >
+          <div 
+            className="relative p-5 pb-4 flex flex-col gap-2 sticky top-0 z-10"
+            style={{
+              background: `linear-gradient(135deg, ${theme.primary}, #1e293b)`,
+              borderTopLeftRadius: `${theme.radius}px`,
+              borderTopRightRadius: `${theme.radius}px`
+            }}
+          >
             <div className="flex items-center gap-2">
               {activeTab === "chat" && (
                 <button
@@ -629,7 +681,7 @@ const ChatWidget: React.FC = () => {
                       type="text"
                       value={input}
                       onChange={(e) => setInput(e.target.value)}
-                      placeholder="Type your message..."
+                      placeholder={i18nStrings['chat.placeholder'] || 'Type your message...'}
                       className="min-w-0 flex-1 rounded-full border border-gray-300 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#2563eb] focus:border-transparent bg-gray-50 transition-all duration-200"
                     />
 

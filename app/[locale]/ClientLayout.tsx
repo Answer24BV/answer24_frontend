@@ -16,6 +16,7 @@ import { useEffect, useState } from "react";
 import { User } from "@/types/user";
 import { NotificationBanner } from "@/components/common/NotificationBanner";
 import CookiePopup from "@/components/CookiePopup";
+import { useWidgetSettings } from "@/hooks/useWidgetSettings";
 
 export default function ClientLayout({
   children,
@@ -27,6 +28,9 @@ export default function ClientLayout({
   const isUserTypePage = pathname.startsWith("/admin") || (pathname.startsWith("/partner") && !pathname.startsWith("/partner-signup")) || pathname.startsWith("/client");
   const isDashboardChatPage = pathname === "/dashboard/chat";
   const [user, setUser] = useState<User | null>(null);
+  
+  // Load widget settings from admin panel
+  const { settings: widgetSettings, loading: widgetLoading } = useWidgetSettings();
 
   // Initialize user and push notifications
   useEffect(() => {
@@ -48,7 +52,7 @@ export default function ClientLayout({
       {isDashboardPage || isUserTypePage ? null : <Header />}
       <PWALoader />
       <main className={isDashboardPage || isUserTypePage ? "pt-20" : ""}>{children}</main>
-      {!isDashboardChatPage && <ChatWidget />}
+      {!isDashboardChatPage && !widgetLoading && <ChatWidget settings={widgetSettings} />}
       {isDashboardPage || isUserTypePage ? null : <Footer />}
       <CookiePopup />
       <ToastContainer position="top-right" autoClose={5000} />
