@@ -11,23 +11,26 @@
 Add this single line to your website's HTML (before closing `</body>` tag):
 
 ```html
-<script src="https://your-domain.com/widget.js" data-company="YOUR_COMPANY_ID"></script>
+<script src="https://answer24_backend.test/widget/v1/answer24.js" data-public-key="PUB_abc123"></script>
 ```
 
 **Example:**
 ```html
-<script src="https://answer24.com/widget.js" data-company="123"></script>
+<script src="https://answer24_backend.test/widget/v1/answer24.js" data-public-key="PUB_abc123"></script>
 ```
 
 ### **Step 3: Customize (Optional)**
 
-You can also set the company ID via JavaScript:
+You can also set the public key via JavaScript:
 
 ```html
 <script>
-  window.answer24CompanyId = '123';
+  window.Answer24Config = {
+    API_BASE_URL: 'https://answer24_backend.test/api/v1',
+    CDN_BASE_URL: 'https://answer24_backend.test'
+  };
 </script>
-<script src="https://answer24.com/widget.js"></script>
+<script src="https://answer24_backend.test/widget/v1/answer24.js" data-public-key="PUB_abc123"></script>
 ```
 
 ## 🎨 **Widget Features**
