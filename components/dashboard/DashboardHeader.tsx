@@ -431,6 +431,18 @@ export function DashboardHeader() {
                   </Link>
                 </DropdownMenuItem>
 
+                {user?.role?.name === "admin" && (
+                  <DropdownMenuItem className="w-full cursor-pointer">
+                    <Link
+                      href="/dashboard/admin/widget"
+                      className="flex items-center w-full"
+                    >
+                      <Puzzle className="mr-2 h-4 w-4" />
+                      <span>Widget Management</span>
+                    </Link>
+                  </DropdownMenuItem>
+                )}
+
                 <DropdownMenuSeparator />
 
                 <DropdownMenuItem
