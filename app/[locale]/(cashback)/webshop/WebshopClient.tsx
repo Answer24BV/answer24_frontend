@@ -108,6 +108,9 @@ const WebshopClient = () => {
 
   const token =
     typeof window !== "undefined" ? localStorage.getItem("auth_token") : null;
+  
+  // Check if user is logged in
+  const isLoggedIn = !!token;
 
   // Fetch categories from Daisycon
   const fetchCategories = async () => {
@@ -245,7 +248,7 @@ const WebshopClient = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <PrivateNavbar />
+        {isLoggedIn ? <PrivateNavbar /> : <Navbar />}
         <div className="flex items-center justify-center min-h-[60vh] pt-20">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
@@ -260,7 +263,7 @@ const WebshopClient = () => {
   if (error) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <PrivateNavbar />
+        {isLoggedIn ? <PrivateNavbar /> : <Navbar />}
         <div className="flex items-center justify-center min-h-[60vh] pt-20">
           <div className="text-center max-w-md mx-auto p-8">
             <div className="bg-yellow-100 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-6">
@@ -297,7 +300,7 @@ const WebshopClient = () => {
   // Main content (now always shows with real or dummy data)
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navbar />
+      {isLoggedIn ? <PrivateNavbar /> : <Navbar />}
       <div className="pt-20 pb-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Header */}
@@ -308,6 +311,17 @@ const WebshopClient = () => {
             <p className="text-lg text-gray-600">
               Shop at your favorite stores and earn A-Points cashback on every purchase
             </p>
+            {isLoggedIn && (
+              <div className="mt-4">
+                <a 
+                  href="/dashboard/wallet" 
+                  className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  <span className="mr-2">💰</span>
+                  View My Wallet
+                </a>
+              </div>
+            )}
           </div>
 
           {/* Search & Filter */}
