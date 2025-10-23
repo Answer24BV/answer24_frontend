@@ -23,6 +23,7 @@ import {
   Mail,
   Globe,
   ShoppingBag,
+  Puzzle,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import LanguageSwitcher from "@/components/common/LanguageSwitcher";
@@ -176,6 +177,11 @@ export function DashboardHeader() {
           title: "FAQ Management",
           href: "/dashboard/admin/faq",
           icon: HelpCircle,
+        },
+        {
+          title: "Widget Management",
+          href: "/dashboard/admin/widget",
+          icon: Puzzle,
         },
         {
           title: "Settings",
