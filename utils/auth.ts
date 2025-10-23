@@ -92,14 +92,15 @@ export const apiRequest = async (endpoint: string, options: RequestInit = {}) =>
 
 // Transform backend user data for frontend
 const transformUserData = (user: any) => ({
-  id: user.uuid,      // frontend uses UUID as id
+  id: user.uuid || user.id,      // frontend uses UUID as id, fallback to numeric ID
   mainId: user.id,    // backend numeric ID
-  uuid: user.uuid,
+  uuid: user.uuid || user.id,    // use uuid if available, otherwise use id
   name: user.name,
   email: user.email,
   phone: user.phone ?? null,
   userType: user.userType ?? "client",
   token: user.token ?? null,
+  role: user.role,    // include role information
 });
 
 export const authAPI = {
@@ -120,12 +121,28 @@ export const authAPI = {
       };
     }
 
-    // Normal login
-    if (response && response.data) {
-      const transformedUser = transformUserData(response.data);
+    // Normal login - handle the specific response format
+    if (response && response.data && response.data.user) {
+      console.log('🔑 Login response received:', {
+        hasData: !!response.data,
+        hasUser: !!response.data.user,
+        hasToken: !!response.data.token,
+        token: response.data.token ? 'Token received' : 'No token',
+        user: response.data.user
+      });
+      
+      // Pass the token to the user data
+      const userWithToken = {
+        ...response.data.user,
+        token: response.data.token
+      };
+      const transformedUser = transformUserData(userWithToken);
       tokenUtils.setUser(transformedUser);
-      if (response.token || response.data.token) {
-        tokenUtils.setToken(response.token || response.data.token);
+      if (response.data.token) {
+        tokenUtils.setToken(response.data.token);
+        console.log('✅ Token stored successfully');
+      } else {
+        console.error('❌ No token received from server');
       }
       return transformedUser;
     }
@@ -156,11 +173,27 @@ export const authAPI = {
       }),
     });
 
-    if (response && response.data) {
-      const transformedUser = transformUserData(response.data);
+    if (response && response.data && response.data.user) {
+      console.log('🔑 Register response received:', {
+        hasData: !!response.data,
+        hasUser: !!response.data.user,
+        hasToken: !!response.data.token,
+        token: response.data.token ? 'Token received' : 'No token',
+        user: response.data.user
+      });
+      
+      // Pass the token to the user data
+      const userWithToken = {
+        ...response.data.user,
+        token: response.data.token
+      };
+      const transformedUser = transformUserData(userWithToken);
       tokenUtils.setUser(transformedUser);
-      if (response.token || response.data.token) {
-        tokenUtils.setToken(response.token || response.data.token);
+      if (response.data.token) {
+        tokenUtils.setToken(response.data.token);
+        console.log('✅ Token stored successfully');
+      } else {
+        console.error('❌ No token received from server');
       }
       return transformedUser;
     }
