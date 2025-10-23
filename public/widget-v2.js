@@ -621,6 +621,128 @@
   }
 
   /**
+   * Track purchase and credit wallet
+   */
+  async function trackPurchase(orderData) {
+    try {
+      console.log('🛒 Tracking purchase:', orderData);
+      
+      const purchaseData = {
+        user_id: getCurrentUserId(),
+        order_value: orderData.order_value,
+        order_id: orderData.order_id,
+        shop_name: orderData.shop_name,
+        public_key: publicKey,
+        timestamp: new Date().toISOString(),
+        signature: generatePurchaseSignature(orderData)
+      };
+
+      const response = await fetch(`${API_BASE_URL}/v1/widget/track-purchase`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Answer24-Version': WIDGET_VERSION
+        },
+        body: JSON.stringify(purchaseData)
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log('✅ Purchase tracked successfully:', result);
+        
+        // Show success message to user
+        showNotification(`🎉 Cashback earned! €${result.data.cashback_amount} added to your wallet!`, 'success');
+        
+        // Track analytics
+        trackAnalytics('purchase_completed', {
+          order_id: orderData.order_id,
+          order_value: orderData.order_value,
+          cashback_amount: result.data.cashback_amount
+        });
+        
+        return result;
+      } else {
+        throw new Error('Failed to track purchase');
+      }
+    } catch (error) {
+      console.error('❌ Purchase tracking error:', error);
+      showNotification('Failed to track purchase. Please contact support.', 'error');
+    }
+  }
+
+  /**
+   * Track analytics events
+   */
+  async function trackAnalytics(eventType, eventData = {}) {
+    try {
+      const analyticsData = {
+        user_id: getCurrentUserId(),
+        public_key: publicKey,
+        event_type: eventType,
+        event_data: eventData,
+        timestamp: new Date().toISOString()
+      };
+
+      await fetch(`${API_BASE_URL}/v1/widget/analytics`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Answer24-Version': WIDGET_VERSION
+        },
+        body: JSON.stringify(analyticsData)
+      });
+    } catch (error) {
+      console.error('❌ Analytics tracking error:', error);
+    }
+  }
+
+  /**
+   * Generate purchase signature for security
+   */
+  function generatePurchaseSignature(orderData) {
+    // Simple signature generation - in production, use proper HMAC
+    const payload = JSON.stringify(orderData);
+    return btoa(payload + publicKey + Date.now());
+  }
+
+  /**
+   * Get current user ID (implement based on your auth system)
+   */
+  function getCurrentUserId() {
+    // TODO: Implement based on your authentication system
+    // This could be from localStorage, cookies, or session
+    return localStorage.getItem('user_id') || 'anonymous_' + Date.now();
+  }
+
+  /**
+   * Show notification to user
+   */
+  function showNotification(message, type = 'info') {
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.style.cssText = `
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: ${type === 'success' ? '#28a745' : type === 'error' ? '#dc3545' : '#007bff'};
+      color: white;
+      padding: 12px 20px;
+      border-radius: 4px;
+      z-index: 10000;
+      max-width: 300px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    `;
+    notification.textContent = message;
+    
+    document.body.appendChild(notification);
+    
+    // Remove after 5 seconds
+    setTimeout(() => {
+      notification.remove();
+    }, 5000);
+  }
+
+  /**
    * Save settings
    */
   async function saveSettings() {

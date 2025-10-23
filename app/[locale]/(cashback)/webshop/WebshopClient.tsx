@@ -203,6 +203,26 @@ const WebshopClient = () => {
     };
 
     loadData();
+    
+    // Load Answer24 Widget
+    const loadWidget = () => {
+      if (typeof window !== 'undefined' && !document.querySelector('script[src*="answer24.js"]')) {
+        const script = document.createElement('script');
+        script.src = '/widget/v1/answer24.js';
+        script.async = true;
+        script.setAttribute('data-public-key', 'PUB_webshop_demo');
+        script.setAttribute('data-locale', 'en-US');
+        script.setAttribute('data-theme', 'auto');
+        script.setAttribute('data-color-primary', '#0059ff');
+        script.setAttribute('data-position', 'right');
+        document.head.appendChild(script);
+        
+        console.log('🧪 Widget loaded on webshop page');
+      }
+    };
+    
+    // Load widget after a short delay to ensure page is ready
+    setTimeout(loadWidget, 1000);
   }, []);
 
   const filteredWebshops = webshops.filter((shop) => {
