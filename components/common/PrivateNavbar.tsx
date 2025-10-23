@@ -9,6 +9,7 @@ import {
   LogOut,
   MessageCircle,
   Wallet,
+  Puzzle,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import LanguageSwitcher from "./LanguageSwitcher";
@@ -195,6 +196,15 @@ export function PrivateNavbar() {
                     <span>{t("wallet")}</span>
                   </Link>
                 </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <Link
+                    href="/dashboard/admin/widget"
+                    className="flex items-center w-full"
+                  >
+                    <Puzzle className="mr-2 h-4 w-4" />
+                    <span>Widget Management</span>
+                  </Link>
+                </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem>
                   <LogOut className="mr-2 h-4 w-4" />
@@ -269,6 +279,33 @@ export function PrivateNavbar() {
                   >
                     <UserIcon className="mr-3 h-4 w-4" />
                     <span>{t("userMenu.profile")}</span>
+                  </Link>
+
+                  <Link
+                    href="/dashboard/chat"
+                    className="flex items-center py-2 text-gray-700 hover:text-blue-600"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    <MessageCircle className="mr-3 h-4 w-4" />
+                    <span>{t("chat")}</span>
+                  </Link>
+
+                  <Link
+                    href="/dashboard/wallet"
+                    className="flex items-center py-2 text-gray-700 hover:text-blue-600"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    <Wallet className="mr-3 h-4 w-4" />
+                    <span>{t("wallet")}</span>
+                  </Link>
+
+                  <Link
+                    href="/dashboard/admin/widget"
+                    className="flex items-center py-2 text-gray-700 hover:text-blue-600"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    <Puzzle className="mr-3 h-4 w-4" />
+                    <span>Widget Management</span>
                   </Link>
 
                   <button className="flex items-center py-2 text-gray-700 hover:text-blue-600 w-full text-left">
