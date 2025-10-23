@@ -180,13 +180,20 @@ export default function WidgetManagementClient() {
           'chat.close': 'Close'
         }
       },
-      integrations: {},
+      integrations: {
+        ga4: {
+          measurementId: 'G-XXXX'
+        }
+      },
       visibility_rules: {
         includePaths: ['*'],
         excludePaths: [],
         minCartValue: 0
       },
-      rate_limit_per_min: 60
+      rate_limit_per_min: 60,
+      version: 1,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
     };
     
     setSettings(defaultSettings);
