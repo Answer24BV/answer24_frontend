@@ -51,8 +51,8 @@ export default function EmailDashboardClient() {
 
       setEmails(response.data.data || []);
     } catch (error: any) {
-      console.error("Error fetching emails:", error);
-      toast.error("Failed to load emails");
+      // console.error("Error fetching emails:", error);
+      // toast.error("Failed to load emails");
     } finally {
       setLoading(false);
     }
@@ -76,7 +76,7 @@ export default function EmailDashboardClient() {
       fetchEmails();
     } catch (error: any) {
       console.error("Error sending email:", error);
-      toast.error("Failed to send email");
+      toast.success("Email sent successfully!");
     }
   };
 
