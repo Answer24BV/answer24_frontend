@@ -4,6 +4,7 @@ import { PrivateNavbar } from "@/components/common/PrivateNavbar";
 import { Navbar } from "@/components/common/Navbar";
 import { Search, Star, Filter } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { Link } from "@/i18n/navigation";
 import Footer from "@/components/(webshop)/Footer";
 import { API_CONFIG } from "@/lib/api-config";
 
@@ -293,13 +294,13 @@ const WebshopClient = () => {
             </p>
             {isLoggedIn && (
               <div className="mt-4">
-                <a 
+                <Link 
                   href="/dashboard/wallet" 
                   className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                 >
                   <span className="mr-2">💰</span>
                   View My Wallet
-                </a>
+                </Link>
               </div>
             )}
           </div>

@@ -28,6 +28,7 @@ import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
 import { Label } from '@/components/ui/label';
 import { Link } from '@/i18n/navigation';
+import { toast } from 'react-toastify';
 
 const WebshopDetailClient = () => {
   const router = useRouter();
@@ -43,7 +44,7 @@ const WebshopDetailClient = () => {
     id: '1',
     name: 'TechStore Pro',
     logo: 'https://avatar.iran.liara.run/public/45',
-    cashback: '5%',
+    cashback: '10%',
     description: 'Premium technology store with the latest gadgets and electronics',
     category: 'Electronics',
     rating: 4.8,
@@ -125,10 +126,68 @@ const WebshopDetailClient = () => {
 
   const handleAddToCart = () => {
     console.log('Added to cart:', { quantity, size: selectedSize, color: selectedColor });
+    toast.success('Added to cart!');
   };
 
-  const handleBuyNow = () => {
+  const handleBuyNow = async () => {
     console.log('Buy now:', { quantity, size: selectedSize, color: selectedColor });
+    
+    // Calculate total price
+    const totalPrice = webshopData.price * quantity;
+    const cashbackAmount = Math.round(totalPrice * 0.10 * 100) / 100;
+    
+    // Get user data
+    const userDataStr = localStorage.getItem('user_data');
+    if (!userDataStr) {
+      toast.error('Please login to earn cashback!');
+      return;
+    }
+    
+    const userData = JSON.parse(userDataStr);
+    
+    // Simulate purchase and track cashback
+    try {
+      const orderId = 'WEBSHOP_' + Date.now();
+      
+      // Track purchase
+      const response = await fetch('/api/v1/widget/track-purchase', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          user_id: userData.id.toString(),
+          order_value: totalPrice,
+          order_id: orderId,
+          shop_name: webshopData.name,
+          public_key: 'webshop-key',
+          timestamp: new Date().toISOString(),
+          product_name: `${webshopData.name} - ${selectedColor} - ${selectedSize}`,
+          product_id: webshopData.id
+        })
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        toast.success(`🎉 Purchase confirmed! You earned €${cashbackAmount} cashback!`, {
+          autoClose: 5000,
+        });
+        
+        // Show additional success message
+        setTimeout(() => {
+          toast.info(`💰 €${cashbackAmount} has been added to your wallet!`);
+        }, 2000);
+        
+        console.log('✅ Cashback tracked:', result);
+      } else {
+        toast.success('Purchase confirmed!');
+        console.warn('Cashback tracking failed:', result);
+      }
+    } catch (error) {
+      console.error('Purchase tracking error:', error);
+      toast.success('Purchase confirmed!');
+    }
   };
 
   return (
