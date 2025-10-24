@@ -13,97 +13,188 @@ interface Mail {
   body: string;
   date: string;
   unread: boolean;
-  category: "inbox" | "sent";
+  category: "inbox" | "sent" | "pending";
   thread?: Mail[];
 }
 
-const EMAIL_API_URL = process.env.NEXT_PUBLIC_EMAIL_API_URL || "https://api.answer24.nl/api/v1";
+const EMAIL_API_URL =
+  process.env.NEXT_PUBLIC_EMAIL_API_URL || "https://api.answer24.nl/api/v1";
 
 export default function EmailDashboardClient() {
   const [emails, setEmails] = useState<Mail[]>([]);
   const [selectedMail, setSelectedMail] = useState<Mail | null>(null);
   const [isComposing, setIsComposing] = useState(false);
   const [reply, setReply] = useState("");
-  const [folder, setFolder] = useState<"inbox" | "sent">("inbox");
+  const [folder, setFolder] = useState<"inbox" | "sent" | "pending">("inbox");
   const [loading, setLoading] = useState(false);
 
-  // Get token or fallback to user_data.id
-  const token = localStorage.getItem("auth_token");
-  const userData = localStorage.getItem("user_data");
+  const token =
+    typeof window !== "undefined"
+      ? localStorage.getItem("auth_token")?.split(",")[1]?.replace("]", "").trim()
+      : null;
+
+  const userData =
+    typeof window !== "undefined" ? localStorage.getItem("user_data") : null;
   const user = userData ? JSON.parse(userData) : null;
   const userId = user?.id;
+  const userEmail = user?.email || `user${userId}@answer24.com`;
+
+  const headers = token ? { Authorization: `Bearer ${token}` } : {};
 
   useEffect(() => {
     fetchEmails();
   }, [folder]);
 
+  useEffect(() => {
+    // Retry pending emails every 30 seconds
+    const interval = setInterval(() => {
+      retryPendingEmails();
+    }, 30000);
+
+    return () => clearInterval(interval);
+  }, [emails]);
+
   const fetchEmails = async () => {
     try {
       setLoading(true);
 
-      const headers: any = {};
-      if (token) headers.Authorization = `Bearer ${token}`;
-
       const response = await axios.get(`${EMAIL_API_URL}/emails`, {
         headers,
-        params: { folder },
+        params: { folder: folder === "pending" ? "Sent" : folder },
       });
 
-      setEmails(response.data.data || []);
-    } catch (error: any) {
-      // console.error("Error fetching emails:", error);
-      // toast.error("Failed to load emails");
+      const data = response.data?.data?.data || [];
+      const formatted = data.map((email: any) => ({
+        id: email.id,
+        from: email.messages?.[0]?.from || "Unknown",
+        to: email.messages?.[0]?.to || [],
+        subject: email.subject || "(No Subject)",
+        body: email.messages?.[0]?.body || "",
+        date: email.updated_at,
+        unread: email.unread_count > 0,
+        category: folder === "pending" ? "pending" : folder,
+        thread: email.messages || [],
+      }));
+
+      setEmails(formatted);
+    } catch {
+      // suppress errors
     } finally {
       setLoading(false);
     }
   };
 
   const handleSendEmail = async (to: string, subject: string, body: string) => {
+    const toArray = to.split(",").map((t) => t.trim()).filter(Boolean);
+
+    // Add to pending list first
+    const pendingMail: Mail = {
+      id: Date.now(),
+      from: userEmail,
+      to: toArray,
+      subject: subject || "(No Subject)",
+      body,
+      date: new Date().toISOString(),
+      unread: false,
+      category: "pending",
+    };
+    setEmails((prev) => [...prev, pendingMail]);
+    toast.info("Mail added to pending...");
+
     try {
-      const headers: any = {};
-      if (token) headers.Authorization = `Bearer ${token}`;
+      await axios.post(
+        `${EMAIL_API_URL}/emails`,
+        { to: toArray, subject, body },
+        { headers }
+      );
 
-      const payload = {
-        from_id: userId,
-        to,
-        subject,
-        body,
-      };
+      // Update mail to sent
+      setEmails((prev) =>
+        prev.map((m) =>
+          m.id === pendingMail.id ? { ...m, category: "sent" } : m
+        )
+      );
 
-      await axios.post(`${EMAIL_API_URL}/emails`, payload, { headers });
-      toast.success("Email sent successfully!");
+      toast.success("Mail sent successfully!");
+    } catch {
+      // leave it in pending
+      toast.success("Mail stored in pending (will retry automatically).");
+    } finally {
       setIsComposing(false);
       fetchEmails();
-    } catch (error: any) {
-      console.error("Error sending email:", error);
-      toast.success("Email sent successfully!");
+    }
+  };
+
+  const retryPendingEmails = async () => {
+    const pending = emails.filter((m) => m.category === "pending");
+
+    for (const mail of pending) {
+      try {
+        await axios.post(
+          `${EMAIL_API_URL}/emails`,
+          {
+            to: mail.to,
+            subject: mail.subject,
+            body: mail.body,
+          },
+          { headers }
+        );
+
+        // Move to sent
+        setEmails((prev) =>
+          prev.map((m) =>
+            m.id === mail.id ? { ...m, category: "sent" } : m
+          )
+        );
+
+        toast.success(`Pending email to ${mail.to.join(", ")} sent successfully!`);
+      } catch {
+        // still pending, no action needed
+      }
     }
   };
 
   const handleReply = async () => {
     if (!selectedMail) return;
 
+    const threadId = selectedMail.id;
+
     try {
-      const headers: any = {};
-      if (token) headers.Authorization = `Bearer ${token}`;
+      await axios.post(
+        `${EMAIL_API_URL}/emails`,
+        {
+          thread_id: threadId,
+          to: [selectedMail.from],
+          body: reply,
+        },
+        { headers }
+      );
 
-      const payload = {
-        from_id: userId,
-        to: selectedMail.from,
-        subject: `Re: ${selectedMail.subject}`,
-        body: reply,
-      };
-
-      await axios.post(`${EMAIL_API_URL}/emails`, payload, { headers });
       toast.success("Reply sent!");
       setReply("");
       setSelectedMail(null);
       fetchEmails();
-    } catch (error: any) {
-      console.error("Error replying:", error);
-      toast.error("Failed to send reply");
+    } catch {
+      // store reply as pending
+      const pendingReply: Mail = {
+        id: Date.now(),
+        from: userEmail,
+        to: [selectedMail.from],
+        subject: `Re: ${selectedMail.subject}`,
+        body: reply,
+        date: new Date().toISOString(),
+        unread: false,
+        category: "pending",
+      };
+      setEmails((prev) => [...prev, pendingReply]);
+      toast.success("Reply stored in pending (will retry automatically).");
+      setReply("");
+      setSelectedMail(null);
+      fetchEmails();
     }
   };
+
+  const filteredEmails = emails.filter((e) => e.category === folder);
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
@@ -117,12 +208,11 @@ export default function EmailDashboardClient() {
         </button>
       </div>
 
-      {/* Folder Toggle */}
       <div className="flex gap-4 mb-4">
-        {["inbox", "sent"].map((type) => (
+        {["inbox", "sent", "pending"].map((type) => (
           <button
             key={type}
-            onClick={() => setFolder(type as "inbox" | "sent")}
+            onClick={() => setFolder(type as any)}
             className={`px-4 py-2 rounded-xl ${
               folder === type
                 ? "bg-blue-600 text-white"
@@ -134,17 +224,15 @@ export default function EmailDashboardClient() {
         ))}
       </div>
 
-      {/* Loading State */}
       {loading ? (
         <div className="text-center py-10 text-gray-600">Loading emails...</div>
       ) : (
         <div className="grid md:grid-cols-3 gap-6">
-          {/* Email List */}
           <div className="col-span-1 bg-white rounded-2xl shadow p-4 overflow-y-auto max-h-[70vh]">
-            {emails.length === 0 ? (
+            {filteredEmails.length === 0 ? (
               <p className="text-gray-500 text-center py-8">No emails found</p>
             ) : (
-              emails.map((mail) => (
+              filteredEmails.map((mail) => (
                 <div
                   key={mail.id}
                   onClick={() => setSelectedMail(mail)}
@@ -154,16 +242,20 @@ export default function EmailDashboardClient() {
                 >
                   <p className="font-semibold text-gray-900">{mail.subject}</p>
                   <p className="text-sm text-gray-600 truncate">{mail.body}</p>
-                  <p className="text-xs text-gray-400 mt-1">{mail.date}</p>
+                  <p className="text-xs text-gray-400 mt-1">
+                    {new Date(mail.date).toLocaleString()}
+                  </p>
                 </div>
               ))
             )}
           </div>
 
-          {/* Email View / Compose */}
           <div className="col-span-2 bg-white rounded-2xl shadow p-6">
             {isComposing ? (
-              <ComposeEmail onSend={handleSendEmail} onCancel={() => setIsComposing(false)} />
+              <ComposeEmail
+                onSend={handleSendEmail}
+                onCancel={() => setIsComposing(false)}
+              />
             ) : selectedMail ? (
               <div>
                 <button
@@ -173,8 +265,10 @@ export default function EmailDashboardClient() {
                   <ArrowLeft size={18} /> Back
                 </button>
                 <h2 className="text-xl font-bold mb-2">{selectedMail.subject}</h2>
-                <p className="text-sm text-gray-500 mb-6">{selectedMail.from}</p>
-                <p className="mb-6">{selectedMail.body}</p>
+                <p className="text-sm text-gray-500 mb-6">
+                  From: {selectedMail.from}
+                </p>
+                <p className="mb-6 whitespace-pre-line">{selectedMail.body}</p>
                 <textarea
                   value={reply}
                   onChange={(e) => setReply(e.target.value)}
@@ -190,7 +284,9 @@ export default function EmailDashboardClient() {
                 </button>
               </div>
             ) : (
-              <p className="text-gray-500 text-center py-10">Select an email to view</p>
+              <p className="text-gray-500 text-center py-10">
+                Select an email to view
+              </p>
             )}
           </div>
         </div>
@@ -211,7 +307,7 @@ function ComposeEmail({
   const [body, setBody] = useState("");
 
   const handleSubmit = () => {
-    if (!to || !subject || !body) return toast.error("All fields are required");
+    if (!to || !body) return toast.error("Recipient and message are required");
     onSend(to, subject, body);
   };
 
@@ -224,8 +320,8 @@ function ComposeEmail({
         </button>
       </div>
       <input
-        type="email"
-        placeholder="To"
+        type="text"
+        placeholder="Recipients (comma separated)"
         value={to}
         onChange={(e) => setTo(e.target.value)}
         className="w-full border rounded-xl p-3 mb-3"
