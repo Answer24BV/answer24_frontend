@@ -35,27 +35,11 @@ export default function Details() {
   const API_BASE_URL =
     process.env.NEXT_PUBLIC_API_URL || "https://api.answer24.nl/api/v1";
 
-  // ✅ Extract token from localStorage properly
-  const authToken =
-    typeof window !== "undefined"
-      ? localStorage
-          .getItem("auth_token")
-          ?.replace(/[\[\]']+/g, "")
-          .split(",")[1]
-          ?.trim()
-      : null;
+  useEffect(() => {
+    axios.defaults.headers.common["Accept"] = "application/json";
+    axios.defaults.headers.common["Content-Type"] = "application/json";
+  }, []);
 
-  // ✅ Create axios instance with headers
-  const api = axios.create({
-    baseURL: API_BASE_URL,
-    headers: {
-      Accept: "application/json",
-      "Content-Type": "application/json",
-      ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
-    },
-  });
-
-  // ✅ Load user email from localStorage
   useEffect(() => {
     try {
       const storedUserData = localStorage.getItem("user_data");
@@ -70,15 +54,14 @@ export default function Details() {
     }
   }, []);
 
-  // ✅ Fetch company by email
   useEffect(() => {
     if (!userEmail) return;
 
     const fetchCompany = async () => {
       try {
         setLoading(true);
-        const { data } = await api.get(
-          `/user-company/email/${encodeURIComponent(userEmail)}`
+        const { data } = await axios.get(
+          `${API_BASE_URL}/user-company/email/${encodeURIComponent(userEmail)}`
         );
 
         if (data.success && data.data.length > 0) {
@@ -89,8 +72,7 @@ export default function Details() {
         } else {
           setCompany(null);
         }
-      } catch (err) {
-        console.error("API error:", err);
+      } catch {
         const localData = localStorage.getItem("company_data");
         if (localData) {
           const parsed = JSON.parse(localData);
@@ -111,26 +93,20 @@ export default function Details() {
     localStorage.setItem("company_data", JSON.stringify(updated));
   };
 
-  // ✅ Save or update company data
   const handleSave = async () => {
     if (!userEmail) return;
     setSaving(true);
 
     try {
-      const { data } = await api.post(`/user-companies`, {
+      const { data } = await axios.post(`${API_BASE_URL}/user-companies`, {
         ...form,
         email: userEmail,
       });
 
-      if (data.success) {
-        setCompany(data.data);
-        localStorage.setItem("company_data", JSON.stringify(data.data));
-      } else {
-        localStorage.setItem("company_data", JSON.stringify(form));
-      }
+      setCompany(data.data);
+      localStorage.setItem("company_data", JSON.stringify(data.data));
       setEditing(false);
-    } catch (err) {
-      console.error("Error saving company:", err);
+    } catch {
       localStorage.setItem("company_data", JSON.stringify(form));
       setEditing(false);
     } finally {
@@ -213,6 +189,10 @@ export default function Details() {
   // CARD MODE
   return (
     <div className="">
+      {/* <h2 className="text-2xl font-semibold mb-6 text-neutral-900 dark:text-neutral-100 text-center sm:text-left">
+        Your Company
+      </h2> */}
+
       <div className="rounded-2xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 p-6 sm:p-8 shadow-md hover:shadow-lg transition-all duration-300">
         <div className="mb-6">
           <h3 className="text-2xl font-semibold text-neutral-800 dark:text-neutral-100">
@@ -235,6 +215,7 @@ export default function Details() {
             </div>
           )}
 
+          {/* Link Fields with Copy Buttons */}
           {[
             { label: "Website", value: company.website_url },
             { label: "Facebook", value: company.facebook_url },
