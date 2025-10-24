@@ -75,7 +75,7 @@ export default function EmailDashboardClient() {
       }
       toast.success("Emails loaded successfully!");
     } catch {
-      toast.success("Loaded cached/pending emails (if any).");
+      toast.success("Loaded Pending mails.");
     } finally {
       setLoading(false);
     }
@@ -122,7 +122,7 @@ export default function EmailDashboardClient() {
       removePendingMailFromLocalStorage(pendingMail.id);
       toast.success("Mail sent successfully!");
     } catch {
-      toast.success("Mail stored in Pending (will retry automatically).");
+      toast.success("Mail stored in Pending.");
     } finally {
       setIsComposing(false);
       fetchEmails();
@@ -152,7 +152,7 @@ export default function EmailDashboardClient() {
         category: "pending",
       };
       addPendingMailLocally(pendingReply);
-      toast.success("Reply stored in Pending (will retry automatically).");
+      toast.success("Reply stored in Pending.");
       setReply("");
       setSelectedMail(null);
       fetchEmails();
