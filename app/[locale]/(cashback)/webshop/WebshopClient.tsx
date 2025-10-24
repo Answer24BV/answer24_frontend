@@ -220,9 +220,10 @@ const WebshopClient = () => {
 
   const handleShopClick = (shop: Webshop) => {
     // Backend should generate tracking link with user ID
-    // For now, just navigate to shop detail page
-    // Note: For dummy shops, this will still route to /webshop/{id}, but detail page may need similar fallback
-    router.push(`/webshop/${shop.id}`);
+    // For now, just navigate to shop detail page with proper locale
+    // Using window.location for proper routing with locale
+    const locale = typeof window !== 'undefined' ? window.location.pathname.split('/')[1] : 'en';
+    window.location.href = `/${locale}/webshop/${shop.id}`;
   };
 
   // Show loading state
