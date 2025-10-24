@@ -77,7 +77,7 @@ export default function EmailDashboardClient() {
       }
       toast.success("Emails loaded successfully!");
     } catch (err) {
-      toast.warn("Failed to fetch emails. Loading pending...");
+      // toast.warn("Failed to fetch emails. Loading pending...");
       setFolder("pending");
     } finally {
       setLoading(false);
