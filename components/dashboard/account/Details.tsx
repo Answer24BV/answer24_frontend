@@ -35,15 +35,21 @@ export default function Details() {
   const API_BASE_URL =
     process.env.NEXT_PUBLIC_API_URL || "https://api.answer24.nl/api/v1";
 
-  // ✅ Extract token from localStorage properly
-  const authToken =
-    typeof window !== "undefined"
-      ? localStorage
-          .getItem("auth_token")
-          ?.replace(/[\[\]']+/g, "")
-          .split(",")[1]
-          ?.trim()
-      : null;
+  // ✅ Extract token from localStorage safely
+  const getAuthToken = () => {
+    try {
+      const stored = localStorage.getItem("auth_token");
+      if (stored && stored.includes(",")) {
+        const parts = stored.replace(/[\[\]']+/g, "").split(",");
+        return parts[1]?.trim() || parts[0]?.trim();
+      }
+      return stored?.trim() || null;
+    } catch {
+      return null;
+    }
+  };
+
+  const authToken = typeof window !== "undefined" ? getAuthToken() : null;
 
   // ✅ Create axios instance with headers
   const api = axios.create({

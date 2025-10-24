@@ -32,11 +32,17 @@ export default function EmailDashboardClient() {
     body: "",
   });
 
-  // Get token from localStorage
+  // Get token and user data
   const authToken =
     typeof window !== "undefined"
       ? localStorage.getItem("auth_token")?.split(",")[1]?.replace("]", "").trim()
       : null;
+
+  const userData =
+    typeof window !== "undefined" ? localStorage.getItem("user_data") : null;
+  const parsedUser = userData ? JSON.parse(userData) : null;
+  const userId = parsedUser?.id;
+  const userEmail = parsedUser?.email || `user${userId}@answer24.com`;
 
   const api = axios.create({
     baseURL: EMAIL_API_BASE_URL,
@@ -93,7 +99,7 @@ export default function EmailDashboardClient() {
 
     const pendingMail: Mail = {
       id: Date.now(),
-      from: "You",
+      from: userEmail || "You",
       to: newMail.to,
       subject: newMail.subject || "(No Subject)",
       body: newMail.body,
@@ -106,11 +112,15 @@ export default function EmailDashboardClient() {
     toast.info("Mail added to Pending...");
 
     try {
-      const response = await api.post("/emails", {
+      const payload = {
+        from: userEmail,
         to: newMail.to,
         subject: newMail.subject,
         body: newMail.body,
-      });
+        user_id: userId,
+      };
+
+      const response = await api.post("/emails", payload);
 
       if (response.data.success) {
         toast.success("Mail sent successfully!");
@@ -268,7 +278,7 @@ export default function EmailDashboardClient() {
                 <div
                   key={index}
                   className={`p-3 rounded-lg border ${
-                    msg.from === "You"
+                    msg.from === userEmail
                       ? "bg-blue-50 border-blue-200 ml-auto"
                       : "bg-gray-50 border-gray-200 mr-auto"
                   }`}
