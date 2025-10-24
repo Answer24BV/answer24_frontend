@@ -274,16 +274,9 @@ export default function WidgetManagementClient() {
 
   const copyEmbedCode = () => {
     if (settings?.public_key) {
-      const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL?.replace('/api/v1', '') || 'https://answer24_backend.test';
-      const embedCode = `<script
-  src="${baseUrl}/widget/v1/answer24.js"
-  async
-  data-public-key="${settings.public_key}"
-  data-locale="nl-NL"
-  data-theme="auto"
-  data-color-primary="${settings.theme.primary}"
-  data-position="${settings.behavior.position}"
-></script>`;
+      const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000';
+      const embedCode = `<!-- Add this before closing </body> tag on your website -->
+<script src="${baseUrl}/widget/answer24-widget.js" data-public-key="${settings.public_key}"></script>`;
       navigator.clipboard.writeText(embedCode);
       toast.success('Embed code copied to clipboard!');
     }
@@ -418,25 +411,29 @@ export default function WidgetManagementClient() {
               </div>
 
               <div className="space-y-2">
-                <Label>Embed Code</Label>
-                <div className="flex gap-2">
+                <Label>Embed Code (Copy & Paste on Your Website)</Label>
+                <div className="flex flex-col gap-2">
                   <Textarea
-                    value={`<script
-  src="${process.env.NEXT_PUBLIC_API_BASE_URL?.replace('/api/v1', '') || 'https://answer24_backend.test'}/widget/v1/answer24.js"
-  async
-  data-public-key="${settings.public_key}"
-  data-locale="nl-NL"
-  data-theme="auto"
-  data-color-primary="${settings.theme.primary}"
-  data-position="${settings.behavior.position}"
-></script>`}
+                    value={`<!-- Add this before closing </body> tag on your website -->
+<script src="${typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000'}/widget/answer24-widget.js" data-public-key="${settings.public_key}"></script>`}
                     readOnly
-                    rows={6}
+                    rows={3}
                     className="font-mono text-sm"
                   />
-                  <Button size="sm" variant="outline" onClick={copyEmbedCode}>
-                    <Copy className="h-4 w-4" />
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button size="sm" variant="outline" onClick={copyEmbedCode} className="flex-1">
+                      <Copy className="h-4 w-4 mr-2" />
+                      Copy Embed Code
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      onClick={() => window.open('/widget/demo.html', '_blank')}
+                      className="flex-1"
+                    >
+                      View Demo
+                    </Button>
+                  </div>
                 </div>
               </div>
             </CardContent>

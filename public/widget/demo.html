@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Answer24 Widget Demo - External Website Example</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      margin: 0;
+      padding: 40px 20px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+    }
+    
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: white;
+      padding: 40px;
+      border-radius: 16px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+    
+    h1 {
+      color: #1f2937;
+      margin-bottom: 16px;
+    }
+    
+    .badge {
+      display: inline-block;
+      background: #10b981;
+      color: white;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 14px;
+      margin-bottom: 24px;
+    }
+    
+    p {
+      color: #6b7280;
+      line-height: 1.6;
+      margin-bottom: 16px;
+    }
+    
+    .code-block {
+      background: #1f2937;
+      color: #10b981;
+      padding: 20px;
+      border-radius: 8px;
+      overflow-x: auto;
+      margin: 24px 0;
+    }
+    
+    .code-block code {
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+    }
+    
+    .feature {
+      background: #f3f4f6;
+      padding: 16px;
+      border-radius: 8px;
+      margin-bottom: 12px;
+    }
+    
+    .feature h3 {
+      margin: 0 0 8px 0;
+      color: #1f2937;
+      font-size: 16px;
+    }
+    
+    .feature p {
+      margin: 0;
+      font-size: 14px;
+    }
+    
+    .btn {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      margin-right: 12px;
+      margin-bottom: 12px;
+    }
+    
+    .btn:hover {
+      opacity: 0.9;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🤖 Answer24 Widget Demo</h1>
+    <span class="badge">✓ Successfully Embedded</span>
+    
+    <p>
+      This is a demo page showing how the Answer24 chat widget appears on an external website.
+      The widget is loaded from your Answer24 dashboard and inherits all your custom settings.
+    </p>
+    
+    <h2>📋 How to Embed on Your Website</h2>
+    
+    <div class="code-block">
+      <code>&lt;!-- Add this script before closing &lt;/body&gt; tag --&gt;<br>
+&lt;script src="http://localhost:3000/widget/answer24-widget.js" data-public-key="YOUR_PUBLIC_KEY"&gt;&lt;/script&gt;</code>
+    </div>
+    
+    <h2>✨ Features</h2>
+    
+    <div class="feature">
+      <h3>🎨 Customizable Appearance</h3>
+      <p>All colors, fonts, and styling are controlled from your dashboard at <code>http://localhost:3000/nl/dashboard/admin/widget</code></p>
+    </div>
+    
+    <div class="feature">
+      <h3>🔄 Live Updates</h3>
+      <p>When you change settings in your dashboard, the widget updates automatically - no code changes needed!</p>
+    </div>
+    
+    <div class="feature">
+      <h3>📱 Fully Responsive</h3>
+      <p>Works perfectly on desktop, tablet, and mobile devices</p>
+    </div>
+    
+    <div class="feature">
+      <h3>🤖 AI-Powered</h3>
+      <p>Connected to your AI assistant with context-aware responses</p>
+    </div>
+    
+    <h2>🎮 Try the Widget</h2>
+    <p>Look for the chat button in the bottom-right corner! You can also control it programmatically:</p>
+    
+    <button class="btn" onclick="Answer24Widget.open()">Open Widget</button>
+    <button class="btn" onclick="Answer24Widget.close()">Close Widget</button>
+    <button class="btn" onclick="Answer24Widget.sendMessage('Hello from demo!')">Send Test Message</button>
+    
+    <hr style="margin: 40px 0; border: none; border-top: 1px solid #e5e7eb;">
+    
+    <h2>⚙️ Current Settings</h2>
+    <p>
+      The widget below is using the settings from your Answer24 dashboard. 
+      Try changing the colors in <strong>Dashboard → Admin → Widget Management → Appearance</strong> 
+      and watch it update in real-time!
+    </p>
+    
+    <p style="font-size: 14px; color: #9ca3af;">
+      💡 <strong>Tip:</strong> Open your dashboard in another tab, change the primary color, 
+      and watch the widget update without refreshing this page!
+    </p>
+  </div>
+
+  <!-- Answer24 Widget - This is what you add to your website -->
+  <script src="http://localhost:3000/widget/answer24-widget.js" data-public-key="demo-key-123"></script>
+  
+  <script>
+    // Optional: Show widget info
+    console.log('%c🤖 Answer24 Widget Loaded!', 'color: #10b981; font-size: 16px; font-weight: bold;');
+    console.log('Widget API:', window.Answer24Widget);
+  </script>
+</body>
+</html>
+
