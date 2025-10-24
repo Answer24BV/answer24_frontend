@@ -18,7 +18,7 @@ interface Mail {
 }
 
 const EMAIL_API_BASE_URL =
-  process.env.NEXT_PUBLIC_EMAIL_API_BASE_URL || "https://answer24.nl/api/v1";
+  process.env.NEXT_PUBLIC_EMAIL_API_BASE_URL || "https://api.answer24.nl/api/v1";
 
 export default function EmailDashboardClient() {
   const [mails, setMails] = useState<Mail[]>([]);
