@@ -5,6 +5,7 @@ import axios from "axios";
 import { Plus, ArrowLeft, X, Send } from "lucide-react";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { tokenUtils } from "@/utils/auth";
 
 interface Mail {
   id: number;
@@ -28,33 +29,34 @@ export default function EmailDashboardClient() {
   const [folder, setFolder] = useState<"inbox" | "sent" | "pending">("inbox");
   const [loading, setLoading] = useState(false);
 
-  const userDataRaw = typeof window !== "undefined" ? localStorage.getItem("user_data") : null;
-  const parsedUser = userDataRaw ? JSON.parse(userDataRaw) : null;
-  const userId = parsedUser?.id ?? null;
-  const userEmail = parsedUser?.email ?? (userId ? `user${userId}@example.com` : "you@example.com");
+  const user = tokenUtils.getUser();
+  const userId = user?.id ?? null;
+  const userEmail = user?.email ?? (userId ? `user${userId}@example.com` : "you@example.com");
+  const token = tokenUtils.getToken();
 
+  const authHeaders = token ? { Authorization: `Bearer ${token}` } : {};
   const extraParams = userId ? { user_id: userId } : {};
 
-  useEffect(() => {
-  fetchEmails();
-}, [folder]);
+  // Load emails on folder change
+  useEffect(() => { fetchEmails(); }, [folder]);
 
-
+  // Retry pending emails every 30s
   useEffect(() => {
     const interval = setInterval(retryPendingEmails, 30000);
     return () => clearInterval(interval);
   }, [emails]);
 
+  // --- FETCH EMAILS ---
   const fetchEmails = async () => {
     setLoading(true);
     try {
       if (folder === "pending") {
-        // Load pending from localStorage
         const stored = localStorage.getItem("pendingEmails");
         const pending: Mail[] = stored ? JSON.parse(stored) : [];
         setEmails(pending);
       } else {
         const resp = await axios.get(`${EMAIL_API_URL}/emails`, {
+          headers: authHeaders,
           params: { folder: folder === "inbox" ? "Inbox" : "Sent", ...extraParams },
         });
 
@@ -74,34 +76,40 @@ export default function EmailDashboardClient() {
         setEmails(formatted);
       }
       toast.success("Emails loaded successfully!");
-    } catch {
-      toast.success("Loaded Pending mails.");
+    } catch (err) {
+      toast.warn("Failed to fetch emails. Loading pending...");
+      setFolder("pending");
     } finally {
       setLoading(false);
     }
   };
 
-  const addPendingMailLocally = (mail: Mail) => {
+  // --- PENDING EMAIL HANDLING ---
+  const addPendingMail = (mail: Mail) => {
     setEmails(prev => [...prev, mail]);
     try {
       const stored = localStorage.getItem("pendingEmails");
-      const arr = stored ? JSON.parse(stored) : [];
-      arr.push(mail);
+      const arr: Mail[] = stored ? JSON.parse(stored) : [];
+      if (!arr.find(m => m.id === mail.id)) arr.push(mail);
       localStorage.setItem("pendingEmails", JSON.stringify(arr));
     } catch {}
   };
 
-  const removePendingMailFromLocalStorage = (id: number) => {
+  const removePendingMail = (id: number) => {
+    setEmails(prev => prev.filter(m => m.id !== id));
     try {
       const stored = localStorage.getItem("pendingEmails");
-      const arr = stored ? JSON.parse(stored) : [];
-      const newArr = arr.filter((m: any) => m.id !== id);
+      const arr: Mail[] = stored ? JSON.parse(stored) : [];
+      const newArr = arr.filter(m => m.id !== id);
       localStorage.setItem("pendingEmails", JSON.stringify(newArr));
     } catch {}
   };
 
+  // --- SEND EMAIL ---
   const handleSendEmail = async (to: string, subject: string, body: string) => {
     const toArray = to.split(",").map(s => s.trim()).filter(Boolean);
+    if (toArray.length === 0) return toast.error("Please add at least one recipient");
+
     const pendingMail: Mail = {
       id: Date.now(),
       from: userEmail,
@@ -113,29 +121,29 @@ export default function EmailDashboardClient() {
       category: "pending",
     };
 
-    addPendingMailLocally(pendingMail);
-    toast.success("Mail queued — added to Pending.");
+    addPendingMail(pendingMail);
+    toast.info("Mail queued — added to Pending.");
 
     try {
-      await axios.post(`${EMAIL_API_URL}/emails`, { to: toArray, subject, body, ...extraParams });
+      await axios.post(`${EMAIL_API_URL}/emails`, { to: toArray, subject, body, ...extraParams }, { headers: authHeaders });
       setEmails(prev => prev.map(m => m.id === pendingMail.id ? { ...m, category: "sent" } : m));
-      removePendingMailFromLocalStorage(pendingMail.id);
+      removePendingMail(pendingMail.id);
       toast.success("Mail sent successfully!");
     } catch {
-      toast.success("Mail stored in Pending.");
+      toast.warn("Mail stored in Pending. Will retry automatically.");
     } finally {
       setIsComposing(false);
       fetchEmails();
     }
   };
 
+  // --- REPLY ---
   const handleReply = async () => {
     if (!selectedMail) return;
-    const threadId = selectedMail.id;
-    const payload = { thread_id: threadId, to: [selectedMail.from], body: reply, ...extraParams };
+    const payload = { thread_id: selectedMail.id, to: [selectedMail.from], body: reply, ...extraParams };
 
     try {
-      await axios.post(`${EMAIL_API_URL}/emails`, payload);
+      await axios.post(`${EMAIL_API_URL}/emails`, payload, { headers: authHeaders });
       toast.success("Reply sent!");
       setReply("");
       setSelectedMail(null);
@@ -151,30 +159,23 @@ export default function EmailDashboardClient() {
         unread: false,
         category: "pending",
       };
-      addPendingMailLocally(pendingReply);
-      toast.success("Reply stored in Pending.");
+      addPendingMail(pendingReply);
+      toast.info("Reply stored in Pending.");
       setReply("");
       setSelectedMail(null);
       fetchEmails();
     }
   };
 
+  // --- RETRY PENDING ---
   const retryPendingEmails = async () => {
-    const pendingFromState = emails.filter(e => e.category === "pending");
-    let pendingFromStorage: any[] = [];
-    try { pendingFromStorage = JSON.parse(localStorage.getItem("pendingEmails") || "[]"); } catch {}
-    
-    const byId = new Map<number, Mail>();
-    pendingFromStorage.forEach(m => byId.set(m.id, m));
-    pendingFromState.forEach(m => byId.set(m.id, m));
-    const pendingUnified = Array.from(byId.values());
-
-    for (const mail of pendingUnified) {
+    const pending = emails.filter(e => e.category === "pending");
+    for (const mail of pending) {
       try {
-        await axios.post(`${EMAIL_API_URL}/emails`, { to: mail.to, subject: mail.subject, body: mail.body, ...extraParams });
+        await axios.post(`${EMAIL_API_URL}/emails`, { to: mail.to, subject: mail.subject, body: mail.body, ...extraParams }, { headers: authHeaders });
         setEmails(prev => prev.map(p => p.id === mail.id ? { ...p, category: "sent" } : p));
-        removePendingMailFromLocalStorage(mail.id);
-        toast.success(`Pending message to ${mail.to.join(", ")} sent!`);
+        removePendingMail(mail.id);
+        toast.success(`Pending email to ${mail.to.join(", ")} sent!`);
       } catch {}
     }
   };
@@ -242,6 +243,7 @@ export default function EmailDashboardClient() {
   );
 }
 
+// --- COMPOSE EMAIL COMPONENT ---
 function ComposeEmail({ onSend, onCancel }: { onSend: (to: string, subject: string, body: string) => void; onCancel: () => void; }) {
   const [to, setTo] = useState("");
   const [subject, setSubject] = useState("");
