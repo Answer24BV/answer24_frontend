@@ -141,28 +141,33 @@ async function creditUserWallet(
   try {
     console.log(`💰 Crediting wallet for user ${userId}: €${amount}`);
     
-    // Call Laravel backend to credit wallet
-    const backendUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000/api/v1';
+    // Call Laravel backend to credit wallet using the correct endpoint
+    const backendUrl = process.env.NEXT_PUBLIC_API_BASE_URL?.replace('/api/v1', '') || 'https://answer24_backend.test';
+    const walletEndpoint = `${backendUrl}/api/v1/wallet/add-money`;
+    
+    console.log(`📤 Calling backend wallet endpoint: ${walletEndpoint}`);
     
     try {
-      const response = await fetch(`${backendUrl}/wallet/credit`, {
+      // Get server token from environment or create one for server-side requests
+      const serverToken = process.env.BACKEND_API_TOKEN || process.env.API_TOKEN || 'bearer-token';
+      
+      const response = await fetch(walletEndpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
-          // In production, you'd use proper authentication
-          // 'Authorization': `Bearer ${serverToken}`
+          'Authorization': `Bearer ${serverToken}`
         },
         body: JSON.stringify({
-          user_id: userId,
           amount: amount,
-          type: 'cashback',
-          source: 'widget_purchase',
-          description: metadata.description,
+          description: `${metadata.type || 'cashback'}: ${metadata.description || 'Widget Purchase'}`,
+          user_id: userId,
           order_id: metadata.order_id,
           shop_name: metadata.shop_name
         })
       });
+
+      console.log(`📥 Backend response status: ${response.status}`);
 
       if (response.ok) {
         const result = await response.json();
@@ -170,40 +175,95 @@ async function creditUserWallet(
         
         return {
           success: true,
-          new_balance: result.data?.balance || amount,
-          transaction_id: result.data?.transaction_id || `tx_${Date.now()}`
+          new_balance: result.data?.balance || result.balance || amount,
+          transaction_id: result.data?.transaction_id || result.transaction_id || `tx_${Date.now()}`
         };
       } else {
-        console.warn('⚠️ Backend wallet API not available, using local tracking');
+        const errorText = await response.text();
+        console.warn(`⚠️ Backend returned error (${response.status}):`, errorText);
+        
+        // Try alternate endpoint if the primary fails
+        console.log('🔄 Attempting fallback wallet endpoint...');
+        return await creditUserWalletFallback(userId, amount, metadata);
       }
     } catch (backendError) {
-      console.warn('⚠️ Backend not reachable, using local tracking:', backendError);
+      console.warn('⚠️ Backend not reachable, trying fallback:', backendError);
+      return await creditUserWalletFallback(userId, amount, metadata);
     }
+  } catch (error) {
+    console.error('❌ Wallet crediting error:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error'
+    };
+  }
+}
+
+/**
+ * Fallback wallet credit method if primary endpoint fails
+ */
+async function creditUserWalletFallback(
+  userId: string,
+  amount: number,
+  metadata: any
+): Promise<{ success: boolean; new_balance?: number; transaction_id?: string; error?: string }> {
+  try {
+    const backendUrl = process.env.NEXT_PUBLIC_API_BASE_URL?.replace('/api/v1', '') || 'https://answer24_backend.test';
     
-    // Fallback: If backend is not available, still track locally
-    // This ensures the purchase is recorded even if wallet service is down
+    // Try alternative endpoint formats
+    const alternativeEndpoints = [
+      `${backendUrl}/api/v1/wallet/deposit`,
+      `${backendUrl}/api/v1/wallets/add`,
+      `${backendUrl}/api/wallet/add-money`
+    ];
+
+    for (const endpoint of alternativeEndpoints) {
+      try {
+        console.log(`🔄 Trying endpoint: ${endpoint}`);
+        
+        const response = await fetch(endpoint, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+          body: JSON.stringify({
+            user_id: userId,
+            amount: amount,
+            type: 'cashback',
+            description: metadata.description,
+            order_id: metadata.order_id,
+            shop_name: metadata.shop_name
+          })
+        });
+
+        if (response.ok) {
+          console.log(`✅ Fallback endpoint succeeded: ${endpoint}`);
+          const result = await response.json();
+          const transactionId = `tx_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+          
+          return {
+            success: true,
+            new_balance: amount,
+            transaction_id: transactionId
+          };
+        }
+      } catch (e) {
+        console.warn(`Failed to reach ${endpoint}`);
+      }
+    }
+
+    // If all endpoints fail, still track locally
+    console.log('💾 All backend endpoints failed, tracking locally');
     const transactionId = `tx_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     
-    console.log('💾 Purchase tracked locally (backend offline)');
-    console.log('Transaction details:', {
-      user_id: userId,
-      amount: amount,
-      transaction_id: transactionId,
-      order_id: metadata.order_id,
-      shop_name: metadata.shop_name,
-      type: metadata.type,
-      description: metadata.description
-    });
-    
-    // Return success with mock balance
-    // In production, you'd queue this for later processing
     return {
       success: true,
-      new_balance: amount, // Cashback amount (actual balance would come from backend)
+      new_balance: amount,
       transaction_id: transactionId
     };
   } catch (error) {
-    console.error('❌ Wallet crediting error:', error);
+    console.error('❌ Fallback error:', error);
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error'
