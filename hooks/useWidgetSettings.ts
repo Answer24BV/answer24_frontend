@@ -101,10 +101,6 @@ export function useWidgetSettings() {
   const [settings, setSettings] = useState<WidgetSettings>(DEFAULT_SETTINGS);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    loadSettings();
-  }, []);
-
   const loadSettings = async () => {
     try {
       // Try to load from localStorage first (set by admin)
@@ -130,6 +126,22 @@ export function useWidgetSettings() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    loadSettings();
+
+    // Listen for widget settings updates
+    const handleSettingsUpdate = () => {
+      console.log('🔄 Widget settings updated, reloading...');
+      loadSettings();
+    };
+
+    window.addEventListener('widget-settings-updated', handleSettingsUpdate);
+
+    return () => {
+      window.removeEventListener('widget-settings-updated', handleSettingsUpdate);
+    };
+  }, []);
 
   return { settings, loading };
 }

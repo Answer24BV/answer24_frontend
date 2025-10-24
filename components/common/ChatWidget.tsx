@@ -41,38 +41,49 @@ interface ChatWidgetProps {
 }
 
 const ChatWidget: React.FC<ChatWidgetProps> = ({ settings }) => {
-  // Use settings or defaults
-  const theme = settings?.theme || {
+  // Use settings or defaults - memoize to avoid recalculating on every render
+  const theme = React.useMemo(() => settings?.theme || {
     primary: '#2563eb',
     foreground: '#ffffff',
     background: '#ffffff',
     radius: 18,
     fontFamily: 'Inter, ui-sans-serif',
     logoUrl: '/Answer24Logo.png'
-  };
+  }, [settings?.theme]);
   
-  const behavior = settings?.behavior || {
+  const behavior = React.useMemo(() => settings?.behavior || {
     position: 'right',
     openOnLoad: false,
     openOnExitIntent: true,
     openOnInactivityMs: 60000,
     zIndex: 9999
-  };
+  }, [settings?.behavior]);
   
-  const i18nStrings = settings?.i18n?.strings || {
+  const i18nStrings = React.useMemo(() => settings?.i18n?.strings || {
     'chat.welcome': "Hi there! I'm answer24, your assistant. How can I help you today?",
     'chat.placeholder': 'Type your message...',
     'chat.send': 'Send'
-  };
-  const [isOpen, setIsOpen] = useState(behavior.openOnLoad);
+  }, [settings?.i18n?.strings]);
+  
+  const [isOpen, setIsOpen] = useState(false);
   const [input, setInput] = useState("");
   const [chatId, setChatId] = useState<string | null>(null);
-  const [messages, setMessages] = useState<Message[]>([
-    {
+  const [messages, setMessages] = useState<Message[]>([]);
+
+  // Update welcome message when i18n strings change
+  useEffect(() => {
+    setMessages([{
       sender: "bot",
       text: i18nStrings['chat.welcome'] || process.env.NEXT_PUBLIC_CHATBOT_WELCOME_MESSAGE || "Hi there! I'm answer24, your assistant. How can I help you today?",
-    },
-  ]);
+    }]);
+  }, [i18nStrings]);
+
+  // Handle openOnLoad behavior
+  useEffect(() => {
+    if (behavior.openOnLoad) {
+      setIsOpen(true);
+    }
+  }, [behavior.openOnLoad]);
 
   // Create helpdesk chat when widget opens
   useEffect(() => {

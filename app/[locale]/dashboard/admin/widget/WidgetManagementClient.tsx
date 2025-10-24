@@ -218,11 +218,15 @@ export default function WidgetManagementClient() {
       if (response.ok) {
         toast.success('Widget settings saved successfully!');
         await loadWidgetSettings(); // Reload to get updated version
+        // Notify all widgets to reload settings
+        window.dispatchEvent(new CustomEvent('widget-settings-updated'));
       } else {
         // If backend is not available, save locally
         console.log('Backend not available, saving settings locally...');
         localStorage.setItem('widget-settings', JSON.stringify(settings));
         toast.success('Widget settings saved locally! (Backend not available)');
+        // Notify all widgets to reload settings
+        window.dispatchEvent(new CustomEvent('widget-settings-updated'));
       }
     } catch (error) {
       console.error('Error saving widget settings:', error);
@@ -230,6 +234,8 @@ export default function WidgetManagementClient() {
       console.log('API not available, saving settings locally...');
       localStorage.setItem('widget-settings', JSON.stringify(settings));
       toast.success('Widget settings saved locally! (Backend not available)');
+      // Notify all widgets to reload settings
+      window.dispatchEvent(new CustomEvent('widget-settings-updated'));
     } finally {
       setSaving(false);
     }
@@ -488,10 +494,19 @@ export default function WidgetManagementClient() {
                   <Input
                     type="color"
                     value={settings.theme.primary}
-                    onChange={(e) => setSettings(prev => prev ? {
-                      ...prev,
-                      theme: { ...prev.theme, primary: e.target.value }
-                    } : null)}
+                    onChange={(e) => {
+                      const newSettings = settings ? {
+                        ...settings,
+                        theme: { ...settings.theme, primary: e.target.value }
+                      } : null;
+                      setSettings(newSettings);
+                      
+                      // Live preview: update localStorage and dispatch event immediately
+                      if (newSettings) {
+                        localStorage.setItem('widget-settings', JSON.stringify(newSettings));
+                        window.dispatchEvent(new CustomEvent('widget-settings-updated'));
+                      }
+                    }}
                   />
                 </div>
                 <div className="space-y-2">
@@ -499,10 +514,19 @@ export default function WidgetManagementClient() {
                   <Input
                     type="color"
                     value={settings.theme.background}
-                    onChange={(e) => setSettings(prev => prev ? {
-                      ...prev,
-                      theme: { ...prev.theme, background: e.target.value }
-                    } : null)}
+                    onChange={(e) => {
+                      const newSettings = settings ? {
+                        ...settings,
+                        theme: { ...settings.theme, background: e.target.value }
+                      } : null;
+                      setSettings(newSettings);
+                      
+                      // Live preview: update localStorage and dispatch event immediately
+                      if (newSettings) {
+                        localStorage.setItem('widget-settings', JSON.stringify(newSettings));
+                        window.dispatchEvent(new CustomEvent('widget-settings-updated'));
+                      }
+                    }}
                   />
                 </div>
                 <div className="space-y-2">
@@ -510,20 +534,38 @@ export default function WidgetManagementClient() {
                   <Input
                     type="number"
                     value={settings.theme.radius}
-                    onChange={(e) => setSettings(prev => prev ? {
-                      ...prev,
-                      theme: { ...prev.theme, radius: parseInt(e.target.value) }
-                    } : null)}
+                    onChange={(e) => {
+                      const newSettings = settings ? {
+                        ...settings,
+                        theme: { ...settings.theme, radius: parseInt(e.target.value) }
+                      } : null;
+                      setSettings(newSettings);
+                      
+                      // Live preview: update localStorage and dispatch event immediately
+                      if (newSettings) {
+                        localStorage.setItem('widget-settings', JSON.stringify(newSettings));
+                        window.dispatchEvent(new CustomEvent('widget-settings-updated'));
+                      }
+                    }}
                   />
                 </div>
                 <div className="space-y-2">
                   <Label>Font Family</Label>
                   <Input
                     value={settings.theme.fontFamily}
-                    onChange={(e) => setSettings(prev => prev ? {
-                      ...prev,
-                      theme: { ...prev.theme, fontFamily: e.target.value }
-                    } : null)}
+                    onChange={(e) => {
+                      const newSettings = settings ? {
+                        ...settings,
+                        theme: { ...settings.theme, fontFamily: e.target.value }
+                      } : null;
+                      setSettings(newSettings);
+                      
+                      // Live preview: update localStorage and dispatch event immediately
+                      if (newSettings) {
+                        localStorage.setItem('widget-settings', JSON.stringify(newSettings));
+                        window.dispatchEvent(new CustomEvent('widget-settings-updated'));
+                      }
+                    }}
                   />
                 </div>
               </div>
