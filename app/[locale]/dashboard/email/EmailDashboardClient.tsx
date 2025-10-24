@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import axios from "axios";
-import { Plus, ArrowLeft, X, Send } from "lucide-react";
+import { Plus, X, Send, ArrowLeft } from "lucide-react";
 import { toast } from "react-toastify";
 
 interface Mail {
@@ -25,22 +25,36 @@ export default function EmailDashboardClient() {
   const [activeTab, setActiveTab] = useState<"inbox" | "sent" | "pending">("inbox");
   const [loading, setLoading] = useState(false);
   const [showComposer, setShowComposer] = useState(false);
+  const [selectedMail, setSelectedMail] = useState<Mail | null>(null);
   const [newMail, setNewMail] = useState({
     to: [] as string[],
     subject: "",
     body: "",
   });
 
-  // Fetch emails based on the active tab
+  // Get token from localStorage
+  const authToken =
+    typeof window !== "undefined"
+      ? localStorage.getItem("auth_token")?.split(",")[1]?.replace("]", "").trim()
+      : null;
+
+  const api = axios.create({
+    baseURL: EMAIL_API_BASE_URL,
+    headers: {
+      Authorization: authToken ? `Bearer ${authToken}` : "",
+    },
+  });
+
+  // Fetch emails
   const fetchEmails = async () => {
     try {
       setLoading(true);
       if (activeTab === "pending") {
         setLoading(false);
-        return; // Pending mails are only local
+        return;
       }
 
-      const res = await axios.get(`${EMAIL_API_BASE_URL}/emails`, {
+      const res = await api.get("/emails", {
         params: { folder: activeTab === "inbox" ? "Inbox" : "Sent" },
       });
 
@@ -49,7 +63,7 @@ export default function EmailDashboardClient() {
           id: email.id,
           from: email.messages?.[0]?.from || "Unknown",
           to: email.messages?.[0]?.to || [],
-          subject: email.subject,
+          subject: email.subject || "(No Subject)",
           body: email.messages?.[0]?.body || "",
           date: email.updated_at,
           unread: email.unread_count > 0,
@@ -86,14 +100,13 @@ export default function EmailDashboardClient() {
       date: new Date().toISOString(),
       unread: false,
       category: "pending",
-      thread: [],
     };
 
     setMails((prev) => [...prev, pendingMail]);
     toast.info("Mail added to Pending...");
 
     try {
-      const response = await axios.post(`${EMAIL_API_BASE_URL}/emails`, {
+      const response = await api.post("/emails", {
         to: newMail.to,
         subject: newMail.subject,
         body: newMail.body,
@@ -122,32 +135,20 @@ export default function EmailDashboardClient() {
 
   return (
     <div className="p-6">
+      {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <div className="flex gap-3">
-          <button
-            className={`px-4 py-2 rounded-md ${
-              activeTab === "inbox" ? "bg-blue-600 text-white" : "bg-gray-200"
-            }`}
-            onClick={() => setActiveTab("inbox")}
-          >
-            Inbox
-          </button>
-          <button
-            className={`px-4 py-2 rounded-md ${
-              activeTab === "sent" ? "bg-blue-600 text-white" : "bg-gray-200"
-            }`}
-            onClick={() => setActiveTab("sent")}
-          >
-            Sent
-          </button>
-          <button
-            className={`px-4 py-2 rounded-md ${
-              activeTab === "pending" ? "bg-blue-600 text-white" : "bg-gray-200"
-            }`}
-            onClick={() => setActiveTab("pending")}
-          >
-            Pending
-          </button>
+          {["inbox", "sent", "pending"].map((tab) => (
+            <button
+              key={tab}
+              className={`px-4 py-2 rounded-md capitalize ${
+                activeTab === tab ? "bg-blue-600 text-white" : "bg-gray-200"
+              }`}
+              onClick={() => setActiveTab(tab as any)}
+            >
+              {tab}
+            </button>
+          ))}
         </div>
 
         <button
@@ -158,6 +159,7 @@ export default function EmailDashboardClient() {
         </button>
       </div>
 
+      {/* Mails List */}
       {loading ? (
         <p>Loading emails...</p>
       ) : filteredMails.length === 0 ? (
@@ -168,6 +170,7 @@ export default function EmailDashboardClient() {
             <div
               key={mail.id}
               className="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer transition"
+              onClick={() => setSelectedMail(mail)}
             >
               <div className="flex justify-between items-center">
                 <h4 className="font-semibold">{mail.subject}</h4>
@@ -235,6 +238,53 @@ export default function EmailDashboardClient() {
             >
               <Send size={18} /> Send
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Mail Viewer Modal */}
+      {selectedMail && (
+        <div className="fixed inset-0 bg-black/40 flex justify-center items-center z-50">
+          <div className="bg-white rounded-xl p-6 w-full max-w-2xl shadow-lg relative">
+            <button
+              onClick={() => setSelectedMail(null)}
+              className="absolute top-3 right-3 text-gray-500 hover:text-gray-800"
+            >
+              <X size={20} />
+            </button>
+
+            <div className="flex items-center gap-3 mb-4">
+              <button
+                onClick={() => setSelectedMail(null)}
+                className="flex items-center gap-1 text-blue-600 hover:underline"
+              >
+                <ArrowLeft size={18} /> Back
+              </button>
+              <h2 className="text-lg font-semibold">{selectedMail.subject}</h2>
+            </div>
+
+            <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
+              {selectedMail.thread?.map((msg, index) => (
+                <div
+                  key={index}
+                  className={`p-3 rounded-lg border ${
+                    msg.from === "You"
+                      ? "bg-blue-50 border-blue-200 ml-auto"
+                      : "bg-gray-50 border-gray-200 mr-auto"
+                  }`}
+                >
+                  <p className="text-sm text-gray-700 whitespace-pre-line">
+                    {msg.body}
+                  </p>
+                  <p className="text-xs text-gray-500 mt-2">
+                    From: {msg.from} → {msg.to.join(", ")}
+                  </p>
+                  <p className="text-xs text-gray-400">
+                    {new Date(msg.date).toLocaleString()}
+                  </p>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       )}

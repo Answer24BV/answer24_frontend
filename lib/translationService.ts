@@ -6,7 +6,7 @@ export interface TranslationKey {
   [lang: string]: string; // dynamic keys for languages like en, nl, es, etc.
 }
 
-const API_BASE = 'https://answer24.laravel.cloud/api/v1';
+const API_BASE = 'https://api.answer24.nl/api/v1';
 
 export const translationService = {
   // Fetch translations for a specific language
