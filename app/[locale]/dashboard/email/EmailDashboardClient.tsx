@@ -17,7 +17,7 @@ interface Mail {
   thread?: Mail[];
 }
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://answer24.nl/api/v1";
 
 export default function EmailDashboardClient() {
   const [mails, setMails] = useState<Mail[]>([]);
