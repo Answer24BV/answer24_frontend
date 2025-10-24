@@ -26,12 +26,26 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate signature for security
-    if (!validatePurchaseSignature(body, WIDGET_CONFIG.SIGNING_SECRET)) {
+    // Validate signature for security (skip in development/test mode)
+    const isDevelopment = process.env.NODE_ENV === 'development' || public_key.includes('test');
+    
+    if (!isDevelopment && signature) {
+      if (!validatePurchaseSignature(body, WIDGET_CONFIG.SIGNING_SECRET)) {
+        return NextResponse.json(
+          { error: 'Invalid signature' },
+          { status: 401 }
+        );
+      }
+    } else if (!isDevelopment && !signature) {
       return NextResponse.json(
-        { error: 'Invalid signature' },
+        { error: 'Signature required in production' },
         { status: 401 }
       );
+    }
+    
+    // In development/test mode, log that we're skipping validation
+    if (isDevelopment) {
+      console.log('🔓 Development mode: Skipping signature validation');
     }
 
     // Calculate cashback amount (10% of order value)
