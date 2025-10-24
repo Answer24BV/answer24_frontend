@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import axios from "axios";
-import { Plus, X, Send, ArrowLeft } from "lucide-react";
+import { Plus, ArrowLeft, X, Send } from "lucide-react";
 import { toast } from "react-toastify";
 
 interface Mail {
@@ -13,291 +13,243 @@ interface Mail {
   body: string;
   date: string;
   unread: boolean;
-  category: "inbox" | "sent" | "pending";
+  category: "inbox" | "sent";
   thread?: Mail[];
 }
 
-const EMAIL_API_BASE_URL =
-  process.env.NEXT_PUBLIC_EMAIL_API_BASE_URL || "https://api.answer24.nl/api/v1";
+const EMAIL_API_URL = process.env.NEXT_PUBLIC_EMAIL_API_URL || "https://api.answer24.nl/api/v1";
 
 export default function EmailDashboardClient() {
-  const [mails, setMails] = useState<Mail[]>([]);
-  const [activeTab, setActiveTab] = useState<"inbox" | "sent" | "pending">("inbox");
-  const [loading, setLoading] = useState(false);
-  const [showComposer, setShowComposer] = useState(false);
+  const [emails, setEmails] = useState<Mail[]>([]);
   const [selectedMail, setSelectedMail] = useState<Mail | null>(null);
-  const [newMail, setNewMail] = useState({
-    to: [] as string[],
-    subject: "",
-    body: "",
-  });
+  const [isComposing, setIsComposing] = useState(false);
+  const [reply, setReply] = useState("");
+  const [folder, setFolder] = useState<"inbox" | "sent">("inbox");
+  const [loading, setLoading] = useState(false);
 
-  // Get token and user data
-  const authToken =
-    typeof window !== "undefined"
-      ? localStorage.getItem("auth_token")?.split(",")[1]?.replace("]", "").trim()
-      : null;
+  // Get token or fallback to user_data.id
+  const token = localStorage.getItem("auth_token");
+  const userData = localStorage.getItem("user_data");
+  const user = userData ? JSON.parse(userData) : null;
+  const userId = user?.id;
 
-  const userData =
-    typeof window !== "undefined" ? localStorage.getItem("user_data") : null;
-  const parsedUser = userData ? JSON.parse(userData) : null;
-  const userId = parsedUser?.id;
-  const userEmail = parsedUser?.email || `user${userId}@answer24.com`;
+  useEffect(() => {
+    fetchEmails();
+  }, [folder]);
 
-  const api = axios.create({
-    baseURL: EMAIL_API_BASE_URL,
-    headers: {
-      Authorization: authToken ? `Bearer ${authToken}` : "",
-    },
-  });
-
-  // Fetch emails
   const fetchEmails = async () => {
     try {
       setLoading(true);
-      if (activeTab === "pending") {
-        setLoading(false);
-        return;
-      }
 
-      const res = await api.get("/emails", {
-        params: { folder: activeTab === "inbox" ? "Inbox" : "Sent" },
+      const headers: any = {};
+      if (token) headers.Authorization = `Bearer ${token}`;
+
+      const response = await axios.get(`${EMAIL_API_URL}/emails`, {
+        headers,
+        params: { folder },
       });
 
-      if (res.data.success) {
-        const fetchedEmails: Mail[] = res.data.data.data.map((email: any) => ({
-          id: email.id,
-          from: email.messages?.[0]?.from || "Unknown",
-          to: email.messages?.[0]?.to || [],
-          subject: email.subject || "(No Subject)",
-          body: email.messages?.[0]?.body || "",
-          date: email.updated_at,
-          unread: email.unread_count > 0,
-          category: activeTab,
-          thread: email.messages || [],
-        }));
-        setMails(fetchedEmails);
-      }
-    } catch (err) {
-      console.error(err);
+      setEmails(response.data.data || []);
+    } catch (error: any) {
+      console.error("Error fetching emails:", error);
       toast.error("Failed to load emails");
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    fetchEmails();
-  }, [activeTab]);
-
-  // Handle send mail
-  const handleSendMail = async () => {
-    if (!newMail.to.length || !newMail.body.trim()) {
-      toast.error("Recipient and message body are required");
-      return;
-    }
-
-    const pendingMail: Mail = {
-      id: Date.now(),
-      from: userEmail || "You",
-      to: newMail.to,
-      subject: newMail.subject || "(No Subject)",
-      body: newMail.body,
-      date: new Date().toISOString(),
-      unread: false,
-      category: "pending",
-    };
-
-    setMails((prev) => [...prev, pendingMail]);
-    toast.info("Mail added to Pending...");
-
+  const handleSendEmail = async (to: string, subject: string, body: string) => {
     try {
+      const headers: any = {};
+      if (token) headers.Authorization = `Bearer ${token}`;
+
       const payload = {
-        from: userEmail,
-        to: newMail.to,
-        subject: newMail.subject,
-        body: newMail.body,
-        user_id: userId,
+        from_id: userId,
+        to,
+        subject,
+        body,
       };
 
-      const response = await api.post("/emails", payload);
-
-      if (response.data.success) {
-        toast.success("Mail sent successfully!");
-        setMails((prev) =>
-          prev.map((mail) =>
-            mail.id === pendingMail.id ? { ...mail, category: "sent" } : mail
-          )
-        );
-      } else {
-        toast.error("Failed to send mail");
-      }
-    } catch (err) {
-      console.error(err);
-      toast.error("Error sending mail");
-    } finally {
-      setShowComposer(false);
-      setNewMail({ to: [], subject: "", body: "" });
+      await axios.post(`${EMAIL_API_URL}/emails`, payload, { headers });
+      toast.success("Email sent successfully!");
+      setIsComposing(false);
+      fetchEmails();
+    } catch (error: any) {
+      console.error("Error sending email:", error);
+      toast.error("Failed to send email");
     }
   };
 
-  const filteredMails = mails.filter((m) => m.category === activeTab);
+  const handleReply = async () => {
+    if (!selectedMail) return;
+
+    try {
+      const headers: any = {};
+      if (token) headers.Authorization = `Bearer ${token}`;
+
+      const payload = {
+        from_id: userId,
+        to: selectedMail.from,
+        subject: `Re: ${selectedMail.subject}`,
+        body: reply,
+      };
+
+      await axios.post(`${EMAIL_API_URL}/emails`, payload, { headers });
+      toast.success("Reply sent!");
+      setReply("");
+      setSelectedMail(null);
+      fetchEmails();
+    } catch (error: any) {
+      console.error("Error replying:", error);
+      toast.error("Failed to send reply");
+    }
+  };
 
   return (
-    <div className="p-6">
-      {/* Header */}
+    <div className="p-6 bg-gray-50 min-h-screen">
       <div className="flex justify-between items-center mb-6">
-        <div className="flex gap-3">
-          {["inbox", "sent", "pending"].map((tab) => (
-            <button
-              key={tab}
-              className={`px-4 py-2 rounded-md capitalize ${
-                activeTab === tab ? "bg-blue-600 text-white" : "bg-gray-200"
-              }`}
-              onClick={() => setActiveTab(tab as any)}
-            >
-              {tab}
-            </button>
-          ))}
-        </div>
-
+        <h1 className="text-2xl font-bold">Emails</h1>
         <button
-          onClick={() => setShowComposer(true)}
-          className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-md"
+          onClick={() => setIsComposing(true)}
+          className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-xl hover:bg-blue-700 transition"
         >
-          <Plus size={18} /> New Mail
+          <Plus size={18} /> Compose
         </button>
       </div>
 
-      {/* Mails List */}
+      {/* Folder Toggle */}
+      <div className="flex gap-4 mb-4">
+        {["inbox", "sent"].map((type) => (
+          <button
+            key={type}
+            onClick={() => setFolder(type as "inbox" | "sent")}
+            className={`px-4 py-2 rounded-xl ${
+              folder === type
+                ? "bg-blue-600 text-white"
+                : "bg-white text-gray-700 border"
+            }`}
+          >
+            {type.charAt(0).toUpperCase() + type.slice(1)}
+          </button>
+        ))}
+      </div>
+
+      {/* Loading State */}
       {loading ? (
-        <p>Loading emails...</p>
-      ) : filteredMails.length === 0 ? (
-        <p>No {activeTab} mails found.</p>
+        <div className="text-center py-10 text-gray-600">Loading emails...</div>
       ) : (
-        <div className="space-y-3">
-          {filteredMails.map((mail) => (
-            <div
-              key={mail.id}
-              className="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer transition"
-              onClick={() => setSelectedMail(mail)}
-            >
-              <div className="flex justify-between items-center">
-                <h4 className="font-semibold">{mail.subject}</h4>
-                <span className="text-sm text-gray-500">
-                  {new Date(mail.date).toLocaleString()}
-                </span>
-              </div>
-              <p className="text-gray-700 text-sm mt-2 line-clamp-2">
-                {mail.body}
-              </p>
-              <p className="text-xs text-gray-500 mt-1">
-                From: {mail.from} → {mail.to.join(", ")}
-              </p>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Composer Modal */}
-      {showComposer && (
-        <div className="fixed inset-0 bg-black/40 flex justify-center items-center z-50">
-          <div className="bg-white rounded-xl p-6 w-full max-w-md shadow-lg relative">
-            <button
-              onClick={() => setShowComposer(false)}
-              className="absolute top-3 right-3 text-gray-500 hover:text-gray-800"
-            >
-              <X size={20} />
-            </button>
-            <h2 className="text-xl font-semibold mb-4">Compose Mail</h2>
-
-            <input
-              type="text"
-              placeholder="Recipient emails (comma separated)"
-              className="w-full border rounded-md px-3 py-2 mb-3"
-              onChange={(e) =>
-                setNewMail((prev) => ({
-                  ...prev,
-                  to: e.target.value.split(",").map((t) => t.trim()),
-                }))
-              }
-            />
-
-            <input
-              type="text"
-              placeholder="Subject"
-              className="w-full border rounded-md px-3 py-2 mb-3"
-              value={newMail.subject}
-              onChange={(e) =>
-                setNewMail((prev) => ({ ...prev, subject: e.target.value }))
-              }
-            />
-
-            <textarea
-              placeholder="Message body"
-              className="w-full border rounded-md px-3 py-2 h-32 mb-4"
-              value={newMail.body}
-              onChange={(e) =>
-                setNewMail((prev) => ({ ...prev, body: e.target.value }))
-              }
-            />
-
-            <button
-              onClick={handleSendMail}
-              className="bg-blue-600 text-white w-full flex justify-center items-center gap-2 py-2 rounded-md hover:bg-blue-700 transition"
-            >
-              <Send size={18} /> Send
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Mail Viewer Modal */}
-      {selectedMail && (
-        <div className="fixed inset-0 bg-black/40 flex justify-center items-center z-50">
-          <div className="bg-white rounded-xl p-6 w-full max-w-2xl shadow-lg relative">
-            <button
-              onClick={() => setSelectedMail(null)}
-              className="absolute top-3 right-3 text-gray-500 hover:text-gray-800"
-            >
-              <X size={20} />
-            </button>
-
-            <div className="flex items-center gap-3 mb-4">
-              <button
-                onClick={() => setSelectedMail(null)}
-                className="flex items-center gap-1 text-blue-600 hover:underline"
-              >
-                <ArrowLeft size={18} /> Back
-              </button>
-              <h2 className="text-lg font-semibold">{selectedMail.subject}</h2>
-            </div>
-
-            <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
-              {selectedMail.thread?.map((msg, index) => (
+        <div className="grid md:grid-cols-3 gap-6">
+          {/* Email List */}
+          <div className="col-span-1 bg-white rounded-2xl shadow p-4 overflow-y-auto max-h-[70vh]">
+            {emails.length === 0 ? (
+              <p className="text-gray-500 text-center py-8">No emails found</p>
+            ) : (
+              emails.map((mail) => (
                 <div
-                  key={index}
-                  className={`p-3 rounded-lg border ${
-                    msg.from === userEmail
-                      ? "bg-blue-50 border-blue-200 ml-auto"
-                      : "bg-gray-50 border-gray-200 mr-auto"
+                  key={mail.id}
+                  onClick={() => setSelectedMail(mail)}
+                  className={`p-4 rounded-xl mb-2 cursor-pointer hover:bg-blue-50 ${
+                    selectedMail?.id === mail.id ? "bg-blue-100" : ""
                   }`}
                 >
-                  <p className="text-sm text-gray-700 whitespace-pre-line">
-                    {msg.body}
-                  </p>
-                  <p className="text-xs text-gray-500 mt-2">
-                    From: {msg.from} → {msg.to.join(", ")}
-                  </p>
-                  <p className="text-xs text-gray-400">
-                    {new Date(msg.date).toLocaleString()}
-                  </p>
+                  <p className="font-semibold text-gray-900">{mail.subject}</p>
+                  <p className="text-sm text-gray-600 truncate">{mail.body}</p>
+                  <p className="text-xs text-gray-400 mt-1">{mail.date}</p>
                 </div>
-              ))}
-            </div>
+              ))
+            )}
+          </div>
+
+          {/* Email View / Compose */}
+          <div className="col-span-2 bg-white rounded-2xl shadow p-6">
+            {isComposing ? (
+              <ComposeEmail onSend={handleSendEmail} onCancel={() => setIsComposing(false)} />
+            ) : selectedMail ? (
+              <div>
+                <button
+                  onClick={() => setSelectedMail(null)}
+                  className="flex items-center gap-2 text-gray-500 mb-4 hover:text-gray-800"
+                >
+                  <ArrowLeft size={18} /> Back
+                </button>
+                <h2 className="text-xl font-bold mb-2">{selectedMail.subject}</h2>
+                <p className="text-sm text-gray-500 mb-6">{selectedMail.from}</p>
+                <p className="mb-6">{selectedMail.body}</p>
+                <textarea
+                  value={reply}
+                  onChange={(e) => setReply(e.target.value)}
+                  placeholder="Write a reply..."
+                  className="w-full border rounded-xl p-3 mb-3"
+                  rows={4}
+                />
+                <button
+                  onClick={handleReply}
+                  className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-xl hover:bg-blue-700"
+                >
+                  <Send size={16} /> Send Reply
+                </button>
+              </div>
+            ) : (
+              <p className="text-gray-500 text-center py-10">Select an email to view</p>
+            )}
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+function ComposeEmail({
+  onSend,
+  onCancel,
+}: {
+  onSend: (to: string, subject: string, body: string) => void;
+  onCancel: () => void;
+}) {
+  const [to, setTo] = useState("");
+  const [subject, setSubject] = useState("");
+  const [body, setBody] = useState("");
+
+  const handleSubmit = () => {
+    if (!to || !subject || !body) return toast.error("All fields are required");
+    onSend(to, subject, body);
+  };
+
+  return (
+    <div>
+      <div className="flex justify-between mb-4">
+        <h2 className="text-xl font-bold">New Email</h2>
+        <button onClick={onCancel}>
+          <X size={20} className="text-gray-500 hover:text-gray-800" />
+        </button>
+      </div>
+      <input
+        type="email"
+        placeholder="To"
+        value={to}
+        onChange={(e) => setTo(e.target.value)}
+        className="w-full border rounded-xl p-3 mb-3"
+      />
+      <input
+        type="text"
+        placeholder="Subject"
+        value={subject}
+        onChange={(e) => setSubject(e.target.value)}
+        className="w-full border rounded-xl p-3 mb-3"
+      />
+      <textarea
+        placeholder="Message"
+        value={body}
+        onChange={(e) => setBody(e.target.value)}
+        className="w-full border rounded-xl p-3 mb-3"
+        rows={6}
+      />
+      <button
+        onClick={handleSubmit}
+        className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-xl hover:bg-blue-700"
+      >
+        <Send size={16} /> Send
+      </button>
     </div>
   );
 }
