@@ -17,7 +17,8 @@ interface Mail {
   thread?: Mail[];
 }
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://answer24.nl/api/v1";
+const EMAIL_API_BASE_URL =
+  process.env.NEXT_PUBLIC_EMAIL_API_BASE_URL || "https://answer24.nl/api/v1";
 
 export default function EmailDashboardClient() {
   const [mails, setMails] = useState<Mail[]>([]);
@@ -39,7 +40,7 @@ export default function EmailDashboardClient() {
         return; // Pending mails are only local
       }
 
-      const res = await axios.get(`${API_URL}/emails`, {
+      const res = await axios.get(`${EMAIL_API_BASE_URL}/emails`, {
         params: { folder: activeTab === "inbox" ? "Inbox" : "Sent" },
       });
 
@@ -92,7 +93,7 @@ export default function EmailDashboardClient() {
     toast.info("Mail added to Pending...");
 
     try {
-      const response = await axios.post(`${API_URL}/emails`, {
+      const response = await axios.post(`${EMAIL_API_BASE_URL}/emails`, {
         to: newMail.to,
         subject: newMail.subject,
         body: newMail.body,
@@ -124,19 +125,25 @@ export default function EmailDashboardClient() {
       <div className="flex justify-between items-center mb-6">
         <div className="flex gap-3">
           <button
-            className={`px-4 py-2 rounded-md ${activeTab === "inbox" ? "bg-blue-600 text-white" : "bg-gray-200"}`}
+            className={`px-4 py-2 rounded-md ${
+              activeTab === "inbox" ? "bg-blue-600 text-white" : "bg-gray-200"
+            }`}
             onClick={() => setActiveTab("inbox")}
           >
             Inbox
           </button>
           <button
-            className={`px-4 py-2 rounded-md ${activeTab === "sent" ? "bg-blue-600 text-white" : "bg-gray-200"}`}
+            className={`px-4 py-2 rounded-md ${
+              activeTab === "sent" ? "bg-blue-600 text-white" : "bg-gray-200"
+            }`}
             onClick={() => setActiveTab("sent")}
           >
             Sent
           </button>
           <button
-            className={`px-4 py-2 rounded-md ${activeTab === "pending" ? "bg-blue-600 text-white" : "bg-gray-200"}`}
+            className={`px-4 py-2 rounded-md ${
+              activeTab === "pending" ? "bg-blue-600 text-white" : "bg-gray-200"
+            }`}
             onClick={() => setActiveTab("pending")}
           >
             Pending
