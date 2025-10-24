@@ -130,24 +130,38 @@ const WebshopDetailClient = () => {
   };
 
   const handleBuyNow = async () => {
+    console.log('🛒 BUY NOW CLICKED!');
     console.log('Buy now:', { quantity, size: selectedSize, color: selectedColor });
     
     // Calculate total price
     const totalPrice = webshopData.price * quantity;
     const cashbackAmount = Math.round(totalPrice * 0.10 * 100) / 100;
     
+    console.log(`💰 Price calculation: €${totalPrice} × 10% = €${cashbackAmount}`);
+    
     // Get user data
     const userDataStr = localStorage.getItem('user_data');
     if (!userDataStr) {
       toast.error('Please login to earn cashback!');
+      console.error('❌ No user data found in localStorage');
       return;
     }
     
     const userData = JSON.parse(userDataStr);
+    console.log('👤 User data:', { id: userData.id, name: userData.name });
     
     // Simulate purchase and track cashback
     try {
       const orderId = 'WEBSHOP_' + Date.now();
+      
+      console.log('📤 Sending purchase tracking request...');
+      console.log('Order details:', {
+        orderId,
+        userId: userData.id,
+        totalPrice,
+        cashbackAmount,
+        shop: webshopData.name
+      });
       
       // Track purchase
       const response = await fetch('/api/v1/widget/track-purchase', {
@@ -167,9 +181,15 @@ const WebshopDetailClient = () => {
         })
       });
 
+      console.log(`📥 API Response Status: ${response.status}`);
+      
       const result = await response.json();
+      console.log('📥 Full API Response:', result);
 
       if (result.success) {
+        console.log('✅ SUCCESS! Cashback tracked and wallet should be credited');
+        console.log('Response data:', result.data);
+        
         toast.success(`🎉 Purchase confirmed! You earned €${cashbackAmount} cashback!`, {
           autoClose: 5000,
         });
@@ -181,12 +201,16 @@ const WebshopDetailClient = () => {
         
         console.log('✅ Cashback tracked:', result);
       } else {
-        toast.success('Purchase confirmed!');
-        console.warn('Cashback tracking failed:', result);
+        console.error('❌ API returned failure:', result);
+        toast.error(`Purchase tracking failed: ${result.error || 'Unknown error'}`);
       }
     } catch (error) {
-      console.error('Purchase tracking error:', error);
-      toast.success('Purchase confirmed!');
+      console.error('❌ CRITICAL: Purchase tracking error:', error);
+      console.error('Error details:', {
+        message: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : 'No stack'
+      });
+      toast.error(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 
