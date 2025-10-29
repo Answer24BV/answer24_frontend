@@ -42,7 +42,6 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { Link } from '@/i18n/navigation';
-import { useRouter } from 'next/navigation'; // add this import near your other imports
 
 const API_BASE = 'https://api.answer24.nl/api/v1/blogs';
 
@@ -99,7 +98,6 @@ const BlogManagement = () => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [blogToDelete, setBlogToDelete] = useState<string | null>(null);
 
-  const router = useRouter(); // ✅ Add this line
   useEffect(() => {
     const fetchBlogs = async () => {
       setIsLoading(true);
@@ -256,7 +254,7 @@ const BlogManagement = () => {
                         </Badge>
                       </TableCell>
                       <TableCell>{new Date(blog.created_at || '').toLocaleDateString()}</TableCell>
-                      {/* <TableCell>
+                      <TableCell>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button variant="ghost" size="sm">
@@ -279,40 +277,7 @@ const BlogManagement = () => {
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
-                      </TableCell> */}
-<TableCell className="flex gap-2">
-  {/* Edit Button */}
-  <Button
-    variant="outline"
-    size="sm"
-    onClick={() => router.push(`/dashboard/admin/blog/update/${blog.slug}`)}
-    className="flex items-center gap-1"
-  >
-    <Edit className="h-4 w-4" /> Edit
-  </Button>
-
-  {/* Publish / Unpublish Button */}
-  <Button
-    variant={blog.status === 'published' ? 'default' : 'secondary'}
-    size="sm"
-    onClick={() => toggleStatus(blog)}
-    className="flex items-center gap-1"
-  >
-    <Eye className="h-4 w-4" />
-    {blog.status === 'published' ? 'Unpublish' : 'Publish'}
-  </Button>
-
-  {/* Delete Button */}
-  <Button
-    variant="destructive"
-    size="sm"
-    onClick={() => handleDeleteClick(blog.id)}
-    className="flex items-center gap-1"
-  >
-    <Trash2 className="h-4 w-4" /> Delete
-  </Button>
-</TableCell>
-
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
