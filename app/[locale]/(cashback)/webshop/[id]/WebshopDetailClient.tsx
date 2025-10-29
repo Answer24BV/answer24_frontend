@@ -178,7 +178,7 @@ const WebshopDetailClient = () => {
           timestamp: new Date().toISOString(),
           product_name: `${webshopData.name} - ${selectedColor} - ${selectedSize}`,
           product_id: webshopData.id
-        })
+        }) 
       });
 
       console.log(`📥 API Response Status: ${response.status}`);

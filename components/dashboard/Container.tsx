@@ -61,7 +61,7 @@ export function CleanDashboardContainer() {
 
         try {
           const response = await fetch(
-            "https://answer24.laravel.cloud/api/v1/dashboard",
+            "https://api.answer24.nl/api/v1/dashboard",
             {
               method: "GET",
               headers: {

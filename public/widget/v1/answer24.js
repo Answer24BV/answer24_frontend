@@ -3,14 +3,16 @@
  * Multi-tenant widget with public key authentication, domain validation, and advanced features
  */
 
-(function() {
-  'use strict';
+(function () {
+  "use strict";
 
   // Configuration
-  const WIDGET_VERSION = '2.0.0';
-  const API_BASE_URL = window.Answer24Config?.API_BASE_URL || 'https://answer24_backend.test/api/v1';
-  const CDN_BASE_URL = window.Answer24Config?.CDN_BASE_URL || window.location.origin;
-  
+  const WIDGET_VERSION = "2.0.0";
+  const API_BASE_URL =
+    window.Answer24Config?.API_BASE_URL || "https://api.answer24.nl/api/v1";
+  const CDN_BASE_URL =
+    window.Answer24Config?.CDN_BASE_URL || window.location.origin;
+
   // Widget state
   let isOpen = false;
   let isLoaded = false;
@@ -32,33 +34,36 @@
   function init() {
     // Get public key from script tag
     const script = document.currentScript;
-    publicKey = script?.getAttribute('data-public-key') || 
-                script?.getAttribute('data-key') ||
-                window.Answer24?.publicKey;
+    publicKey =
+      script?.getAttribute("data-public-key") ||
+      script?.getAttribute("data-key") ||
+      window.Answer24?.publicKey;
 
     if (!publicKey) {
-      console.error('Answer24 Widget: Public key is required');
+      console.error("Answer24 Widget: Public key is required");
       return;
     }
 
     // Get page context from data attributes
-    const pageContextStr = script?.getAttribute('data-page-context');
+    const pageContextStr = script?.getAttribute("data-page-context");
     if (pageContextStr) {
       try {
         pageContext = JSON.parse(pageContextStr);
       } catch (e) {
-        console.warn('Answer24 Widget: Invalid page context JSON');
+        console.warn("Answer24 Widget: Invalid page context JSON");
       }
     }
 
     // Load configuration and initialize
-    loadConfig().then(() => {
-      createWidget();
-      isLoaded = true;
-      dispatchEvent('ready');
-    }).catch(error => {
-      console.error('Answer24 Widget: Failed to initialize', error);
-    });
+    loadConfig()
+      .then(() => {
+        createWidget();
+        isLoaded = true;
+        dispatchEvent("ready");
+      })
+      .catch((error) => {
+        console.error("Answer24 Widget: Failed to initialize", error);
+      });
   }
 
   /**
@@ -66,40 +71,42 @@
    */
   async function loadConfig() {
     try {
-      const response = await fetch(`${API_BASE_URL}/v1/widget/config?key=${publicKey}`, {
-        method: 'GET',
-        headers: {
-          'Accept': 'application/json',
-          'X-Answer24-Version': WIDGET_VERSION
+      const response = await fetch(
+        `${API_BASE_URL}/v1/widget/config?key=${publicKey}`,
+        {
+          method: "GET",
+          headers: {
+            Accept: "application/json",
+            "X-Answer24-Version": WIDGET_VERSION,
+          },
         }
-      });
+      );
 
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
 
       // Verify HMAC signature
-      const signature = response.headers.get('X-Answer24-Signature');
+      const signature = response.headers.get("X-Answer24-Signature");
       const body = await response.text();
-      
+
       if (signature && !verifySignature(body, signature)) {
-        throw new Error('Invalid response signature');
+        throw new Error("Invalid response signature");
       }
 
       config = JSON.parse(body);
-      
+
       // Extract settings from config
       settings = {
         ...config.theme,
         ...config.behavior,
         ...config.features,
-        ...config.i18n
+        ...config.i18n,
       };
 
       companyId = config.company?.id;
-
     } catch (error) {
-      console.error('Failed to load widget config:', error);
+      console.error("Failed to load widget config:", error);
       // Use default settings
       settings = getDefaultSettings();
     }
@@ -120,13 +127,13 @@
    */
   function getDefaultSettings() {
     return {
-      mode: 'auto',
-      primary: '#0059ff',
-      foreground: '#0f172a',
-      background: '#ffffff',
+      mode: "auto",
+      primary: "#0059ff",
+      foreground: "#0f172a",
+      background: "#ffffff",
       radius: 14,
-      fontFamily: 'Inter, ui-sans-serif',
-      position: 'right',
+      fontFamily: "Inter, ui-sans-serif",
+      position: "right",
       openOnLoad: false,
       openOnExitIntent: true,
       openOnInactivityMs: 0,
@@ -135,13 +142,13 @@
       wallet: false,
       offers: false,
       leadForm: false,
-      default: 'en-US',
+      default: "en-US",
       strings: {
-        'cta.open': 'Chat with us',
-        'cta.close': 'Close chat',
-        'placeholder': 'Type your message...',
-        'welcome': 'Hi! How can I help you today?'
-      }
+        "cta.open": "Chat with us",
+        "cta.close": "Close chat",
+        placeholder: "Type your message...",
+        welcome: "Hi! How can I help you today?",
+      },
     };
   }
 
@@ -155,19 +162,19 @@
     }
 
     // Create main container
-    widgetContainer = document.createElement('div');
-    widgetContainer.id = 'answer24-widget';
+    widgetContainer = document.createElement("div");
+    widgetContainer.id = "answer24-widget";
     widgetContainer.style.cssText = `
       position: fixed;
-      ${settings.position === 'right' ? 'right: 20px;' : 'left: 20px;'}
+      ${settings.position === "right" ? "right: 20px;" : "left: 20px;"}
       bottom: 20px;
       z-index: ${settings.zIndex};
       font-family: ${settings.fontFamily};
     `;
 
     // Create chat button
-    const chatButton = document.createElement('div');
-    chatButton.id = 'answer24-chat-button';
+    const chatButton = document.createElement("div");
+    chatButton.id = "answer24-chat-button";
     chatButton.innerHTML = `
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M20 2H4C2.9 2 2 2.9 2 4V22L6 18H20C21.1 18 22 17.1 22 16V4C22 2.9 21.1 2 20 2ZM20 16H5.17L4 17.17V4H20V16Z" fill="currentColor"/>
@@ -189,12 +196,12 @@
     `;
 
     // Create chat window
-    chatWindow = document.createElement('div');
-    chatWindow.id = 'answer24-chat-window';
+    chatWindow = document.createElement("div");
+    chatWindow.id = "answer24-chat-window";
     chatWindow.style.cssText = `
       position: absolute;
       bottom: 80px;
-      ${settings.position === 'right' ? 'right: 0;' : 'left: 0;'}
+      ${settings.position === "right" ? "right: 0;" : "left: 0;"}
       width: 350px;
       height: 500px;
       background: ${settings.background};
@@ -206,7 +213,7 @@
     `;
 
     // Create chat header
-    const chatHeader = document.createElement('div');
+    const chatHeader = document.createElement("div");
     chatHeader.style.cssText = `
       background: ${settings.primary};
       color: ${settings.foreground};
@@ -217,9 +224,15 @@
     `;
     chatHeader.innerHTML = `
       <div style="display: flex; align-items: center; gap: 12px;">
-        ${config.company?.logoUrl ? `<img src="${config.company.logoUrl}" style="width: 32px; height: 32px; border-radius: 50%;" />` : ''}
+        ${
+          config.company?.logoUrl
+            ? `<img src="${config.company.logoUrl}" style="width: 32px; height: 32px; border-radius: 50%;" />`
+            : ""
+        }
         <div>
-          <div style="font-weight: 600; font-size: 16px;">${config.company?.name || 'Support'}</div>
+          <div style="font-weight: 600; font-size: 16px;">${
+            config.company?.name || "Support"
+          }</div>
           <div style="font-size: 12px; opacity: 0.8;">Online</div>
         </div>
       </div>
@@ -238,8 +251,8 @@
     `;
 
     // Create messages container
-    const messagesContainer = document.createElement('div');
-    messagesContainer.id = 'answer24-messages';
+    const messagesContainer = document.createElement("div");
+    messagesContainer.id = "answer24-messages";
     messagesContainer.style.cssText = `
       flex: 1;
       padding: 16px;
@@ -250,7 +263,7 @@
     `;
 
     // Create input container
-    const inputContainer = document.createElement('div');
+    const inputContainer = document.createElement("div");
     inputContainer.style.cssText = `
       padding: 16px;
       border-top: 1px solid #e0e0e0;
@@ -261,12 +274,14 @@
       <input 
         id="answer24-message-input" 
         type="text" 
-        placeholder="${settings.strings?.placeholder || 'Type your message...'}"
+        placeholder="${settings.strings?.placeholder || "Type your message..."}"
         style="flex: 1; padding: 12px; border: 1px solid #ddd; border-radius: 20px; outline: none;"
       />
       <button 
         id="answer24-send-btn" 
-        style="background: ${settings.primary}; color: ${settings.foreground}; border: none; border-radius: 20px; padding: 12px 16px; cursor: pointer;"
+        style="background: ${settings.primary}; color: ${
+      settings.foreground
+    }; border: none; border-radius: 20px; padding: 12px 16px; cursor: pointer;"
       >
         Send
       </button>
@@ -288,7 +303,10 @@
     setupEventListeners();
 
     // Add welcome message
-    addMessage('bot', settings.strings?.welcome || 'Hi! How can I help you today?');
+    addMessage(
+      "bot",
+      settings.strings?.welcome || "Hi! How can I help you today?"
+    );
 
     // Auto-open if configured
     if (settings.openOnLoad) {
@@ -315,10 +333,16 @@
 
     // Check include/exclude paths
     const currentPath = window.location.pathname;
-    if (rules.includePaths && !rules.includePaths.some(path => currentPath.includes(path))) {
+    if (
+      rules.includePaths &&
+      !rules.includePaths.some((path) => currentPath.includes(path))
+    ) {
       return false;
     }
-    if (rules.excludePaths && rules.excludePaths.some(path => currentPath.includes(path))) {
+    if (
+      rules.excludePaths &&
+      rules.excludePaths.some((path) => currentPath.includes(path))
+    ) {
       return false;
     }
 
@@ -335,8 +359,8 @@
    */
   function setupExitIntentDetection() {
     let exitIntentShown = false;
-    
-    document.addEventListener('mouseleave', (e) => {
+
+    document.addEventListener("mouseleave", (e) => {
       if (e.clientY <= 0 && !exitIntentShown && !isOpen) {
         exitIntentShown = true;
         toggleChat();
@@ -349,7 +373,7 @@
    */
   function setupInactivityDetection() {
     let inactivityTimer;
-    
+
     const resetTimer = () => {
       clearTimeout(inactivityTimer);
       inactivityTimer = setTimeout(() => {
@@ -359,9 +383,11 @@
       }, settings.openOnInactivityMs);
     };
 
-    ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'].forEach(event => {
-      document.addEventListener(event, resetTimer, true);
-    });
+    ["mousedown", "mousemove", "keypress", "scroll", "touchstart"].forEach(
+      (event) => {
+        document.addEventListener(event, resetTimer, true);
+      }
+    );
 
     resetTimer();
   }
@@ -371,23 +397,33 @@
    */
   function setupEventListeners() {
     // Chat button click
-    document.getElementById('answer24-chat-button')?.addEventListener('click', toggleChat);
-    
+    document
+      .getElementById("answer24-chat-button")
+      ?.addEventListener("click", toggleChat);
+
     // Close button click
-    document.getElementById('answer24-close-btn')?.addEventListener('click', toggleChat);
-    
+    document
+      .getElementById("answer24-close-btn")
+      ?.addEventListener("click", toggleChat);
+
     // Send button click
-    document.getElementById('answer24-send-btn')?.addEventListener('click', sendMessage);
-    
+    document
+      .getElementById("answer24-send-btn")
+      ?.addEventListener("click", sendMessage);
+
     // Enter key in input
-    document.getElementById('answer24-message-input')?.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') {
-        sendMessage();
-      }
-    });
+    document
+      .getElementById("answer24-message-input")
+      ?.addEventListener("keypress", (e) => {
+        if (e.key === "Enter") {
+          sendMessage();
+        }
+      });
 
     // Settings button click
-    document.getElementById('answer24-settings-btn')?.addEventListener('click', toggleSettings);
+    document
+      .getElementById("answer24-settings-btn")
+      ?.addEventListener("click", toggleSettings);
   }
 
   /**
@@ -395,15 +431,15 @@
    */
   function toggleChat() {
     isOpen = !isOpen;
-    const chatWindow = document.getElementById('answer24-chat-window');
+    const chatWindow = document.getElementById("answer24-chat-window");
     if (chatWindow) {
-      chatWindow.style.display = isOpen ? 'flex' : 'none';
+      chatWindow.style.display = isOpen ? "flex" : "none";
     }
-    
+
     if (isOpen) {
-      dispatchEvent('open');
+      dispatchEvent("open");
     } else {
-      dispatchEvent('close');
+      dispatchEvent("close");
     }
   }
 
@@ -411,23 +447,27 @@
    * Add message to chat
    */
   function addMessage(sender, text) {
-    const messagesContainer = document.getElementById('answer24-messages');
+    const messagesContainer = document.getElementById("answer24-messages");
     if (!messagesContainer) return;
 
-    const messageDiv = document.createElement('div');
+    const messageDiv = document.createElement("div");
     messageDiv.style.cssText = `
       display: flex;
-      ${sender === 'user' ? 'justify-content: flex-end;' : 'justify-content: flex-start;'}
+      ${
+        sender === "user"
+          ? "justify-content: flex-end;"
+          : "justify-content: flex-start;"
+      }
       margin-bottom: 8px;
     `;
 
-    const messageBubble = document.createElement('div');
+    const messageBubble = document.createElement("div");
     messageBubble.style.cssText = `
       max-width: 80%;
       padding: 12px 16px;
       border-radius: 18px;
-      background: ${sender === 'user' ? settings.primary : '#f0f0f0'};
-      color: ${sender === 'user' ? settings.foreground : '#333'};
+      background: ${sender === "user" ? settings.primary : "#f0f0f0"};
+      color: ${sender === "user" ? settings.foreground : "#333"};
       word-wrap: break-word;
     `;
     messageBubble.textContent = text;
@@ -446,64 +486,66 @@
    * Send message
    */
   async function sendMessage() {
-    const input = document.getElementById('answer24-message-input');
+    const input = document.getElementById("answer24-message-input");
     const message = input?.value?.trim();
-    
+
     if (!message) return;
 
     // Add user message
-    addMessage('user', message);
-    input.value = '';
+    addMessage("user", message);
+    input.value = "";
 
     // Show typing indicator
-    addMessage('bot', '...');
+    addMessage("bot", "...");
 
     try {
       // Send to API with authentication
       const response = await fetch(`${API_BASE_URL}/v1/widget/chat`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${publicKey}`,
-          'X-Answer24-Version': WIDGET_VERSION
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${publicKey}`,
+          "X-Answer24-Version": WIDGET_VERSION,
         },
         body: JSON.stringify({
           message,
           history: messages.slice(-10),
           pageContext,
-          companyId
-        })
+          companyId,
+        }),
       });
 
       const data = await response.json();
 
       // Remove typing indicator
-      const messagesContainer = document.getElementById('answer24-messages');
+      const messagesContainer = document.getElementById("answer24-messages");
       if (messagesContainer && messagesContainer.lastChild) {
         messagesContainer.removeChild(messagesContainer.lastChild);
       }
 
       // Add bot response
-      addMessage('bot', data.message || 'Sorry, I could not process your message.');
+      addMessage(
+        "bot",
+        data.message || "Sorry, I could not process your message."
+      );
 
       // Track GA4 event if configured
       if (config.integrations?.ga4?.measurementId) {
-        trackGA4Event('answer24_widget_message_sent', {
+        trackGA4Event("answer24_widget_message_sent", {
           company_id: companyId,
-          message_length: message.length
+          message_length: message.length,
         });
       }
-
     } catch (error) {
-      console.error('Chat error:', error);
-      
+      console.error("Chat error:", error);
+
       // Remove typing indicator
-      const messagesContainer = document.getElementById('answer24-messages');
+      const messagesContainer = document.getElementById("answer24-messages");
       if (messagesContainer && messagesContainer.lastChild) {
         messagesContainer.removeChild(messagesContainer.lastChild);
       }
-      
-      addMessage('bot', 'Sorry, something went wrong. Please try again.');
+
+      addMessage("bot", "Sorry, something went wrong. Please try again.");
     }
   }
 
@@ -511,10 +553,10 @@
    * Track GA4 event
    */
   function trackGA4Event(eventName, parameters = {}) {
-    if (typeof gtag !== 'undefined') {
-      gtag('event', eventName, {
-        event_category: 'Answer24 Widget',
-        ...parameters
+    if (typeof gtag !== "undefined") {
+      gtag("event", eventName, {
+        event_category: "Answer24 Widget",
+        ...parameters,
       });
     }
   }
@@ -524,7 +566,7 @@
    */
   function dispatchEvent(eventName, detail = {}) {
     const event = new CustomEvent(`Answer24:${eventName}`, {
-      detail: { ...detail, companyId, publicKey }
+      detail: { ...detail, companyId, publicKey },
     });
     window.dispatchEvent(event);
   }
@@ -537,17 +579,17 @@
     if (!settingsPanel) {
       createSettingsPanel();
     }
-    
+
     // Toggle visibility
-    const isVisible = settingsPanel.style.display !== 'none';
-    settingsPanel.style.display = isVisible ? 'none' : 'block';
+    const isVisible = settingsPanel.style.display !== "none";
+    settingsPanel.style.display = isVisible ? "none" : "block";
   }
 
   /**
    * Create settings panel
    */
   function createSettingsPanel() {
-    settingsPanel = document.createElement('div');
+    settingsPanel = document.createElement("div");
     settingsPanel.style.cssText = `
       position: absolute;
       top: 0;
@@ -565,19 +607,25 @@
       
       <div style="margin-bottom: 16px;">
         <label style="display: block; margin-bottom: 8px; font-weight: 500;">Company Name</label>
-        <input id="setting-company-name" type="text" value="${config.company?.name || ''}" 
+        <input id="setting-company-name" type="text" value="${
+          config.company?.name || ""
+        }" 
                style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;" />
       </div>
 
       <div style="margin-bottom: 16px;">
         <label style="display: block; margin-bottom: 8px; font-weight: 500;">Welcome Message</label>
         <textarea id="setting-welcome-message" 
-                  style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; height: 60px;">${settings.strings?.welcome || ''}</textarea>
+                  style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; height: 60px;">${
+                    settings.strings?.welcome || ""
+                  }</textarea>
       </div>
 
       <div style="margin-bottom: 16px;">
         <label style="display: block; margin-bottom: 8px; font-weight: 500;">Primary Color</label>
-        <input id="setting-primary-color" type="color" value="${settings.primary}" 
+        <input id="setting-primary-color" type="color" value="${
+          settings.primary
+        }" 
                style="width: 100%; height: 40px; border: 1px solid #ddd; border-radius: 4px;" />
       </div>
 
@@ -585,15 +633,21 @@
         <label style="display: block; margin-bottom: 8px; font-weight: 500;">Features</label>
         <div style="display: flex; flex-direction: column; gap: 8px;">
           <label style="display: flex; align-items: center; gap: 8px;">
-            <input type="checkbox" id="setting-chat" ${settings.chat ? 'checked' : ''} />
+            <input type="checkbox" id="setting-chat" ${
+              settings.chat ? "checked" : ""
+            } />
             Chat
           </label>
           <label style="display: flex; align-items: center; gap: 8px;">
-            <input type="checkbox" id="setting-wallet" ${settings.wallet ? 'checked' : ''} />
+            <input type="checkbox" id="setting-wallet" ${
+              settings.wallet ? "checked" : ""
+            } />
             Wallet
           </label>
           <label style="display: flex; align-items: center; gap: 8px;">
-            <input type="checkbox" id="setting-offers" ${settings.offers ? 'checked' : ''} />
+            <input type="checkbox" id="setting-offers" ${
+              settings.offers ? "checked" : ""
+            } />
             Offers
           </label>
         </div>
@@ -601,7 +655,9 @@
 
       <div style="display: flex; gap: 12px; margin-top: 20px;">
         <button id="save-settings" 
-                style="flex: 1; background: ${settings.primary}; color: white; border: none; padding: 12px; border-radius: 4px; cursor: pointer;">
+                style="flex: 1; background: ${
+                  settings.primary
+                }; color: white; border: none; padding: 12px; border-radius: 4px; cursor: pointer;">
           Save Settings
         </button>
         <button id="cancel-settings" 
@@ -614,10 +670,14 @@
     chatWindow?.appendChild(settingsPanel);
 
     // Add event listeners for settings
-    document.getElementById('save-settings')?.addEventListener('click', saveSettings);
-    document.getElementById('cancel-settings')?.addEventListener('click', () => {
-      settingsPanel.style.display = 'none';
-    });
+    document
+      .getElementById("save-settings")
+      ?.addEventListener("click", saveSettings);
+    document
+      .getElementById("cancel-settings")
+      ?.addEventListener("click", () => {
+        settingsPanel.style.display = "none";
+      });
   }
 
   /**
@@ -625,42 +685,43 @@
    */
   async function saveSettings() {
     const newSettings = {
-      company_name: document.getElementById('setting-company-name')?.value,
-      welcome_message: document.getElementById('setting-welcome-message')?.value,
-      primary_color: document.getElementById('setting-primary-color')?.value,
-      chat: document.getElementById('setting-chat')?.checked,
-      wallet: document.getElementById('setting-wallet')?.checked,
-      offers: document.getElementById('setting-offers')?.checked,
+      company_name: document.getElementById("setting-company-name")?.value,
+      welcome_message: document.getElementById("setting-welcome-message")
+        ?.value,
+      primary_color: document.getElementById("setting-primary-color")?.value,
+      chat: document.getElementById("setting-chat")?.checked,
+      wallet: document.getElementById("setting-wallet")?.checked,
+      offers: document.getElementById("setting-offers")?.checked,
     };
 
     try {
       const response = await fetch(`${API_BASE_URL}/v1/widget/settings`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${publicKey}`,
-          'X-Answer24-Version': WIDGET_VERSION
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${publicKey}`,
+          "X-Answer24-Version": WIDGET_VERSION,
         },
-        body: JSON.stringify(newSettings)
+        body: JSON.stringify(newSettings),
       });
 
       if (response.ok) {
         // Update local settings
         Object.assign(settings, newSettings);
-        
+
         // Update UI
         updateWidgetAppearance();
-        
+
         // Hide settings panel
-        settingsPanel.style.display = 'none';
-        
-        alert('Settings saved successfully!');
+        settingsPanel.style.display = "none";
+
+        alert("Settings saved successfully!");
       } else {
-        alert('Failed to save settings. Please try again.');
+        alert("Failed to save settings. Please try again.");
       }
     } catch (error) {
-      console.error('Failed to save settings:', error);
-      alert('Failed to save settings. Please try again.');
+      console.error("Failed to save settings:", error);
+      alert("Failed to save settings. Please try again.");
     }
   }
 
@@ -669,27 +730,27 @@
    */
   function updateWidgetAppearance() {
     // Update chat button
-    const chatButton = document.getElementById('answer24-chat-button');
+    const chatButton = document.getElementById("answer24-chat-button");
     if (chatButton) {
       chatButton.style.background = settings.primary;
     }
 
     // Update header
-    const chatHeader = chatWindow?.querySelector('div');
+    const chatHeader = chatWindow?.querySelector("div");
     if (chatHeader) {
       chatHeader.style.background = settings.primary;
     }
 
     // Update company name in header
-    const companyNameElement = chatWindow?.querySelector('div > div > div');
+    const companyNameElement = chatWindow?.querySelector("div > div > div");
     if (companyNameElement) {
       companyNameElement.textContent = settings.company_name;
     }
   }
 
   // Initialize when DOM is ready
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init);
   } else {
     init();
   }
@@ -707,15 +768,17 @@
   window.Answer24Widget = {
     version: WIDGET_VERSION,
     open: () => toggleChat(),
-    close: () => { isOpen = false; toggleChat(); },
+    close: () => {
+      isOpen = false;
+      toggleChat();
+    },
     sendMessage: (message) => {
       if (message) {
-        addMessage('user', message);
+        addMessage("user", message);
         sendMessage();
       }
     },
     getConfig: () => config,
-    getSettings: () => settings
+    getSettings: () => settings,
   };
-
 })();

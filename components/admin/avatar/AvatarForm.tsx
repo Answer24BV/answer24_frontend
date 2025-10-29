@@ -1,5 +1,5 @@
 'use client';
-import { useState, useRef, ChangeEvent, useEffect } from 'react';
+import { useState, useRef, ChangeEvent } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -18,22 +18,72 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { 
-  ImageIcon, 
+  UploadCloud, 
   X, 
   Loader2, 
   AlertCircle, 
-  UploadCloud, 
   CheckCircle, 
   File as FileIcon, 
   Plus, 
   Trash2 
 } from 'lucide-react';
-import Image from 'next/image';
 import { toast } from "sonner";
 import { Label } from '@/components/ui/label';
 import { Avatar } from '@/types/avatar.d';
-import { createAvatar, updateAvatar } from "@/app/[locale]/actions/avatar";
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+
+// ✅ Hardcoded API base
+const API_BASE = "https://api.answer24.nl/api/v1";
+  
+// ✅ Create avatar (POST)
+export async function createAvatar(token: string, payload: any) {
+  const res = await fetch(`${API_BASE}/avatars`, {
+    method: "POST",
+    headers:
+      payload instanceof FormData
+        ? {
+            Authorization: `Bearer ${token}`,
+          }
+        : {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+    body: payload instanceof FormData ? payload : JSON.stringify(payload),
+    cache: "no-store",
+  });
+
+  if (!res.ok) {
+    const errText = await res.text();
+    throw new Error(errText || "Failed to create avatar");
+  }
+
+  return await res.json();
+}
+
+// ✅ Update avatar (POST)
+export async function updateAvatar(id: string, token: string, payload: any) {
+  const res = await fetch(`${API_BASE}/avatars/${id}`, {
+    method: "POST",
+    headers:
+      payload instanceof FormData
+        ? {
+            Authorization: `Bearer ${token}`,
+          }
+        : {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+    body: payload instanceof FormData ? payload : JSON.stringify(payload),
+    cache: "no-store",
+  });
+
+  if (!res.ok) {
+    const errText = await res.text();
+    throw new Error(errText || "Failed to update avatar");
+  }
+
+  return await res.json();
+}
 
 interface AvatarFormProps {
   avatar?: Avatar;
@@ -96,48 +146,32 @@ const AvatarForm: React.FC<AvatarFormProps> = ({ avatar }) => {
   const handleImageChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     
-    if (!file) {
-      setError('No file selected');
-      return;
-    }
+    if (!file) return setError('No file selected');
 
     const validImageTypes = ['image/jpeg', 'image/png', 'image/gif'];
-    if (!validImageTypes.includes(file.type)) {
-      setError('Invalid image type. Please select a JPG, PNG, or GIF file.');
-      return;
-    }
+    if (!validImageTypes.includes(file.type)) return setError('Invalid image type. Please select a JPG, PNG, or GIF file.');
 
-    const maxSize = 5 * 1024 * 1024; // 5MB
-    if (file.size > maxSize) {
-      setError('Image size should be less than 5MB');
-      return;
-    }
+    const maxSize = 5 * 1024 * 1024;
+    if (file.size > maxSize) return setError('Image size should be less than 5MB');
 
     setSelectedFile(file);
     setError(null);
 
     const reader = new FileReader();
     reader.onload = () => {
-      if (reader.result) {
-        setPreviewImage(reader.result as string);
-      }
+      if (reader.result) setPreviewImage(reader.result as string);
     };
     reader.readAsDataURL(file);
   };
 
-  const triggerFileInput = () => {
-    fileInputRef.current?.click();
-  };
+  const triggerFileInput = () => fileInputRef.current?.click();
 
   const removeImage = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    
     setPreviewImage(null);
     setSelectedFile(null);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
+    if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
   const getToken = (): string => {
@@ -213,9 +247,7 @@ const AvatarForm: React.FC<AvatarFormProps> = ({ avatar }) => {
         <Alert variant="destructive" className='mb-6'>
           <AlertCircle className="h-4 w-4" />
           <AlertTitle>Error</AlertTitle>
-          <AlertDescription>
-            {error}
-          </AlertDescription>
+          <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -345,8 +377,7 @@ const AvatarForm: React.FC<AvatarFormProps> = ({ avatar }) => {
                       <img
                         src={previewImage}
                         alt="Preview"
-                        // fill
-                        className="object-cover"
+                        className="object-cover w-full h-full"
                       />
                       <Button
                         type="button"

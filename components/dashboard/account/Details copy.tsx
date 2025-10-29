@@ -35,7 +35,7 @@ export default function Details() {
   const [userEmail, setUserEmail] = useState<string | null>(null);
 
   const API_BASE_URL =
-    process.env.NEXT_PUBLIC_API_URL || "https://answer24_backend.test/api/v1";
+    process.env.NEXT_PUBLIC_API_URL || "https://api.answer24.nl/api/v1";
 
   // ✅ Ensure axios uses JSON
   useEffect(() => {

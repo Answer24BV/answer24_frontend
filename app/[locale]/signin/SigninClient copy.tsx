@@ -47,10 +47,14 @@ export default function SignIn() {
     setIsLoading(true);
 
     try {
-      const response: SuccessResponse | ErrorResponse = await authAPI.login(email, password, rememberMe);
+      const response: SuccessResponse | ErrorResponse = await authAPI.login(
+        email,
+        password,
+        rememberMe
+      );
 
       // Check for error response
-      if ('status' in response) {
+      if ("status" in response) {
         throw new Error(response.message || "Login failed. Please try again.");
       }
 
@@ -59,7 +63,7 @@ export default function SignIn() {
       console.log("Full response:", response);
       console.log("Response token:", response.token);
       console.log("=============================");
-      
+
       // Store token (directly from response, as per type)
       const tokenToStore = response.token;
       if (tokenToStore) {
@@ -69,7 +73,7 @@ export default function SignIn() {
         console.error("No token found in response:", response);
         throw new Error("No token received from server");
       }
-      
+
       // Extract user data directly from response (as per type)
       const userData = {
         id: response.id,
@@ -81,9 +85,9 @@ export default function SignIn() {
         userType: response.userType,
         // If pin is expected, add it here if present: pin: response.pin,
       };
-      
+
       console.log("Final user data to store:", userData);
-      
+
       if (userData.email) {
         tokenUtils.setUser(userData);
       } else {
@@ -113,8 +117,7 @@ export default function SignIn() {
       console.log("Initiating Google Sign-In...");
       console.log("API Base URL:", process.env.NEXT_PUBLIC_API_BASE_URL);
 
-      const apiUrl =
-        "https://answer24.laravel.cloud/api/v1/sso/google/auth-url";
+      const apiUrl = "https://api.answer24.nl/api/v1/sso/google/auth-url";
       console.log("Fetching auth URL from:", apiUrl);
 
       const res = await fetch(apiUrl, {

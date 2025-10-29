@@ -9,6 +9,11 @@ const nextConfig: NextConfig = {
         hostname: 'res.cloudinary.com',
         pathname: '/dt5lofhwv/image/upload/v1754478315/answer24_blogs/**',
       },
+      {
+        protocol: "https",
+        hostname: "via.placeholder.com",
+        pathname: '/dt5lofhwv/image/upload/v1754478315/answer24_blogs/**',
+      },
     ],
   },
   // Vercel handles this automatically - no need for static export

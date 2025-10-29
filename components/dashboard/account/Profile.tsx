@@ -37,8 +37,7 @@ const updateUserProfile = async (data: {
 
     const response = await fetch(
       `${
-        process.env.NEXT_PUBLIC_API_BASE_URL ||
-        "https://answer24.laravel.cloud/api/v1"
+        process.env.NEXT_PUBLIC_API_BASE_URL || "https://api.answer24.nl/api/v1"
       }/profile`,
       {
         method: "PUT",
@@ -207,7 +206,6 @@ const ProfileContent = ({
                   Contact support to change your phone number
                 </p>
               </div>
-
             </div>
             <div className="pt-4 flex justify-end border-t border-gray-100">
               <Button type="submit" className="px-6 py-2.5 text-sm font-medium">
@@ -276,7 +274,6 @@ export function Profile() {
         return false;
       }
     };
-
 
     // Try to load user data immediately
     if (!fetchUserData()) {

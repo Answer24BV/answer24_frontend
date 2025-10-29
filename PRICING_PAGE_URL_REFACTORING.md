@@ -1,21 +1,24 @@
 # Pricing Page URL Refactoring Summary
 
 ## Overview
+
 Successfully refactored the pricing page and payment modal to use centralized API configuration from `NEXT_PUBLIC_API_BASE_URL` instead of hardcoded URLs.
 
 ## Issues Found
 
 ### 1. **Pricing Component** (`components/pricing/Pricing.tsx`)
+
 - **Issue**: Hardcoded URL on line 55
   ```typescript
-  const pricingEndpoint = "https://answer24.laravel.cloud/api/v1/plan";
+  const pricingEndpoint = "https://api.answer24.nl/api/v1/plan";
   ```
 
 ### 2. **Payment Modal** (`components/plans/PaymentModal.tsx`)
+
 - **Issue**: Hardcoded URL on line 73
   ```typescript
   const response = await fetch(
-    "https://answer24.laravel.cloud/api/v1/wallet/deposit",
+    "https://api.answer24.nl/api/v1/wallet/deposit"
     // ...
   );
   ```
@@ -25,14 +28,16 @@ Successfully refactored the pricing page and payment modal to use centralized AP
 ### 1. Pricing Component (`components/pricing/Pricing.tsx`)
 
 **Added Import:**
+
 ```typescript
 import { getApiUrl, API_CONFIG } from "@/lib/api-config";
 ```
 
 **Replaced Hardcoded URL:**
+
 ```typescript
 // BEFORE
-const pricingEndpoint = "https://answer24.laravel.cloud/api/v1/plan";
+const pricingEndpoint = "https://api.answer24.nl/api/v1/plan";
 const response = await fetch(pricingEndpoint, {
   method: "GET",
   headers: {
@@ -54,39 +59,35 @@ const response = await fetch(getApiUrl(API_CONFIG.ENDPOINTS.PLAN.LIST), {
 ### 2. Payment Modal (`components/plans/PaymentModal.tsx`)
 
 **Added Import:**
+
 ```typescript
 import { getApiUrl, API_CONFIG } from "@/lib/api-config";
 ```
 
 **Replaced Hardcoded URL:**
+
 ```typescript
 // BEFORE
-const response = await fetch(
-  "https://answer24.laravel.cloud/api/v1/wallet/deposit",
-  {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-      Accept: "application/json",
-    },
-    body: JSON.stringify(requestPayload),
-  }
-);
+const response = await fetch("https://api.answer24.nl/api/v1/wallet/deposit", {
+  method: "POST",
+  headers: {
+    Authorization: `Bearer ${token}`,
+    "Content-Type": "application/json",
+    Accept: "application/json",
+  },
+  body: JSON.stringify(requestPayload),
+});
 
 // AFTER
-const response = await fetch(
-  getApiUrl(API_CONFIG.ENDPOINTS.WALLET.DEPOSIT),
-  {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-      Accept: "application/json",
-    },
-    body: JSON.stringify(requestPayload),
-  }
-);
+const response = await fetch(getApiUrl(API_CONFIG.ENDPOINTS.WALLET.DEPOSIT), {
+  method: "POST",
+  headers: {
+    Authorization: `Bearer ${token}`,
+    "Content-Type": "application/json",
+    Accept: "application/json",
+  },
+  body: JSON.stringify(requestPayload),
+});
 ```
 
 ## API Endpoints Used
@@ -94,6 +95,7 @@ const response = await fetch(
 ### From API Config (`lib/api-config.ts`)
 
 1. **PLAN.LIST** → `/plan`
+
    - Used for: Fetching pricing tiers
    - Method: GET
    - Component: Pricing.tsx
@@ -136,11 +138,13 @@ const response = await fetch(
 ## Environment Variable Required
 
 Ensure `.env.local` contains:
+
 ```bash
-NEXT_PUBLIC_API_BASE_URL=https://answer24.laravel.cloud/api/v1
+NEXT_PUBLIC_API_BASE_URL=https://api.answer24.nl/api/v1
 ```
 
 Or for local development:
+
 ```bash
 NEXT_PUBLIC_API_BASE_URL=http://localhost:8000/api/v1
 ```
@@ -172,4 +176,3 @@ Creates payment on backend
 ✨ **All hardcoded URLs on the pricing page have been successfully removed and replaced with centralized API configuration!**
 
 The pricing page (`http://localhost:3000/en/pricing`) now correctly uses `NEXT_PUBLIC_API_BASE_URL` from your environment variables for all API calls.
-

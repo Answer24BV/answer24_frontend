@@ -94,7 +94,7 @@ const dummyWebshops: Webshop[] = [
     featured: false,
   },
 ];
-
+ 
 const WebshopClient = () => {
   const [activeCategory, setActiveCategory] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");

@@ -10,7 +10,7 @@ export default function BlogPostClient() {
   const [isLoading, setIsLoading] = useState(true);
   const params = useParams();
   const blogId = params.blogId as string;
-
+ 
   useEffect(() => {
     const fetchBlog = async () => {
       try {

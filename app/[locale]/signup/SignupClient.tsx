@@ -93,7 +93,9 @@ export default function SignUp() {
       }
 
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000/api/v1"}/plan`,
+        `${
+          process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000/api/v1"
+        }/plan`,
         {
           method: "GET",
           headers: {
@@ -197,7 +199,7 @@ export default function SignUp() {
       // Registration successful - show inline success message
       setSuccess(true);
       setError("");
-      
+
       // Redirect to signin page after 5 seconds
       setTimeout(() => {
         router.push("/signin");
@@ -224,7 +226,9 @@ export default function SignUp() {
     try {
       const token = tokenUtils.getToken();
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000/api/v1"}/subscription/subscribe`,
+        `${
+          process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000/api/v1"
+        }/subscription/subscribe`,
         {
           method: "POST",
           headers: {
@@ -270,8 +274,7 @@ export default function SignUp() {
       console.log("Initiating Google Sign-Up...");
       console.log("API Base URL:", process.env.NEXT_PUBLIC_API_BASE_URL);
 
-      const apiUrl =
-        "https://answer24.laravel.cloud/api/v1/sso/google/auth-url";
+      const apiUrl = "https://api.answer24.nl/api/v1/sso/google/auth-url";
       console.log("Fetching signup auth URL from:", apiUrl);
 
       const res = await fetch(apiUrl, {
@@ -555,7 +558,8 @@ export default function SignUp() {
 
                   {success && (
                     <div className="bg-green-50 border border-green-200 text-green-600 px-4 py-3 rounded-lg text-sm">
-                      Registration successful! You will be redirected to the sign-in page in 5 seconds...
+                      Registration successful! You will be redirected to the
+                      sign-in page in 5 seconds...
                     </div>
                   )}
 
@@ -684,7 +688,11 @@ export default function SignUp() {
                     disabled={isLoading || success}
                     className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg mt-8 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {isLoading ? "Processing..." : success ? "Registration Successful!" : t("signUp.continueButton")}
+                    {isLoading
+                      ? "Processing..."
+                      : success
+                      ? "Registration Successful!"
+                      : t("signUp.continueButton")}
                   </Button>
 
                   <div className="text-center text-sm text-gray-600 mt-6">

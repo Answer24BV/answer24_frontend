@@ -56,7 +56,7 @@ export const planService = {
   // Create new plan (admin only)
   createPlan: async (data: CreatePlanData): Promise<PlanResponse> => {
     try {
-      return await apiRequest("/admin/plans", {
+      return await apiRequest("/plans", {
         method: "POST",
         body: JSON.stringify(data),
       });
@@ -72,7 +72,7 @@ export const planService = {
     data: Partial<CreatePlanData>
   ): Promise<PlanResponse> => {
     try {
-      return await apiRequest(`/admin/plans/${id}`, {
+      return await apiRequest(`/plans/${id}`, {
         method: "PUT",
         body: JSON.stringify(data),
       });
@@ -85,7 +85,7 @@ export const planService = {
   // Delete plan (admin only)
   deletePlan: async (id: string): Promise<void> => {
     try {
-      return await apiRequest(`/admin/plans/${id}`, {
+      return await apiRequest(`/plans/${id}`, {
         method: "DELETE",
       });
     } catch (error: any) {
