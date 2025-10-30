@@ -12,7 +12,27 @@
   // Get configuration from script tag
   const scriptTag = document.currentScript || document.querySelector('script[data-public-key]');
   const publicKey = scriptTag?.getAttribute('data-public-key');
-  const apiBase = scriptTag?.getAttribute('data-api-base') || 'http://localhost:3000/api';
+  /**
+   * API Base URL selection logic:
+   * 1. If data-api-base attr is present on <script>, use that (explicit override)
+   * 2. Otherwise, auto-detect based on window.location.host:
+   *    - localhost/127.0.0.1: use dev backend (https://answer24_backend.test/api/v1)
+   *    - answer24.nl or api.answer24.nl: use prod backend (https://api.answer24.nl/api/v1)
+   * 3. Fallback: use prod API as the safest default
+   *
+   * This enables seamless switching between local/dev and production environments.
+   */
+  let apiBase = scriptTag?.getAttribute('data-api-base');
+  if (!apiBase) {
+    const currentHost = window.location.host;
+    if (currentHost.includes('localhost') || currentHost.startsWith('127.')) {
+      apiBase = 'https://answer24_backend.test/api/v1';
+    } else if (currentHost.includes('answer24.nl')) {
+      apiBase = 'https://api.answer24.nl/api/v1';
+    } else {
+      apiBase = 'https://api.answer24.nl/api/v1'; // safest fallback
+    }
+  }
   
   if (!publicKey) {
     console.error('[Answer24 Widget] Error: data-public-key attribute is required');
@@ -27,10 +47,96 @@
   let messages = [];
   let chatId = null;
 
+  // Detect demo mode or missing publicKey
+  let effectivePublicKey = publicKey;
+  if (!effectivePublicKey || effectivePublicKey === 'demo-key-123') {
+    effectivePublicKey = 'PUB_demo_testkey'; // Use a universal test key for demo
+    console.warn('[Answer24 Widget] Using fallback demo public key: PUB_demo_testkey');
+  }
+
+  // After fetching the widget settings, merge each key with defaults as fallback
+  function mergeWithDefaults(apiJson) {
+    const defaultSettings = {
+      theme: {
+        primary: '#2563eb',
+        foreground: '#ffffff',
+        background: '#ffffff',
+        radius: 18,
+        fontFamily: 'Inter, system-ui, sans-serif'
+      },
+      behavior: {
+        position: 'right',
+        openOnLoad: false,
+        openOnExitIntent: true,
+        openOnInactivityMs: 0,
+        zIndex: 9999
+      },
+      features: {
+        chat: true,
+        wallet: false,
+        offers: false,
+        leadForm: false
+      },
+      i18n: {
+        default: 'en-US',
+        strings: {
+          'chat.welcome': "Hi there! I'm answer24, your assistant. How can I help you today?",
+          'chat.placeholder': 'Type your message...',
+          'chat.send': 'Send'
+        }
+      },
+      integrations: {},
+      visibility_rules: {},
+      cdn: {},
+    };
+
+    function mergeSection(api, def) {
+      if (!api || typeof api !== 'object') return { ...def };
+      const merged = { ...def };
+      for (const k in def) if (Object.hasOwn(def, k)) merged[k] = (api[k] !== undefined ? api[k] : def[k]);
+      for (const k in api) if (!Object.hasOwn(def, k)) merged[k] = api[k]; // bring any extra keys
+      return merged;
+    }
+
+    return {
+      theme: mergeSection(apiJson.theme, defaultSettings.theme),
+      behavior: mergeSection(apiJson.behavior, defaultSettings.behavior),
+      features: mergeSection(apiJson.features, defaultSettings.features),
+      i18n: apiJson.i18n ? { ...defaultSettings.i18n, ...apiJson.i18n, strings: { ...defaultSettings.i18n.strings, ...((apiJson.i18n||{}).strings || {}) } } : defaultSettings.i18n,
+      integrations: apiJson.integrations || {},
+      visibility_rules: apiJson.visibility_rules || {},
+      cdn: apiJson.cdn || {},
+    };
+  }
+
   // Fetch widget settings from API or localStorage
   async function loadSettings() {
     try {
-      // First try to load from localStorage (if on same domain)
+      // Use correct API base for config fetch
+      const url = `${apiBase}/widget/config?key=${encodeURIComponent(effectivePublicKey)}`;
+      const apiResp = await fetch(url, {
+        method: 'GET',
+        headers: { 'Accept': 'application/json' },
+      });
+      if (apiResp.ok) {
+        const apiJson = await apiResp.json();
+        if (apiJson && typeof apiJson === 'object') {
+          widgetSettings = mergeWithDefaults(apiJson);
+          console.log('[Answer24 Widget] Loaded settings from API (with merged defaults)', widgetSettings);
+          try {
+            localStorage.setItem('widget-settings', JSON.stringify(widgetSettings));
+          } catch (e) {}
+          return;
+        }
+      } else {
+        // Log if API returns error
+        console.warn(`[Answer24 Widget] API returned status ${apiResp.status}`);
+      }
+    } catch (apiErr) {
+      console.warn('[Answer24 Widget] Failed to fetch settings from API', apiErr);
+    }
+    // 2. Fall back to localStorage if possible
+    try {
       const localSettings = localStorage.getItem('widget-settings');
       if (localSettings) {
         widgetSettings = JSON.parse(localSettings);
@@ -38,11 +144,10 @@
         return;
       }
     } catch (e) {
-      // localStorage might not be available on external domains
+      // localStorage might not be available
       console.log('[Answer24 Widget] localStorage not available, will use defaults');
     }
-
-    // Use default settings if API call fails
+    // 3. Final fallback: hardcoded default settings
     widgetSettings = {
       theme: {
         primary: '#2563eb',
@@ -56,13 +161,18 @@
         openOnLoad: false,
         zIndex: 9999
       },
+      features: { chat: true, wallet: false, offers: false, leadForm: false },
       i18n: {
+        default: 'en-US',
         strings: {
           'chat.welcome': "Hi there! I'm answer24, your assistant. How can I help you today?",
           'chat.placeholder': 'Type your message...',
           'chat.send': 'Send'
         }
-      }
+      },
+      integrations: {},
+      visibility_rules: {},
+      cdn: {},
     };
   }
 
@@ -327,13 +437,13 @@
   // Handle send message
   async function handleSendMessage() {
     const input = document.getElementById('answer24-input');
-    const message = input.value.trim();
+    const message = input?.value.trim();
     
     if (!message) return;
     
     // Add user message
     addMessage(message, 'user');
-    input.value = '';
+    if (input) input.value = '';
     
     // Show typing
     showTyping();
@@ -352,36 +462,120 @@
     
     // Inject HTML
     const container = document.createElement('div');
-    container.innerHTML = createWidgetHTML();
-    document.body.appendChild(container.firstElementChild);
+    try {
+      container.innerHTML = createWidgetHTML();
+      document.body.appendChild(container.firstElementChild);
+      // Check for successful injection
+      const widgetRoot = document.getElementById('answer24-widget-container');
+      if (widgetRoot) {
+        console.log('[Answer24 Widget] Widget injected, DOM:', widgetRoot);
+      } else {
+        // Fallback: forcibly inject a widget with guaranteed safe defaults
+        console.warn('[Answer24 Widget] Widget HTML not injected—falling back to emergency default markup.');
+        container.innerHTML = `<div id="answer24-widget-container"><button id="answer24-chat-button" style="position:fixed;bottom:24px;right:24px;z-index:9999">💬</button><div id="answer24-chat-window" style="display:none;position:fixed;bottom:100px;right:24px;width:300px;height:400px;background:#fff;border-radius:16px;z-index:9999;box-shadow:0 4px 16px rgba(0,0,0,0.08)"><div id="answer24-chat-header" style="background:#2563eb;color:#fff;padding:12px 16px;display:flex;justify-content:space-between"><span>answer24</span><button id="answer24-close-button" style="background:none;border:none;font-size:20px;color:#fff">&times;</button></div><div id="answer24-messages" style="flex:1;overflow:auto;padding:8px">Widget config error. Using fallback.</div><div id="answer24-input-area"><input id="answer24-input" type="text" placeholder="Type a message..." style="width:70%"><button id="answer24-send-button">Send</button></div></div></div>`;
+        document.body.appendChild(container.firstElementChild);
+        console.log('[Answer24 Widget] Emergency fallback widget injected.');
+      }
+    } catch (err) {
+      // Always fallback if anything throws during markup creation
+      console.error('[Answer24 Widget] Exception during widget DOM injection', err);
+      container.innerHTML = `<div id="answer24-widget-container"><button id="answer24-chat-button" style="position:fixed;bottom:24px;right:24px;z-index:9999">💬</button><div id="answer24-chat-window" style="display:none;position:fixed;bottom:100px;right:24px;width:300px;height:400px;background:#fff;border-radius:16px;z-index:9999;box-shadow:0 4px 16px rgba(0,0,0,0.08)"><div id="answer24-chat-header" style="background:#2563eb;color:#fff;padding:12px 16px;display:flex;justify-content:space-between"><span>answer24</span><button id="answer24-close-button" style="background:none;border:none;font-size:20px;color:#fff">&times;</button></div><div id="answer24-messages" style="flex:1;overflow:auto;padding:8px">Widget error. Emergency fallback loaded.</div><div id="answer24-input-area"><input id="answer24-input" type="text" placeholder="Type a message..." style="width:70%"><button id="answer24-send-button">Send</button></div></div></div>`;
+      document.body.appendChild(container.firstElementChild);
+      console.log('[Answer24 Widget] Emergency fallback (exception) widget injected.');
+    }
     
-    // Event listeners
+    // Always attach handlers for normal + fallback widget (for robustness)
+    function attachWidgetHandlers() {
+      const chatButton = document.getElementById('answer24-chat-button');
+      const closeButton = document.getElementById('answer24-close-button');
+      const chatWindow = document.getElementById('answer24-chat-window');
+      const sendButton = document.getElementById('answer24-send-button');
+      const input = document.getElementById('answer24-input');
+
+      if (chatButton && chatWindow) {
+        chatButton.onclick = function() {
+          chatWindow.style.display = (chatWindow.style.display === 'none' || !chatWindow.style.display) ? (chatWindow.classList.contains('open') ? 'flex' : 'block') : 'none';
+          // For fallback, we'll just use 'block' (never flex if fallback)
+          chatWindow.classList.add('open');
+          if (input) try { input.focus(); } catch (e) {}
+        }
+      }
+      if (closeButton && chatWindow) {
+        closeButton.onclick = function() {
+          chatWindow.style.display = 'none';
+          chatWindow.classList.remove('open');
+        }
+      }
+      // Emergency fallback for open/close/sendMessage API
+      window.Answer24Widget = {
+        open: function() {
+          const cw = document.getElementById('answer24-chat-window');
+          if (cw) {
+            cw.style.display = cw.classList.contains('open') ? 'flex' : 'block';
+            cw.classList.add('open');
+          }
+        },
+        close: function() {
+          const cw = document.getElementById('answer24-chat-window');
+          if (cw) {
+            cw.style.display = 'none';
+            cw.classList.remove('open');
+          }
+        },
+        sendMessage: function(message) {
+          const input = document.getElementById('answer24-input');
+          if (input) {
+            input.value = message;
+            // If sendButton exists, simulate click
+            const sendButton = document.getElementById('answer24-send-button');
+            if (sendButton) sendButton.click();
+          }
+        }
+      }
+    } // end attachWidgetHandlers
+
+    // Attach handlers after *all* DOM injection attempts
+    setTimeout(attachWidgetHandlers, 50); // Slight delay to ensure DOM is present
+    
+    // Event listeners w/ proper assignments
     const chatButton = document.getElementById('answer24-chat-button');
     const closeButton = document.getElementById('answer24-close-button');
     const chatWindow = document.getElementById('answer24-chat-window');
     const sendButton = document.getElementById('answer24-send-button');
     const input = document.getElementById('answer24-input');
     
-    chatButton.addEventListener('click', () => {
-      isOpen = !isOpen;
-      chatWindow.classList.toggle('open', isOpen);
-      if (isOpen) {
-        input.focus();
-      }
-    });
-    
-    closeButton.addEventListener('click', () => {
-      isOpen = false;
-      chatWindow.classList.remove('open');
-    });
-    
-    sendButton.addEventListener('click', handleSendMessage);
-    
-    input.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') {
-        handleSendMessage();
-      }
-    });
+    if (chatButton) {
+      chatButton.addEventListener('click', function() {
+        isOpen = !isOpen;
+        if (chatWindow) chatWindow.classList.toggle('open', isOpen);
+        if (isOpen && input) input.focus();
+      });
+    } else {
+      console.warn('[Answer24 Widget] chatButton not found in DOM.');
+    }
+
+    if (closeButton) {
+      closeButton.addEventListener('click', function() {
+        isOpen = false;
+        if (chatWindow) chatWindow.classList.remove('open');
+      });
+    } else {
+      console.warn('[Answer24 Widget] closeButton not found in DOM.');
+    }
+
+    if (sendButton) {
+      sendButton.addEventListener('click', handleSendMessage);
+    } else {
+      console.warn('[Answer24 Widget] sendButton not found in DOM.');
+    }
+
+    if (input) {
+      input.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') handleSendMessage();
+      });
+    } else {
+      console.warn('[Answer24 Widget] chat input not found in DOM.');
+    }
     
     // Listen for settings updates (if on same domain)
     try {
@@ -395,7 +589,7 @@
           widgetContainer.remove();
           await initWidget();
           if (wasOpen) {
-            document.getElementById('answer24-chat-window').classList.add('open');
+            document.getElementById('answer24-chat-window')?.classList.add('open');
             isOpen = true;
           }
         }
@@ -418,21 +612,21 @@
   // Expose global API
   window.Answer24Widget = {
     open: function() {
-      const chatWindow = document.getElementById('answer24-chat-window');
+      var chatWindow = document.getElementById('answer24-chat-window');
       if (chatWindow) {
         isOpen = true;
         chatWindow.classList.add('open');
       }
     },
     close: function() {
-      const chatWindow = document.getElementById('answer24-chat-window');
+      var chatWindow = document.getElementById('answer24-chat-window');
       if (chatWindow) {
         isOpen = false;
         chatWindow.classList.remove('open');
       }
     },
     sendMessage: function(message) {
-      const input = document.getElementById('answer24-input');
+      var input = document.getElementById('answer24-input');
       if (input) {
         input.value = message;
         handleSendMessage();
