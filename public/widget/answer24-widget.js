@@ -16,7 +16,8 @@
   if (!apiBase) {
     const currentHost = window.location.host;
     if (currentHost.includes('localhost') || currentHost.startsWith('127.')) {
-      apiBase = 'https://answer24_backend.test/api/v1';
+      // Use local Next.js API for localhost development
+      apiBase = `${window.location.protocol}//${window.location.host}/api/v1`;
     } else if (currentHost.includes('answer24.nl')) {
       apiBase = 'https://api.answer24.nl/api/v1';
     } else {
@@ -113,12 +114,18 @@
   }
 
   // Fetch widget settings
-  async function loadSettings() {
+  async function loadSettings(forceReload = false) {
     try {
-      const url = `${apiBase}/widget/config?key=${encodeURIComponent(effectivePublicKey)}`;
+      // Add timestamp to bypass cache when forceReload is true
+      const cacheBuster = forceReload ? `&_t=${Date.now()}` : '';
+      const url = `${apiBase}/widget/config?key=${encodeURIComponent(effectivePublicKey)}${cacheBuster}`;
       const apiResp = await fetch(url, {
         method: 'GET',
-        headers: { 'Accept': 'application/json' },
+        headers: { 
+          'Accept': 'application/json',
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
+        },
       });
       if (apiResp.ok) {
         const apiJson = await apiResp.json();
@@ -128,6 +135,19 @@
           try {
             localStorage.setItem('widget-settings', JSON.stringify(widgetSettings));
           } catch (e) {}
+          // Re-apply settings to widget if already rendered
+          // Reload the widget to apply new settings
+          const existingContainer = document.getElementById('answer24-widget-container');
+          if (existingContainer) {
+            const wasOpen = isOpen;
+            existingContainer.remove();
+            await initWidget();
+            if (wasOpen) {
+              const newWindow = document.getElementById('answer24-chat-window');
+              if (newWindow) newWindow.classList.add('open');
+              isOpen = true;
+            }
+          }
           return;
         }
       }
@@ -1355,8 +1375,8 @@
     // Listen for settings updates
     try {
       window.addEventListener('widget-settings-updated', async () => {
-        console.log('[Answer24 Widget] Settings updated, reloading...');
-        await loadSettings();
+        console.log('[Answer24 Widget] Settings updated event received, reloading...');
+        await loadSettings(true); // Force reload with cache buster
         const widgetContainer = document.getElementById('answer24-widget-container');
         if (widgetContainer) {
           const wasOpen = isOpen;
@@ -1369,7 +1389,17 @@
           }
         }
       });
-    } catch (e) {}
+      
+      // Also listen for visibility changes to reload settings when demo page is opened
+      document.addEventListener('visibilitychange', () => {
+        if (!document.hidden) {
+          console.log('[Answer24 Widget] Page visible, checking for settings updates...');
+          loadSettings(true); // Force reload when page becomes visible
+        }
+      });
+    } catch (e) {
+      console.error('[Answer24 Widget] Error setting up event listeners:', e);
+    }
     
     console.log('[Answer24 Widget] Initialized successfully');
   }

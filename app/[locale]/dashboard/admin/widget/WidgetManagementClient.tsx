@@ -322,23 +322,35 @@ export default function WidgetManagementClient() {
 
       if (response.ok) {
         const data = await response.json();
+        console.log('[Widget Settings] Settings saved successfully:', data);
         toast.success('Widget settings saved successfully!');
         await loadWidgetSettings(); // Reload to get updated version
+        
+        // Also save to localStorage for widget to use
+        localStorage.setItem('widget-settings', JSON.stringify(settings));
+        
         // Notify all widgets to reload settings
         window.dispatchEvent(new CustomEvent('widget-settings-updated'));
+        
+        // Show public key info
+        if (settings.public_key) {
+          console.log('✅ Your widget public key:', settings.public_key);
+          console.log('💡 Use this key in your demo: http://localhost:3000/widget/demo.html');
+        }
       } else {
         const errorData = await response.json().catch(() => ({ error: 'Failed to save settings' }));
+        console.error('[Widget Settings] Save failed:', errorData);
         // If backend is not available, save locally
-        console.log('Backend not available, saving settings locally...');
+        console.log('[Widget Settings] Backend not available, saving settings locally...');
         localStorage.setItem('widget-settings', JSON.stringify(settings));
         toast.warning('Widget settings saved locally! (Backend not available)');
         // Notify all widgets to reload settings
         window.dispatchEvent(new CustomEvent('widget-settings-updated'));
       }
     } catch (error) {
-      console.error('Error saving widget settings:', error);
+      console.error('[Widget Settings] Error saving widget settings:', error);
       // If API is not available, save locally
-      console.log('API not available, saving settings locally...');
+      console.log('[Widget Settings] API not available, saving settings locally...');
       localStorage.setItem('widget-settings', JSON.stringify(settings));
       toast.warning('Widget settings saved locally! (Backend not available)');
       // Notify all widgets to reload settings
@@ -524,9 +536,9 @@ export default function WidgetManagementClient() {
                 <div className="flex flex-col gap-2">
                   <Textarea
                     value={`<!-- Add this before closing </body> tag on your website -->
-<script src="${typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000'}/widget/answer24-widget.js" data-public-key="${settings.public_key}"></script>`}
+<script src="${typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000'}/widget/answer24-widget.js" data-public-key="${settings.public_key}" data-api-base="${typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000'}/api/v1"></script>`}
                     readOnly
-                    rows={3}
+                    rows={4}
                     className="font-mono text-sm"
                   />
                   <div className="flex gap-2">
@@ -537,12 +549,19 @@ export default function WidgetManagementClient() {
                     <Button 
                       size="sm" 
                       variant="outline" 
-                      onClick={() => window.open('/widget/demo.html', '_blank')}
+                      onClick={() => {
+                        // Update demo.html with current public key and open it with cache buster
+                        const demoUrl = `${window.location.origin}/widget/demo.html?key=${settings.public_key}&_t=${Date.now()}`;
+                        window.open(demoUrl, '_blank');
+                      }}
                       className="flex-1"
                     >
                       View Demo
                     </Button>
                   </div>
+                  <p className="text-xs text-gray-500">
+                    💡 The demo page will automatically use your saved settings. Make sure to save your changes first!
+                  </p>
                 </div>
               </div>
             </CardContent>

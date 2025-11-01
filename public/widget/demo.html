@@ -154,12 +154,62 @@
   </div>
 
   <!-- Answer24 Widget - This is what you add to your website -->
-  <script src="/widget/answer24-widget.js" data-public-key="PUB_oom7icrh7"></script>
-  
+  <!-- The public key will be loaded from your saved widget settings -->
   <script>
-    // Optional: Show widget info
-    console.log('%c🤖 Answer24 Widget Loaded!', 'color: #10b981; font-size: 16px; font-weight: bold;');
-    console.log('Widget API:', window.Answer24Widget);
+    // Get public key from URL parameter or use default from saved settings
+    const urlParams = new URLSearchParams(window.location.search);
+    let publicKey = urlParams.get('key');
+    
+    // If no key in URL, try to get the most recent one from saved settings
+    // This will use the public key from the settings file in public/widget/settings/
+    if (!publicKey) {
+      // Try to get from localStorage if available (from admin dashboard)
+      try {
+        const savedSettings = localStorage.getItem('widget-settings');
+        if (savedSettings) {
+          const parsed = JSON.parse(savedSettings);
+          if (parsed.public_key) {
+            publicKey = parsed.public_key;
+            console.log('📦 Using public key from localStorage:', publicKey);
+          }
+        }
+      } catch (e) {
+        console.warn('Could not read public key from localStorage:', e);
+      }
+      
+      // Fallback to default key
+      if (!publicKey) {
+        publicKey = 'PUB_aa986ff6713d887e27713cb3457c17cd';
+      }
+    }
+    
+    const apiBase = window.location.origin + '/api/v1';
+    
+    // Create script tag dynamically with the correct public key
+    const script = document.createElement('script');
+    script.src = '/widget/answer24-widget.js?_v=' + Date.now(); // Cache buster
+    script.setAttribute('data-public-key', publicKey);
+    script.setAttribute('data-api-base', apiBase);
+    
+    script.onload = function() {
+      // Show widget info in console
+      console.log('%c🤖 Answer24 Widget Loaded!', 'color: #10b981; font-size: 16px; font-weight: bold;');
+      console.log('📝 Using Public Key:', publicKey);
+      console.log('🔗 API Base:', apiBase);
+      console.log('💡 To use a different key, add ?key=YOUR_PUBLIC_KEY to the URL');
+      console.log('💡 Get your public key from: http://localhost:3000/nl/dashboard/admin/widget');
+      
+      // Force reload settings when page loads to get latest changes
+      setTimeout(() => {
+        if (window.Answer24Widget) {
+          console.log('✅ Widget API:', window.Answer24Widget);
+          // Trigger settings reload
+          window.dispatchEvent(new CustomEvent('widget-settings-updated'));
+        }
+      }, 1500);
+    };
+    
+    document.body.appendChild(script);
   </script>
 </body>
 </html>

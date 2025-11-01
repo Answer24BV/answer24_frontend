@@ -253,7 +253,9 @@ export async function GET(request: NextRequest) {
       status: 200,
       headers: {
         'Content-Type': 'application/json',
-        'Cache-Control': 'public, max-age=300',
+        'Cache-Control': 'no-cache, no-store, must-revalidate', // Don't cache in development
+        'Pragma': 'no-cache',
+        'Expires': '0',
         'ETag': etag,
         'X-Answer24-Signature': signature,
         'X-Answer24-Version': settings.version.toString(),
