@@ -138,15 +138,28 @@
           // Re-apply settings to widget if already rendered
           // Reload the widget to apply new settings
           const existingContainer = document.getElementById('answer24-widget-container');
-          if (existingContainer) {
+          if (existingContainer && existingContainer.parentNode) {
             const wasOpen = isOpen;
-            existingContainer.remove();
+            try {
+              // Safe removal
+              if (existingContainer.parentNode === document.body || 
+                  existingContainer.parentNode.contains(existingContainer)) {
+                existingContainer.remove();
+              } else {
+                existingContainer.parentNode.removeChild(existingContainer);
+              }
+            } catch (removeError) {
+              console.warn('[Answer24 Widget] Error removing existing container:', removeError);
+            }
             await initWidget();
             if (wasOpen) {
               const newWindow = document.getElementById('answer24-chat-window');
               if (newWindow) newWindow.classList.add('open');
               isOpen = true;
             }
+          } else if (existingContainer) {
+            // Container exists but has no parent, just reinit
+            await initWidget();
           }
           return;
         }
@@ -1372,33 +1385,69 @@
       });
     });
     
-    // Listen for settings updates
-    try {
-      window.addEventListener('widget-settings-updated', async () => {
-        console.log('[Answer24 Widget] Settings updated event received, reloading...');
-        await loadSettings(true); // Force reload with cache buster
-        const widgetContainer = document.getElementById('answer24-widget-container');
-        if (widgetContainer) {
-          const wasOpen = isOpen;
-          widgetContainer.remove();
-          await initWidget();
-          if (wasOpen) {
-            const newWindow = document.getElementById('answer24-chat-window');
-            if (newWindow) newWindow.classList.add('open');
-            isOpen = true;
+    // Listen for settings updates (only attach once using a flag)
+    if (!window.__answer24_eventListenersAttached) {
+      try {
+        const handleSettingsUpdate = async () => {
+          console.log('[Answer24 Widget] Settings updated event received, reloading...');
+          await loadSettings(true); // Force reload with cache buster
+          
+          // Safely remove widget container
+          const widgetContainer = document.getElementById('answer24-widget-container');
+          if (widgetContainer && widgetContainer.parentNode) {
+            const wasOpen = isOpen;
+            try {
+              // Safe removal - check if it's actually a child before removing
+              if (widgetContainer.parentNode === document.body || 
+                  widgetContainer.parentNode.contains(widgetContainer)) {
+                widgetContainer.remove();
+              } else {
+                // Fallback: try to remove via parent
+                widgetContainer.parentNode.removeChild(widgetContainer);
+              }
+            } catch (removeError) {
+              console.warn('[Answer24 Widget] Error removing container:', removeError);
+              // If removal fails, try to remove any existing container
+              if (widgetContainer.parentNode) {
+                widgetContainer.parentNode.removeChild(widgetContainer);
+              }
+            }
+            
+            // Reinitialize widget with new settings
+            await initWidget();
+            if (wasOpen) {
+              const newWindow = document.getElementById('answer24-chat-window');
+              if (newWindow) newWindow.classList.add('open');
+              isOpen = true;
+            }
+          } else if (widgetContainer) {
+            // Container exists but has no parent, just reinit
+            await initWidget();
+          } else {
+            // No container, just reload settings
+            await initWidget();
           }
-        }
-      });
-      
-      // Also listen for visibility changes to reload settings when demo page is opened
-      document.addEventListener('visibilitychange', () => {
-        if (!document.hidden) {
-          console.log('[Answer24 Widget] Page visible, checking for settings updates...');
-          loadSettings(true); // Force reload when page becomes visible
-        }
-      });
-    } catch (e) {
-      console.error('[Answer24 Widget] Error setting up event listeners:', e);
+        };
+        
+        window.addEventListener('widget-settings-updated', handleSettingsUpdate);
+        
+        // Also listen for visibility changes to reload settings when demo page is opened
+        const handleVisibilityChange = () => {
+          if (!document.hidden) {
+            console.log('[Answer24 Widget] Page visible, checking for settings updates...');
+            loadSettings(true).catch(err => {
+              console.warn('[Answer24 Widget] Error reloading settings on visibility change:', err);
+            });
+          }
+        };
+        
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+        
+        // Mark as attached
+        window.__answer24_eventListenersAttached = true;
+      } catch (e) {
+        console.error('[Answer24 Widget] Error setting up event listeners:', e);
+      }
     }
     
     console.log('[Answer24 Widget] Initialized successfully');

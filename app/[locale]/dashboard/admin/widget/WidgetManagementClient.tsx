@@ -734,10 +734,26 @@ export default function WidgetManagementClient() {
                 <Label>Position</Label>
                 <Select
                   value={settings.behavior.position}
-                  onValueChange={(value) => setSettings(prev => prev ? {
-                    ...prev,
-                    behavior: { ...prev.behavior, position: value as 'right' | 'left' }
-                  } : null)}
+                  onValueChange={(value) => {
+                    const newSettings = settings ? {
+                      ...settings,
+                      behavior: { ...settings.behavior, position: value as 'right' | 'left' }
+                    } : null;
+                    setSettings(newSettings);
+                    
+                    // Live preview: update localStorage and dispatch event immediately
+                    if (newSettings) {
+                      try {
+                        localStorage.setItem('widget-settings', JSON.stringify(newSettings));
+                        // Only dispatch event if we're not on the settings page itself (to avoid conflicts)
+                        if (!window.location.pathname.includes('/dashboard/admin/widget')) {
+                          window.dispatchEvent(new CustomEvent('widget-settings-updated'));
+                        }
+                      } catch (e) {
+                        console.warn('Could not update localStorage:', e);
+                      }
+                    }
+                  }}
                 >
                   <SelectTrigger>
                     <SelectValue />
