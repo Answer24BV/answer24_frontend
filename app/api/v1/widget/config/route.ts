@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
 import { WIDGET_CONFIG } from '@/lib/widget-config';
+import fs from 'fs';
+import path from 'path';
 
 // PLACEHOLDER: Replace with your actual database/models
 interface WidgetSettings {
@@ -53,59 +55,85 @@ interface WidgetSettings {
   updated_at: string;
 }
 
-// PLACEHOLDER: Mock database - replace with actual database queries
-const mockWidgetSettings: Record<string, WidgetSettings> = {
-  'PUB_abc123': {
-    id: '1',
-    company_id: 'cmp_123',
-    public_key: 'PUB_abc123',
-    allowed_domains: ['shop.nl', '*.shop.nl', 'localhost:3000'],
-    theme: {
-      mode: 'auto',
-      primary: '#0059ff',
-      foreground: '#0f172a',
-      background: '#ffffff',
-      radius: 14,
-      fontFamily: 'Inter, ui-sans-serif',
-      logoUrl: 'https://cdn.answer24.nl/assets/tenants/123/logo.svg'
-    },
-    behavior: {
-      position: 'right',
-      openOnLoad: false,
-      openOnExitIntent: true,
-      openOnInactivityMs: 0,
-      zIndex: 2147483000
-    },
-    features: {
-      chat: true,
-      wallet: true,
-      offers: false,
-      leadForm: false
-    },
-    i18n: {
-      default: 'nl-NL',
-      strings: {
-        'cta.open': 'Vraag & Spaar',
-        'cta.close': 'Sluiten',
-        'placeholder': 'Typ je bericht...',
-        'welcome': 'Hoi! Hoe kan ik je helpen?'
+// File system storage path
+const SETTINGS_DIR = path.join(process.cwd(), 'public', 'widget', 'settings');
+
+/**
+ * Load settings from file system by public key
+ */
+function loadSettingsByPublicKey(publicKey: string): WidgetSettings | null {
+  try {
+    // Read all settings files and find matching public key
+    if (fs.existsSync(SETTINGS_DIR)) {
+      const files = fs.readdirSync(SETTINGS_DIR);
+      for (const file of files) {
+        if (file.endsWith('.json')) {
+          const filePath = path.join(SETTINGS_DIR, file);
+          const data = fs.readFileSync(filePath, 'utf-8');
+          const settings: WidgetSettings = JSON.parse(data);
+          if (settings.public_key === publicKey) {
+            return settings;
+          }
+        }
       }
-    },
-    integrations: {
-      ga4: {
-        measurementId: 'G-XXXX'
-      }
-    },
-    visibility_rules: {
-      includePaths: ['/', '/checkout'],
-      excludePaths: ['/account*'],
-      minCartValue: 0
-    },
-    rate_limit_per_min: 60,
-    version: 1,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
+    }
+  } catch (error) {
+    console.error('Error loading settings by public key:', error);
   }
+  return null;
+}
+
+// PLACEHOLDER: Demo settings for testing
+const demoWidgetSettings: WidgetSettings = {
+  id: '1',
+  company_id: 'cmp_demo',
+  public_key: 'PUB_abc123',
+  allowed_domains: ['shop.nl', '*.shop.nl', 'localhost:3000'],
+  theme: {
+    mode: 'auto',
+    primary: '#0059ff',
+    foreground: '#0f172a',
+    background: '#ffffff',
+    radius: 14,
+    fontFamily: 'Inter, ui-sans-serif',
+    logoUrl: 'https://cdn.answer24.nl/assets/tenants/123/logo.svg'
+  },
+  behavior: {
+    position: 'right',
+    openOnLoad: false,
+    openOnExitIntent: true,
+    openOnInactivityMs: 0,
+    zIndex: 2147483000
+  },
+  features: {
+    chat: true,
+    wallet: true,
+    offers: false,
+    leadForm: false
+  },
+  i18n: {
+    default: 'nl-NL',
+    strings: {
+      'cta.open': 'Vraag & Spaar',
+      'cta.close': 'Sluiten',
+      'placeholder': 'Typ je bericht...',
+      'welcome': 'Hoi! Hoe kan ik je helpen?'
+    }
+  },
+  integrations: {
+    ga4: {
+      measurementId: 'G-XXXX'
+    }
+  },
+  visibility_rules: {
+    includePaths: ['/', '/checkout'],
+    excludePaths: ['/account*'],
+    minCartValue: 0
+  },
+  rate_limit_per_min: 60,
+  version: 1,
+  created_at: new Date().toISOString(),
+  updated_at: new Date().toISOString()
 };
 
 /**
@@ -159,9 +187,16 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Get widget settings
-    const settings = mockWidgetSettings[publicKey];
+    // Get widget settings from file system
+    let settings = loadSettingsByPublicKey(publicKey);
+    
+    // Fallback to demo settings if not found
     if (!settings) {
+      settings = demoWidgetSettings;
+      console.warn(`[Widget Config] Using demo settings for public key: ${publicKey}`);
+    }
+    
+    if (!settings || settings.public_key !== publicKey) {
       return NextResponse.json(
         { error: 'Invalid public key' },
         { status: 404 }

@@ -12,7 +12,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'react-toastify';
 import { tokenUtils } from '@/utils/auth';
-import { getApiUrl } from '@/lib/api-config';
 import { 
   Settings, 
   Key, 
@@ -98,11 +97,18 @@ export default function WidgetManagementClient() {
     try {
       const token = tokenUtils.getToken();
       if (!token) {
+        console.log('[Widget Settings] No token found');
         toast.error('Authentication required');
+        setLoading(false);
+        // Try to load from localStorage as fallback
+        checkLocalStorageFallback();
         return;
       }
 
-      const response = await fetch(getApiUrl('/v1/widget/settings'), {
+      console.log('[Widget Settings] Loading settings with token:', token.substring(0, 20) + '...');
+
+      // Use local Next.js API route
+      const response = await fetch('/api/v1/widget/settings', {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -110,34 +116,132 @@ export default function WidgetManagementClient() {
         }
       });
 
+      console.log('[Widget Settings] Response status:', response.status);
+
       if (response.ok) {
         const data = await response.json();
+        console.log('[Widget Settings] Settings loaded:', data);
         setSettings(data.settings);
       } else if (response.status === 404) {
-        // No widget settings found, create default settings
-        console.log('No widget settings found, creating default settings...');
-        createDefaultSettings();
+        // No widget settings found, create default settings on the backend
+        console.log('[Widget Settings] No settings found (404), creating default settings...');
+        await createDefaultSettingsOnBackend();
+      } else if (response.status === 401) {
+        const errorData = await response.json().catch(() => ({ error: 'Authentication failed' }));
+        console.error('[Widget Settings] Authentication failed (401):', errorData);
+        toast.error('Authentication failed. Please log in again.');
+        // Fallback to local storage
+        checkLocalStorageFallback();
       } else {
-        toast.error('Failed to load widget settings');
+        const errorData = await response.json().catch(() => ({ error: 'Failed to load widget settings' }));
+        console.error('[Widget Settings] Error response:', errorData);
+        toast.error(errorData.error || 'Failed to load widget settings');
+        // Fallback to local storage
+        checkLocalStorageFallback();
       }
     } catch (error) {
-      console.error('Error loading widget settings:', error);
+      console.error('[Widget Settings] Error loading widget settings:', error);
       // If API is not available, check for locally saved settings
-      console.log('API not available, checking for locally saved settings...');
-      const localSettings = localStorage.getItem('widget-settings');
-      if (localSettings) {
-        try {
-          setSettings(JSON.parse(localSettings));
-          toast.info('Loaded widget settings from local storage');
-        } catch (parseError) {
-          console.error('Error parsing local settings:', parseError);
-          createDefaultSettings();
-        }
-      } else {
-        createDefaultSettings();
-      }
+      console.log('[Widget Settings] API not available, checking for locally saved settings...');
+      checkLocalStorageFallback();
     } finally {
       setLoading(false);
+    }
+  };
+
+  const checkLocalStorageFallback = () => {
+    const localSettings = localStorage.getItem('widget-settings');
+    if (localSettings) {
+      try {
+        setSettings(JSON.parse(localSettings));
+        toast.info('Loaded widget settings from local storage');
+      } catch (parseError) {
+        console.error('Error parsing local settings:', parseError);
+        createDefaultSettings();
+      }
+    } else {
+      createDefaultSettings();
+    }
+  };
+
+  const createDefaultSettingsOnBackend = async () => {
+    try {
+      const token = tokenUtils.getToken();
+      if (!token) {
+        createDefaultSettings();
+        return;
+      }
+
+      const defaultSettings = {
+        allowed_domains: ['localhost', '127.0.0.1', 'localhost:3000'],
+        theme: {
+          mode: 'auto',
+          primary: '#0059ff',
+          foreground: '#0f172a',
+          background: '#ffffff',
+          radius: 14,
+          fontFamily: 'Inter, ui-sans-serif',
+          logoUrl: 'https://cdn.answer24.nl/assets/tenants/default/logo.svg'
+        },
+        behavior: {
+          position: 'right',
+          openOnLoad: false,
+          openOnExitIntent: true,
+          openOnInactivityMs: 0,
+          zIndex: 2147483000
+        },
+        features: {
+          chat: true,
+          wallet: true,
+          offers: false,
+          leadForm: false
+        },
+        i18n: {
+          default: 'en-US',
+          strings: {
+            'cta.open': 'Ask & Save',
+            'chat.welcome': 'Hi there! How can I help you today?',
+            'chat.placeholder': 'Type your message...',
+            'chat.send': 'Send',
+            'chat.settings': 'Settings',
+            'chat.close': 'Close'
+          }
+        },
+        integrations: {
+          ga4: {
+            measurementId: 'G-XXXX'
+          }
+        },
+        visibility_rules: {
+          includePaths: ['*'],
+          excludePaths: [],
+          minCartValue: 0
+        },
+        rate_limit_per_min: 60
+      };
+
+      const response = await fetch('/api/v1/widget/settings', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(defaultSettings)
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        // Reload settings to get the full object with ID, public_key, etc.
+        await loadWidgetSettings();
+        toast.success('Default widget settings created successfully!');
+      } else {
+        // If backend creation fails, use local defaults
+        console.log('Failed to create settings on backend, using local defaults');
+        createDefaultSettings();
+      }
+    } catch (error) {
+      console.error('Error creating default settings on backend:', error);
+      createDefaultSettings();
     }
   };
 
@@ -206,7 +310,8 @@ export default function WidgetManagementClient() {
     setSaving(true);
     try {
       const token = tokenUtils.getToken();
-      const response = await fetch(getApiUrl('/v1/widget/settings'), {
+      // Use local Next.js API route
+      const response = await fetch('/api/v1/widget/settings', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -216,15 +321,17 @@ export default function WidgetManagementClient() {
       });
 
       if (response.ok) {
+        const data = await response.json();
         toast.success('Widget settings saved successfully!');
         await loadWidgetSettings(); // Reload to get updated version
         // Notify all widgets to reload settings
         window.dispatchEvent(new CustomEvent('widget-settings-updated'));
       } else {
+        const errorData = await response.json().catch(() => ({ error: 'Failed to save settings' }));
         // If backend is not available, save locally
         console.log('Backend not available, saving settings locally...');
         localStorage.setItem('widget-settings', JSON.stringify(settings));
-        toast.success('Widget settings saved locally! (Backend not available)');
+        toast.warning('Widget settings saved locally! (Backend not available)');
         // Notify all widgets to reload settings
         window.dispatchEvent(new CustomEvent('widget-settings-updated'));
       }
@@ -233,7 +340,7 @@ export default function WidgetManagementClient() {
       // If API is not available, save locally
       console.log('API not available, saving settings locally...');
       localStorage.setItem('widget-settings', JSON.stringify(settings));
-      toast.success('Widget settings saved locally! (Backend not available)');
+      toast.warning('Widget settings saved locally! (Backend not available)');
       // Notify all widgets to reload settings
       window.dispatchEvent(new CustomEvent('widget-settings-updated'));
     } finally {
@@ -244,7 +351,8 @@ export default function WidgetManagementClient() {
   const rotatePublicKey = async () => {
     try {
       const token = tokenUtils.getToken();
-      const response = await fetch(getApiUrl('/v1/widget/rotate-key'), {
+      // Use local Next.js API route
+      const response = await fetch('/api/v1/widget/rotate-key', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -257,7 +365,8 @@ export default function WidgetManagementClient() {
         setSettings(prev => prev ? { ...prev, public_key: data.new_public_key } : null);
         toast.success('Public key rotated successfully!');
       } else {
-        toast.error('Failed to rotate public key');
+        const errorData = await response.json().catch(() => ({ error: 'Failed to rotate public key' }));
+        toast.error(errorData.error || 'Failed to rotate public key');
       }
     } catch (error) {
       console.error('Error rotating public key:', error);
