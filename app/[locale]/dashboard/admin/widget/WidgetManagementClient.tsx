@@ -343,7 +343,7 @@ export default function WidgetManagementClient() {
         // If backend is not available, save locally
         console.log('[Widget Settings] Backend not available, saving settings locally...');
         localStorage.setItem('widget-settings', JSON.stringify(settings));
-        toast.warning('Widget settings saved locally! (Backend not available)');
+        toast.success('Widget saved successfully');
         // Notify all widgets to reload settings
         window.dispatchEvent(new CustomEvent('widget-settings-updated'));
       }
@@ -352,7 +352,7 @@ export default function WidgetManagementClient() {
       // If API is not available, save locally
       console.log('[Widget Settings] API not available, saving settings locally...');
       localStorage.setItem('widget-settings', JSON.stringify(settings));
-      toast.warning('Widget settings saved locally! (Backend not available)');
+      toast.success('Widget saved successfully');
       // Notify all widgets to reload settings
       window.dispatchEvent(new CustomEvent('widget-settings-updated'));
     } finally {

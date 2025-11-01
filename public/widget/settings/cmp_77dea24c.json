@@ -9,7 +9,7 @@
   ],
   "theme": {
     "mode": "auto",
-    "primary": "#622727",
+    "primary": "#880ced",
     "foreground": "#0f172a",
     "background": "#ffffff",
     "radius": 14,
@@ -53,7 +53,7 @@
     "minCartValue": 0
   },
   "rate_limit_per_min": 60,
-  "version": 8,
+  "version": 10,
   "created_at": "2025-11-01T14:01:39.914Z",
-  "updated_at": "2025-11-01T14:26:39.753Z"
+  "updated_at": "2025-11-01T14:30:08.735Z"
 }
